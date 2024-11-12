@@ -3,7 +3,7 @@ import pygame
 pygame.init()
 
 win = pygame.display.set_mode((1000, 500))
-bg_img = pygame.image.load('akdi31.jpg')
+bg_img = pygame.image.load('akdi30.jpg')
 bg = pygame.transform.scale(bg_img, (1000, 500))  
 width = 1000
 
