@@ -4,6 +4,7 @@ from pygame import Color
 import pygame
 
 from .label import Label
+from audio.audio_manager import AUDIO_MANAGER
 
 BUTTONS_PATH: str = './game_images/gui/buttons/'
 
@@ -30,8 +31,13 @@ class Button(Label):
             # Load images for default and hover states
             self.default_bg_image = pygame.image.load(BUTTONS_PATH + default_bg_image_path).convert_alpha()
             self.hover_bg_image = pygame.image.load(BUTTONS_PATH + hover_bg_image_path).convert_alpha()
+
+            # Resize images to specified dimensions if width and height are provided
+            if width and height:
+                self.default_bg_image = pygame.transform.scale(self.default_bg_image, (width, height))
+                self.hover_bg_image = pygame.transform.scale(self.hover_bg_image, (width, height))
             
-            # Get button dimensions from the image if specified
+            # Get button dimensions from the image if no width/height are provided
             image_rect = self.default_bg_image.get_rect()
             button_width, button_height = image_rect.w, image_rect.h
         else:
@@ -59,14 +65,18 @@ class Button(Label):
 
 
 
+
     def press(self):
         """Execute the assigned action for the button."""
+        AUDIO_MANAGER.play_sound("BUTTON_CLICK_SOUND")
         self.on_click()
 
     def select(self):
         """Apply hover state to the button."""
         if not self.is_hovered:
             self.is_hovered = True
+
+            AUDIO_MANAGER.play_sound("BUTTON_HOVER_SOUND")
             
             # Update background based on whether an image or color is used
             if self.bg_image:
@@ -76,6 +86,8 @@ class Button(Label):
             
             # Re-render to apply changes
             self.render()
+
+            self.dirty = True
 
     def unselect(self):
         """Revert to the default button state."""
@@ -90,3 +102,5 @@ class Button(Label):
             
             # Re-render to apply changes
             self.render()
+
+            self.dirty = True

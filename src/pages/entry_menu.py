@@ -18,6 +18,7 @@ class EntryMenu(Page):
         
         self.QUIT = False
         self.showing = False
+        self.current_selected_option = 0  # Index to track selected option
         
         # Load and scale background image
         self._bg_image = pygame.image.load('./game_images/forest_background.png').convert()
@@ -26,6 +27,7 @@ class EntryMenu(Page):
         # Initialize menu labels and buttons
         self.labels = [Label("Cave Game", WIDTH / 2, 220)]
         self.buttons = [
+            Button("", WIDTH - 50, 50, width=100, height=100, font_size=60, on_click=self.go_to_settings_page, default_bg_image_path='sprite_sett0.png', hover_bg_image_path='sprite_sett1.png'),
             Button("Worlds", WIDTH / 2, 400, width=400, font_size=60, on_click=self.go_to_worlds_page), 
             Button("New World", WIDTH / 2, 550, width=440, font_size=60),
             Button("Quit", WIDTH / 2, 700, width=300, font_size=60, on_click=self.quit_action),
@@ -38,6 +40,9 @@ class EntryMenu(Page):
         self.canvas = LayeredUpdates(self.elements)
 
         self.resize(pygame.display.get_window_size())
+    
+    def reset(self):
+        self.unselect_all()
 
     def quit_action(self):
         """
@@ -50,6 +55,12 @@ class EntryMenu(Page):
         Action to trigger a custom event that changes the page to the WorldsPage.
         """
         pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'worlds_page'}))
+    
+    def go_to_settings_page(self):
+        """
+        Action to trigger a custom event that changes the page to the WorldsPage.
+        """
+        pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'settings'}))
 
     def resize(self, display_size):
         """
@@ -67,7 +78,7 @@ class EntryMenu(Page):
 
     def handle_events(self, event):
         """
-        Process user input events including window resize, mouse movement, and clicks.
+        Process user input events including window resize, mouse movement, clicks, and key presses.
         """
         if event.type == pygame.QUIT:
             self.QUIT = True
@@ -76,28 +87,59 @@ class EntryMenu(Page):
         elif event.type == pygame.MOUSEMOTION:
             self._handle_mouse_motion(event.pos)
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            self._handle_mouse_click(event)
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            self.quit_action()
+            if event.button == 1:  # Left mouse button
+                self._handle_mouse_click(event.pos)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.quit_action()
+            elif event.key == pygame.K_DOWN:
+                self.current_selected_option = (self.current_selected_option + 1) % len(self.buttons)
+                self.highlight_selected()
+            elif event.key == pygame.K_UP:
+                self.current_selected_option = (self.current_selected_option - 1) % len(self.buttons)
+                self.highlight_selected()
+            elif event.key == pygame.K_RETURN:
+                self.buttons[self.current_selected_option].press()
 
     def _handle_mouse_motion(self, mouse_pos):
         """
-        Check if the mouse is hovering over any buttons and adjust selection state.
+        Check if the mouse is hovering over any buttons and adjust the selection state.
         """
-        for button in self.buttons:
+        for i, button in enumerate(self.buttons):
             if button.rect.collidepoint(mouse_pos):
+                self.current_selected_option = i
+                self.highlight_selected()
+                return
+
+        self.unselect_all()
+        self.current_selected_option = -1  # Indicate no button is selected
+
+    def _handle_mouse_click(self, mouse_pos):
+        """
+        Handle mouse clicks, triggering the action for the hovered button.
+        """
+        for i, button in enumerate(self.buttons):
+            if button.rect.collidepoint(mouse_pos):
+                self.current_selected_option = i
+                button.press()
+                return
+
+    def highlight_selected(self):
+        """
+        Highlight the currently selected button.
+        """
+        for i, button in enumerate(self.buttons):
+            if i == self.current_selected_option:
                 button.select()
             else:
                 button.unselect()
 
-    def _handle_mouse_click(self, event):
+    def unselect_all(self):
         """
-        Process mouse button clicks. You can add custom actions here.
+        Unhighlight all buttons.
         """
-        if event.button == 1:
-            for button in self.buttons:
-                if button.rect.collidepoint(event.pos):
-                    button.press()  # Perform button action on click
+        for button in self.buttons:
+            button.unselect()
 
     def update(self):
         """

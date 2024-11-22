@@ -1,0 +1,22 @@
+{
+    "1": {
+        "name": "Tree",
+        "dimensions": [1, [5, 10]],
+        "health": [90, 110]
+    },
+    "2": {
+        "name": "Chest",
+        "dimensions": [1, 1],
+        "health": 50 
+    },
+    "3": {
+        "name": "Rock",
+        "dimensions": [2, 3],
+        "health": [180, 220]  
+    },
+    "4": {
+        "name": "Boulder",
+        "dimensions": [1, 3],
+        "health": [300, 400] 
+    }
+}

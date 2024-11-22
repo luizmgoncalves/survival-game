@@ -47,6 +47,13 @@ class WorldsPage(Page):
         self.current_world_index = 0
         self.animating = False
         self.animation_progress = 0  # Used for tracking animation progress
+    
+    def reset(self):
+        self.unselect_all()
+    
+    def unselect_all(self):
+        for button in self.buttons:
+            button.unselect()
 
     def go_back_to_entry_menu(self):
         """

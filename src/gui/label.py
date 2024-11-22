@@ -1,4 +1,4 @@
-from pygame.sprite import Sprite, LayeredUpdates
+from pygame.sprite import DirtySprite, LayeredUpdates
 from pygame.font import SysFont
 from pygame.rect import Rect
 from pygame.color import Color
@@ -6,7 +6,7 @@ from pygame.surface import Surface
 
 import pygame
 
-class Label(Sprite):
+class Label(DirtySprite):
     def __init__(self, 
                  text: str, 
                  x: int, y: int, 

@@ -19,15 +19,11 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == commons.CHANGE_PAGE_EVENT:
-            page_manager.set_page(event.page)
         
         page_manager.handle_events(event)
 
     page_manager.update()
-    screen.fill((0, 0, 0))
     page_manager.draw(screen)
     pygame.time.delay(20)
-    pygame.display.flip()
 
 pygame.quit()

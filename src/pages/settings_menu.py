@@ -22,18 +22,17 @@ class SettingsPage(Page):
         # Labels and buttons for settings options
         self.labels = [Label("Settings", commons.WIDTH / 2, 100)]
         self.buttons = [
-            Button("Master Volume", commons.WIDTH / 2, 250, width=400, font_size=60, on_click=self.adjust_master_volume),
-            Button("Music Volume", commons.WIDTH / 2, 350, width=400, font_size=60, on_click=self.adjust_music_volume),
-            Button("Sound Effects Volume", commons.WIDTH / 2, 450, width=400, font_size=60, on_click=self.adjust_sfx_volume),
-            Button("Mute", commons.WIDTH / 2, 550, width=200, font_size=60, on_click=self.toggle_mute),
-            Button("Difficulty", commons.WIDTH / 2, 650, width=300, font_size=60, on_click=self.change_difficulty),
-            Button("Back", commons.WIDTH / 2, 750, width=200, font_size=60, on_click=self.go_back)
+            Button("Master Volume", commons.WIDTH / 2, 250, width=400, height=80, font_size=60, on_click=self.adjust_master_volume),
+            Button("Music Volume", commons.WIDTH / 2, 350, width=400, height=80, font_size=60, on_click=self.adjust_music_volume),
+            Button("Sound Effects Volume", commons.WIDTH / 2, 450, width=440, height=80, font_size=60, on_click=self.adjust_sfx_volume),
+            Button("Mute", commons.WIDTH / 2, 550, width=200, height=80, font_size=60, on_click=self.toggle_mute),
+            Button("Difficulty", commons.WIDTH / 2, 650, width=300, height=80, font_size=60, on_click=self.change_difficulty),
+            Button("Back", commons.WIDTH / 2, 750, width=200, height=80, font_size=60, on_click=self.go_back)
         ]
         
         # Set up elements for canvas and highlight selected option
         self.elements = self.labels + self.buttons
         self.canvas = LayeredUpdates(self.elements)
-        self.highlight_selected()
         
         # Resize elements to initial screen size
         self.resize(pygame.display.get_window_size())
@@ -46,6 +45,17 @@ class SettingsPage(Page):
             if i == self.current_selected_option:
                 button.select()  # Custom method to visually select a button
             else:
+                button.unselect()  # Custom method to visually deselect a button
+    
+    def reset(self):
+        self.unselect_all()
+    
+    def unselect_all(self):
+        """
+        Unhighlight all buttons.
+        """
+        for i, button in enumerate(self.buttons):
+            if i == self.current_selected_option:
                 button.unselect()  # Custom method to visually deselect a button
 
     def adjust_master_volume(self):
@@ -72,7 +82,7 @@ class SettingsPage(Page):
         """
         Go back to the previous page (typically the main menu).
         """
-        pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'entry_menu'}))
+        pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'entry'}))
 
     def handle_events(self, event):
         """
@@ -93,7 +103,8 @@ class SettingsPage(Page):
             self._handle_mouse_motion(event.pos)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
-                self.buttons[self.current_selected_option].press()
+                if self.buttons[self.current_selected_option].is_hovered:
+                    self.buttons[self.current_selected_option].press()
 
     def _handle_mouse_motion(self, mouse_pos):
         """
@@ -103,7 +114,9 @@ class SettingsPage(Page):
             if button.rect.collidepoint(mouse_pos):
                 self.current_selected_option = i
                 self.highlight_selected()
-                break
+                return
+        
+        self.unselect_all()
 
     def resize(self, display_size):
         """

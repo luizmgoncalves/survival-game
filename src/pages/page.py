@@ -6,6 +6,17 @@ class Page(ABC):
     def __init__(self):
         pass
 
+    def opened(self):
+        """Update the page when it is open."""
+        pass
+
+    @abstractmethod
+    def reset(self):
+        """
+        Reset the state of the page.
+        """
+        pass
+
     @abstractmethod
     def handle_events(self, event):
         """Handle events specific to the page (e.g., button clicks)."""
