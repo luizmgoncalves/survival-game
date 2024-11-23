@@ -4,6 +4,7 @@ from gui.button import Button
 from gui.label import Label
 from .page import Page
 import commons
+import images.image_loader as image_loader
 
 ANIMATION_SPEED = 50  # Controls the speed of the animation
 
@@ -18,7 +19,7 @@ class WorldsPage(Page):
         self.showing = False
         
         # Load and scale background image
-        self._bg_image = pygame.image.load('./game_images/forest_background.png').convert()
+        self._bg_image = image_loader.IMAGE_LOADER.get_image("WALLPAPER")
         self.bg_image = self._bg_image
         
         # Initialize labels and buttons
@@ -26,8 +27,18 @@ class WorldsPage(Page):
         self.buttons = [
             Button("Back to Entry Menu", commons.WIDTH / 2, 900, width=440, font_size=60, on_click=self.go_back_to_entry_menu),
         ]
+
+        self.no_worlds = Label("You have no worlds yet", commons.WIDTH / 2, commons.HEIGHT / 2)
+
+        # Set up layered canvas for drawing elements
+        self.canvas = LayeredUpdates()
         
-        # Load worlds from the database
+        self.reset()
+    
+    def reset(self):
+        self.unselect_all()
+
+         # Load worlds from the database
         self.worlds = self.load_worlds()
         self.world_buttons = self.create_world_buttons()
 
@@ -37,19 +48,19 @@ class WorldsPage(Page):
 
         # Combine labels, buttons, and world buttons for unified handling
         self.elements = self.labels + self.buttons + self.world_buttons
+
+        if not self.worlds:
+            self.elements.append(self.no_worlds)
         
-        # Set up layered canvas for drawing elements
-        self.canvas = LayeredUpdates(self.elements)
-        
+        self.canvas.empty()
+        self.canvas.add(self.elements)
+
         self.resize(pygame.display.get_window_size())
         
         # Tracking the current world button index
         self.current_world_index = 0
         self.animating = False
         self.animation_progress = 0  # Used for tracking animation progress
-    
-    def reset(self):
-        self.unselect_all()
     
     def unselect_all(self):
         for button in self.buttons:
@@ -65,7 +76,7 @@ class WorldsPage(Page):
         """
         Load world names from the database.
         """
-        worlds = ['World 1', 'World 2']
+        worlds = ['World 1']
         #cursor = self.db.cursor()
         #cursor.execute("SELECT name FROM worlds")  # Modify as per your database schema
         #rows = cursor.fetchall()
@@ -151,7 +162,7 @@ class WorldsPage(Page):
         if self.animating:
             return  # If an animation is already in progress, prevent switching worlds
 
-        if not self.world_buttons:
+        if len(self.world_buttons) <= 1:
             return  # No world buttons to switch
  
         self.animating = True

@@ -4,6 +4,7 @@ from gui.label import Label
 from .page import Page
 import commons
 import pygame
+import images.image_loader as image_loader
 
 WIDTH, HEIGHT = 1920, 1080
 
@@ -21,13 +22,13 @@ class EntryMenu(Page):
         self.current_selected_option = 0  # Index to track selected option
         
         # Load and scale background image
-        self._bg_image = pygame.image.load('./game_images/forest_background.png').convert()
+        self._bg_image = image_loader.IMAGE_LOADER.get_image('WALLPAPER')
         self.bg_image = self._bg_image
         
         # Initialize menu labels and buttons
         self.labels = [Label("Cave Game", WIDTH / 2, 220)]
         self.buttons = [
-            Button("", WIDTH - 50, 50, width=100, height=100, font_size=60, on_click=self.go_to_settings_page, default_bg_image_path='sprite_sett0.png', hover_bg_image_path='sprite_sett1.png'),
+            Button("settings", WIDTH - 50, 50, width=100, height=80, font_size=60, on_click=self.go_to_settings_page),
             Button("Worlds", WIDTH / 2, 400, width=400, font_size=60, on_click=self.go_to_worlds_page), 
             Button("New World", WIDTH / 2, 550, width=440, font_size=60),
             Button("Quit", WIDTH / 2, 700, width=300, font_size=60, on_click=self.quit_action),
@@ -69,7 +70,7 @@ class EntryMenu(Page):
         scale_x, scale_y = display_size[0] / WIDTH, display_size[1] / HEIGHT
 
         # Scale the background image to fit the new screen size
-        self.bg_image = pygame.transform.scale(self._bg_image, display_size).convert()
+        self.bg_image = pygame.transform.smoothscale(self._bg_image, display_size).convert()
 
         # Resize and re-render each menu element
         for element in self.elements:

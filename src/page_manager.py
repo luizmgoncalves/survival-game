@@ -19,9 +19,8 @@ class PageManager:
                 page.resize(event.size)
 
         if event.type == commons.CHANGE_PAGE_EVENT:
-            self.current_page.reset()
             self.set_page(event.page)
-            self.current_page.opened()
+            self.current_page.reset()
 
         if self.current_page:
             self.current_page.handle_events(event)

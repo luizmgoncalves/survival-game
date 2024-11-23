@@ -2,14 +2,14 @@ import numpy as np
 import pygame
 from random import randint
 from perlin_noise import PerlinNoise
+from .world_elements.chunk import Chunk
+from .world_elements.block_metadata_loader import BLOCK_METADATA
 
 
 class WorldGenerator:
     """
     A class to generate chunks using the PerlinNoise class.
     """
-
-    CHUNK_SIZE = 16
     LAYERS = 2  # Only two layers
 
     def __init__(self):
@@ -18,8 +18,7 @@ class WorldGenerator:
 
         :param noise_generator: An instance of PerlinNoise.
         """
-        self.underground_noise_generator = PerlinNoise(octaves=3)
-        self.surface_noise_generator = PerlinNoise(octaves=3)
+        self.noise_generator = PerlinNoise(octaves=3)
 
     def generate_chunk(self, chunk_pos):
         """
@@ -28,25 +27,51 @@ class WorldGenerator:
         :param chunk_pos: Tuple of (chunk_x, chunk_y) defining the chunk's position.
         :return: A Chunk object with generated terrain.
         """
-        blocks_grid = np.zeros((self.LAYERS, self.CHUNK_SIZE, self.CHUNK_SIZE), dtype=int)
-        collidible_grid = np.zeros((self.CHUNK_SIZE, self.CHUNK_SIZE), dtype=bool)
+
+        GRASS = BLOCK_METADATA.get_id_by_name("GRASS") # Get the ID for the "GRASS" block.
+        DIRT  = BLOCK_METADATA.get_id_by_name("DIRT")  # Get the ID for the "DIRT" block.
+        STONE = BLOCK_METADATA.get_id_by_name("STONE") # Get the ID for the "STONE" block.
+
+
+        blocks_grid = np.zeros((self.LAYERS, Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE), dtype=int)
+        collidible_grid = np.zeros((Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE), dtype=bool)
 
         # Generate block data for each position
         base_x, base_y = chunk_pos
-        for y in range(self.CHUNK_SIZE):
-            for x in range(self.CHUNK_SIZE):
+        for y in range(Chunk.CHUNK_SIZE):
+            for x in range(Chunk.CHUNK_SIZE):
                 # Calculate global block position
-                world_x = base_x * self.CHUNK_SIZE + x
-                world_y = base_y * self.CHUNK_SIZE + y
+                world_x = base_x * Chunk.CHUNK_SIZE + x
+                world_y = base_y * Chunk.CHUNK_SIZE + y
 
                 # Get Perlin noise value
-                surface_y = int(self.noise_generator.get_noise(world_x/100, 0) * 100)
-                unoise = self.noise_generator.get_noise(world_x/100, world_y/100)
+                surface_y = int(self.noise_generator.get_noise(world_x/100, 0) * 100) # 0 - 100
+                unoise = self.noise_generator.get_noise(world_x/100, world_y/100)  # 0.0 - 1.0
 
                 # Map noise to two layers: 0 = air, 1 = ground, 2 = stone
-                if world_y == surface_y:
+                if world_y == surface_y: # Surface
                     if unoise >= 0.02:
-                        blocks_grid[0, x, y] = 1
+                        blocks_grid[0, x, y] = GRASS
+                        collidible_grid[x, y] = True
+                    
+                    blocks_grid[1, x, y] = GRASS
+                
+                elif world_y > surface_y: # Underground
+                    if unoise >= 0.4:
+                        blocks_grid[1, x, y] = STONE
+                        blocks_grid[0, x, y] = STONE
+                        collidible_grid[x, y] = True
+
+                    elif unoise >= 0.3:
+                        blocks_grid[1, x, y] = DIRT
+                        blocks_grid[0, x, y] = DIRT
+                        collidible_grid[x, y] = True
+                    
+                    
+
+
+
+
 
         # Create a Chunk object
         chunk = Chunk(

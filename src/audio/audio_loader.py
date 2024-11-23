@@ -1,5 +1,6 @@
 import pygame
 import json
+import commons
 
 class AudioLoader:
     """
@@ -20,14 +21,12 @@ class AudioLoader:
     }
     """
 
-    METADATA_PATH = './assets/audio/metadata.json'
-
-    DEFAULT_SOUND_PATH = './assets/audio/sounds/'
+    FILENAME = 'audio_metadata.json'
 
     def __init__(self):
         """Initialize the loader and load audio data from the assets metadata JSON file."""
         self.audio_files = {}
-        self.load_from_json(self.METADATA_PATH)
+        self.load_from_json(commons.METADATA_PATH + self.FILENAME)
 
     def load_from_json(self, json_path):
         """Load audio files defined in a JSON file."""
@@ -44,7 +43,7 @@ class AudioLoader:
     def load_audio(self, name, file_path):
         """Loads an audio file and associates it with a name."""
         try:
-            sound = pygame.mixer.Sound(self.DEFAULT_SOUND_PATH + file_path)
+            sound = pygame.mixer.Sound(commons.DEFAULT_SOUND_PATH + file_path)
             self.audio_files[name] = sound
         except pygame.error as e:
             print(f"Error loading {file_path}: {e}")

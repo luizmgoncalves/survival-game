@@ -4,6 +4,7 @@ from .page import Page
 #from managers.render_manager import RenderManager
 #from managers.physics_manager import PhysicsManager
 import commons
+from images.image_loader import IMAGE_LOADER
 
 class GamePage(Page):
     def __init__(self):
@@ -18,7 +19,7 @@ class GamePage(Page):
         self.physics_manager = None # PhysicsManager()
 
         # Set up background image or color if needed
-        self._bg_image = pygame.image.load('./game_images/game_background.png').convert()
+        self._bg_image = IMAGE_LOADER.get_image("WALLPAPER")
         self.bg_image = self._bg_image
 
         # For holding any entities or game objects

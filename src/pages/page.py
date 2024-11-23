@@ -6,10 +6,6 @@ class Page(ABC):
     def __init__(self):
         pass
 
-    def opened(self):
-        """Update the page when it is open."""
-        pass
-
     @abstractmethod
     def reset(self):
         """

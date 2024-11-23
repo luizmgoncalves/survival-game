@@ -1,16 +1,18 @@
-from .db import WorldLoader
+from .world_loader import WorldLoader
 from .world_elements.chunk import Chunk
+from .world_generator import WorldGenerator
 
 class World:
     def __init__(self, world_name):
         """
         Initialize the world with its name, an empty chunk dictionary,
-        and a database interface.
+        a database interface, and a world generator.
         """
         self.world_name   : str         = world_name
         self.all_chunks   : dict        = {}
         self.db_interface : WorldLoader = WorldLoader()
         self.world_id     : int         = self._get_world_id()
+        self.generator    : WorldGenerator = WorldGenerator()
 
         if self.world_id is None:
             raise ValueError(f"World '{self.world_name}' does not exist in the database.")
@@ -24,33 +26,39 @@ class World:
     def load_chunk(self, chunk_x, chunk_y, chunk_size):
         """
         Load a specific chunk by its coordinates.
-        Data is loaded for the given chunk size, and optionally filtered by health.
+        If the chunk does not exist in the database, generate a new chunk.
         """
         chunk_key = (chunk_x, chunk_y)
         if chunk_key in self.all_chunks:
             return self.all_chunks[chunk_key]  # Return already loaded chunk
-
-        # Create a new chunk
-        chunk = Chunk(chunk_x, chunk_y)
+        
         x_min = chunk_x * chunk_size
         x_max = x_min + chunk_size - 1
         y_min = chunk_y * chunk_size
-        y_max = y_min + chunk_size - 1
+        y_max = y_min + chunk_size - 1 
 
-        # Load blocks (no health filtering for blocks)
+        # Try loading data from the database
         blocks = self.db_interface.load_blocks(self.world_id, x_min, x_max, y_min, y_max)
-        for block in blocks:
-            chunk.add_block(block)
+        static_objects = self.db_interface.load_static_objects(self.world_id, x_min, x_max, y_min, y_max)
+        moving_entities = self.db_interface.load_moving_entities(self.world_id, x_min, x_max, y_min, y_max)
 
-        # Load static objects with optional health filter
-        static_objects = self.db_interface.load_static_objects(self.world_id, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max)
-        for static_object in static_objects:
-            chunk.add_static_object(static_object)
+        if not blocks and not static_objects and not moving_entities:
+            # Generate a new chunk if no data exists
+            chunk = self.generator.generate_chunk(chunk_x, chunk_y, chunk_size)
 
-        # Load moving entities with optional health filter
-        moving_entities = self.db_interface.load_moving_entities(self.world_id, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max)
-        for entity in moving_entities:
-            chunk.add_moving_entity(entity)
+            # Optionally, save the generated chunk back to the database here
+
+        else:
+            # Create a new chunk
+            chunk = Chunk(chunk_x, chunk_y)
+
+            # Add loaded data to the chunk
+            for block in blocks:
+                chunk.add_block(block)
+            for static_object in static_objects:
+                chunk.add_static_object(static_object)
+            for entity in moving_entities:
+                chunk.add_moving_entity(entity)
 
         # Store the chunk in the dictionary
         self.all_chunks[chunk_key] = chunk

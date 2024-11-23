@@ -1,11 +1,12 @@
 from .static_element import StaticElement
 import json
+import commons
 import random
 from pathlib import Path
 
 class StaticElementMetadataLoader:
 
-    DEFAULT_PATH = './assets/elements_metadata/static_elements_meta.json'
+    FILENAME = 'static_elements_meta.json'
 
     def __init__(self):
         """
@@ -13,7 +14,7 @@ class StaticElementMetadataLoader:
 
         :param metadata_file: Path to the JSON file containing static element metadata.
         """
-        self.metadata_file = Path(self.DEFAULT_PATH)
+        self.metadata_file = Path(commons.METADATA_PATH + self.FILENAME)
         self.metadata = {}
 
         self._load_metadata()

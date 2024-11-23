@@ -4,6 +4,7 @@ from gui.label import Label
 from .page import Page
 import pygame
 import commons
+import images.image_loader as image_loader
 
 class SettingsPage(Page):
     def __init__(self):
@@ -16,7 +17,7 @@ class SettingsPage(Page):
         self.current_selected_option = 0  # Index to track selected option
         
         # Load and scale the background image
-        self._bg_image = pygame.image.load('./game_images/forest_background.png').convert()
+        self._bg_image = image_loader.IMAGE_LOADER.get_image("WALLPAPER")
         self.bg_image = self._bg_image
 
         # Labels and buttons for settings options

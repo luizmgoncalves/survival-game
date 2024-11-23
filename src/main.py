@@ -3,9 +3,12 @@ import pygame
 from page_manager import PageManager
 from pages import EntryMenu, WorldsPage, SettingsPage
 import commons
+import images.image_loader as image_loader
 
 pygame.init()
 screen = pygame.display.set_mode((1920/2, 1080/2), pygame.RESIZABLE)
+
+image_loader.IMAGE_LOADER.init()
 
 page_manager = PageManager()
 page_manager.add_page("entry", EntryMenu())

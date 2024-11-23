@@ -1,12 +1,13 @@
 import sqlite3
 import os
+import commons
 
 class WorldLoader:
-    DEFAULT_DB_PATH = './assets/database/'
+    FILENAME = 'game.db'
 
-    def __init__(self, db_name='game.db'):
+    def __init__(self):
         """Initialize the WorldLoader with the database name."""
-        self.db_name = self.DEFAULT_DB_PATH + db_name
+        self.db_name = commons.DEFAULT_DB_PATH + self.FILENAME
         self._ensure_database()
 
     def _ensure_database(self):
