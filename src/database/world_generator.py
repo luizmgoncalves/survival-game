@@ -4,6 +4,7 @@ from random import randint
 from perlin_noise import PerlinNoise
 from .world_elements.chunk import Chunk
 from .world_elements.block_metadata_loader import BLOCK_METADATA
+import commons
 
 
 class WorldGenerator:
@@ -33,16 +34,16 @@ class WorldGenerator:
         STONE = BLOCK_METADATA.get_id_by_name("STONE") # Get the ID for the "STONE" block.
 
 
-        blocks_grid = np.zeros((self.LAYERS, Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE), dtype=int)
-        collidible_grid = np.zeros((Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE), dtype=bool)
+        blocks_grid = np.zeros((self.LAYERS, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)
+        collidible_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)
 
         # Generate block data for each position
         base_x, base_y = chunk_pos
-        for y in range(Chunk.CHUNK_SIZE):
-            for x in range(Chunk.CHUNK_SIZE):
+        for y in range(commons.CHUNK_SIZE):
+            for x in range(commons.CHUNK_SIZE):
                 # Calculate global block position
-                world_x = base_x * Chunk.CHUNK_SIZE + x
-                world_y = base_y * Chunk.CHUNK_SIZE + y
+                world_x = base_x * commons.CHUNK_SIZE + x
+                world_y = base_y * commons.CHUNK_SIZE + y
 
                 # Get Perlin noise value
                 surface_y = int(self.noise_generator.get_noise(world_x/100, 0) * 100) # 0 - 100

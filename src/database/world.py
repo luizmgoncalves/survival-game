@@ -1,6 +1,9 @@
 from .world_loader import WorldLoader
 from .world_elements.chunk import Chunk
 from .world_generator import WorldGenerator
+from pygame.rect import Rect
+from typing import Dict
+import commons
 
 class World:
     def __init__(self, world_name):
@@ -9,7 +12,7 @@ class World:
         a database interface, and a world generator.
         """
         self.world_name   : str         = world_name
-        self.all_chunks   : dict        = {}
+        self.all_chunks   : Dict[tuple[int, int], Chunk]        = {}
         self.db_interface : WorldLoader = WorldLoader()
         self.world_id     : int         = self._get_world_id()
         self.generator    : WorldGenerator = WorldGenerator()
@@ -23,7 +26,7 @@ class World:
         result = self.db_interface._execute_query(query, (self.world_name,))
         return result[0][0] if result else None
 
-    def load_chunk(self, chunk_x, chunk_y, chunk_size):
+    def load_chunk(self, chunk_x, chunk_y):
         """
         Load a specific chunk by its coordinates.
         If the chunk does not exist in the database, generate a new chunk.
@@ -32,19 +35,19 @@ class World:
         if chunk_key in self.all_chunks:
             return self.all_chunks[chunk_key]  # Return already loaded chunk
         
-        x_min = chunk_x * chunk_size
-        x_max = x_min + chunk_size - 1
-        y_min = chunk_y * chunk_size
-        y_max = y_min + chunk_size - 1 
+        x_min = chunk_x * commons.CHUNK_SIZE
+        x_max = x_min + commons.CHUNK_SIZE - 1
+        y_min = chunk_y * commons.CHUNK_SIZE
+        y_max = y_min + commons.CHUNK_SIZE - 1 
 
         # Try loading data from the database
         blocks = self.db_interface.load_blocks(self.world_id, x_min, x_max, y_min, y_max)
         static_objects = self.db_interface.load_static_objects(self.world_id, x_min, x_max, y_min, y_max)
         moving_entities = self.db_interface.load_moving_entities(self.world_id, x_min, x_max, y_min, y_max)
 
-        if not blocks and not static_objects and not moving_entities:
+        if not blocks:
             # Generate a new chunk if no data exists
-            chunk = self.generator.generate_chunk(chunk_x, chunk_y, chunk_size)
+            chunk = self.generator.generate_chunk((chunk_x, chunk_y))
 
             # Optionally, save the generated chunk back to the database here
 
@@ -57,14 +60,14 @@ class World:
                 chunk.add_block(block)
             for static_object in static_objects:
                 chunk.add_static_object(static_object)
-            for entity in moving_entities:
-                chunk.add_moving_entity(entity)
+            # for entity in moving_entities:
+            #    chunk.add_moving_entity(entity)
 
         # Store the chunk in the dictionary
         self.all_chunks[chunk_key] = chunk
         return chunk
 
-    def load_all_chunks(self, chunk_size, min_health=None):
+    def load_all_chunks(self, min_health=None):
         """Load all chunks for the entire world with optional health filtering."""
         query = "SELECT size_x, size_y FROM Worlds WHERE world_id = ?"
         result = self.db_interface._execute_query(query, (self.world_id,))
@@ -72,6 +75,83 @@ class World:
             raise ValueError(f"World size could not be retrieved for '{self.world_name}'.")
 
         size_x, size_y = result[0]
-        for chunk_x in range(size_x // chunk_size):
-            for chunk_y in range(size_y // chunk_size):
-                self.load_chunk(chunk_x, chunk_y, chunk_size, min_health)
+        for chunk_x in range(size_x // commons.CHUNK_SIZE):
+            for chunk_y in range(size_y // commons.CHUNK_SIZE):
+                self.load_chunk(chunk_x, chunk_y, commons.CHUNK_SIZE, min_health)
+
+    def get_collision_blocks_around(self, position, dimensions):
+        """
+        Get all collidable blocks in a rectangular area around a specific position.
+
+        :param position: A tuple (x, y) representing the central position in world coordinates.
+        :param dimensions: A tuple (width, height) specifying the rectangular area's size in world coordinates.
+        :return: A list of Rect objects representing the collidable blocks.
+        """
+        # Extract coordinates
+        x, y = position
+
+        # Determine the chunk and block indices for the starting position
+        chunk_x, block_x_offset = divmod(x, commons.CHUNK_SIZE_PIXELS)
+        block_x = block_x_offset // commons.BLOCK_SIZE
+        if x < 0:
+            chunk_x -= 1
+
+        chunk_y, block_y_offset = divmod(y, commons.CHUNK_SIZE_PIXELS)
+        block_y = block_y_offset // commons.BLOCK_SIZE
+        if y < 0:
+            chunk_y -= 1
+
+        # Initialize the list to store collidable blocks
+        collidable_blocks = []
+
+        # Calculate the number of blocks in each direction based on dimensions
+        rows_range = dimensions[1] // commons.BLOCK_SIZE  # Vertical range
+        cols_range = dimensions[0] // commons.BLOCK_SIZE  # Horizontal range
+
+        # Iterate through the potential grid area
+        for row_offset in range(-rows_range, rows_range):
+            for col_offset in range(-cols_range, cols_range):
+                # Calculate the relative coordinates of the block
+                local_col = block_x + col_offset
+                local_row = block_y + row_offset
+
+                # Adjust chunk coordinates and block indices for wrapping
+                current_chunk_x = chunk_x
+                current_chunk_y = chunk_y
+
+                # Handle column wrapping
+                if local_col < 0:
+                    current_chunk_x -= 1
+                    local_col %= commons.CHUNK_SIZE_PIXELS
+                elif local_col >= commons.CHUNK_SIZE_PIXELS:
+                    current_chunk_x += 1
+                    local_col %= commons.CHUNK_SIZE_PIXELS
+
+                # Handle row wrapping
+                if local_row < 0:
+                    current_chunk_y -= 1
+                    local_row %= commons.CHUNK_SIZE_PIXELS
+                elif local_row >= commons.CHUNK_SIZE_PIXELS:
+                    current_chunk_y += 1
+                    local_row %= commons.CHUNK_SIZE_PIXELS
+
+                # Get the chunk at the current position
+                chunk_key = (current_chunk_x, current_chunk_y)
+                chunk = self.all_chunks.load_chunk(chunk_key)
+
+                if chunk is None:
+                    # If the chunk isn't loaded, raise an error
+                    raise RuntimeError("Attempting to get collision blocks from non-generated chunks")
+
+                # Check if the block at the local position is collidable
+                if chunk.collidable_grid[local_row, local_col]:
+                    # Calculate the world coordinates for the block
+                    block_world_x = current_chunk_x * commons.CHUNK_SIZE_PIXELS + local_col * commons.BLOCK_SIZE
+                    block_world_y = current_chunk_y * commons.CHUNK_SIZE_PIXELS + local_row * commons.BLOCK_SIZE
+
+                    # Append the block as a Rect object
+                    collidable_blocks.append(Rect(block_world_x, block_world_y, commons.BLOCK_SIZE, commons.BLOCK_SIZE))
+
+        return collidable_blocks
+
+

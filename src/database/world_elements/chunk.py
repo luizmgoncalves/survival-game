@@ -1,9 +1,8 @@
 import numpy as np
 import pygame
+import commons
 
 class Chunk:
-    # Class attribute for chunk size
-    CHUNK_SIZE = 16  # Default chunk size (can be changed globally)
 
     def __init__(self, x, y, layers=3):
         """
@@ -15,8 +14,8 @@ class Chunk:
         """
         self.pos = pygame.math.Vector2(x, y)  # Position of the chunk in chunk coordinates
         self.world_elements = []  # List of static elements (trees, chests, etc.)
-        self.blocks_grid = np.zeros((layers, self.CHUNK_SIZE, self.CHUNK_SIZE), dtype=object)  # 3D matrix for block layers
-        self.collidable_grid = np.zeros((self.CHUNK_SIZE, self.CHUNK_SIZE), dtype=bool)  # Collidable matrix
+        self.blocks_grid = np.zeros((layers, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=object)  # 3D matrix for block layers
+        self.collidable_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)  # Collidable matrix
         self.has_changes = False  # Tracks whether the chunk has been modified
 
     def add_block(self, block, local_x, local_y, layer):
@@ -66,12 +65,3 @@ class Chunk:
         :return: True if collidable, False otherwise.
         """
         return self.collidable_grid[local_y, local_x]
-
-    @classmethod
-    def set_chunk_size(cls, size):
-        """Sets the global chunk size."""
-        cls.CHUNK_SIZE = size
-
-    def __repr__(self):
-        """Returns a string representation of the chunk."""
-        return f"Chunk(pos={self.pos}, size={self.CHUNK_SIZE}, layers={self.blocks_grid.shape[0]})"

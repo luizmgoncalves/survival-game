@@ -44,7 +44,6 @@ class WorldsPage(Page):
 
         # Set up the floating world button in the center
         self.floating_button = self.world_buttons[0] if self.world_buttons else None
-        self.floating_button.rect.center = (commons.WIDTH / 2, commons.HEIGHT / 2)
 
         # Combine labels, buttons, and world buttons for unified handling
         self.elements = self.labels + self.buttons + self.world_buttons
@@ -76,7 +75,8 @@ class WorldsPage(Page):
         """
         Load world names from the database.
         """
-        worlds = ['World 1']
+        from random import randint
+        worlds = []#[f'World {i}' for i in range(randint(0, 10))]
         #cursor = self.db.cursor()
         #cursor.execute("SELECT name FROM worlds")  # Modify as per your database schema
         #rows = cursor.fetchall()

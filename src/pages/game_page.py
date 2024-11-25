@@ -1,8 +1,9 @@
 import pygame
 from .page import Page
-#from managers.world_manager import WorldManager
-#from managers.render_manager import RenderManager
-#from managers.physics_manager import PhysicsManager
+from database.world import World
+from rendering.render_manager import RenderManager
+from physics.physics_manager import PhysicsManager
+from physics.player import Player
 import commons
 from images.image_loader import IMAGE_LOADER
 
@@ -12,11 +13,14 @@ class GamePage(Page):
         Initialize the GamePage with essential managers for world, rendering, and physics.
         """
         super().__init__()
+    
+    def reset(self):
+        player = Player()
 
         # Initialize managers for world, rendering, and physics
-        self.world_manager =   None # WorldManager()
-        self.render_manager =  None # RenderManager()
-        self.physics_manager = None # PhysicsManager()
+        self.world_manager =   World(commons.WORLD_SELECTED)
+        self.render_manager =  RenderManager(commons.PLAYER_START_POSITION)
+        self.physics_manager = PhysicsManager(player, [], [], [], [])
 
         # Set up background image or color if needed
         self._bg_image = IMAGE_LOADER.get_image("WALLPAPER")
@@ -26,7 +30,7 @@ class GamePage(Page):
         self.entities = []
 
         # Initial setup of game state, load the world, etc.
-        self.world_manager.load_world()
+        self.world_manager.load_all_chunks()
         self.resize(pygame.display.get_window_size())
 
     def resize(self, display_size):
