@@ -1,4 +1,6 @@
 import pygame
+import sys
+import time
 
 class ColorFilter:
     def __init__(self, seconds_in_full_day):
@@ -14,6 +16,12 @@ class ColorFilter:
             "dusk": pygame.Color(255, 100, 50),
             "night": pygame.Color(20, 20, 60),
         }
+
+    def set_period_colors(self, dawn_color, day_color, dusk_color, night_color):
+        self.colors["dawn"] = pygame.Color(*dawn_color)
+        self.colors["day"] = pygame.Color(*day_color)
+        self.colors["dusk"] = pygame.Color(*dusk_color)
+        self.colors["night"] = pygame.Color(*night_color)
 
     def blend_color(self, color1, color2, blend_factor):
         r = (color1.r * (1 - blend_factor)) + (color2.r * blend_factor)
@@ -36,3 +44,4 @@ class ColorFilter:
         else:
             return self.blend_color(self.colors["dusk"], self.colors["night"], 
                                     (current_time - self.dusk_time) / (1 - self.dusk_time))
+
