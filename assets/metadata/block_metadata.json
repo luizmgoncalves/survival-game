@@ -1,0 +1,28 @@
+{
+    "1": {
+      "name": "GRASS",
+      "color": [0, 128, 0],
+      "health": 10
+    },
+    "2": {
+      "name": "DIRT",
+      "color": [139, 69, 19],
+      "health": 15
+    },
+    "3": {
+      "name": "STONE",
+      "color": [128, 128, 128],
+      "health": 30
+    },
+    "4": {
+      "name": "SAND",
+      "color": [194, 178, 128],
+      "health": 5
+    },
+    "5": {
+      "name": "WATER",
+      "color": [0, 0, 255],
+      "health": 1
+    }
+  }
+  

@@ -4,7 +4,7 @@ import commons
 
 class Chunk:
 
-    def __init__(self, x, y, layers=3):
+    def __init__(self, x, y, layers=2):
         """
         Represents a section of the world, loaded into memory as needed.
 

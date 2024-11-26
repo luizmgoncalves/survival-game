@@ -18,7 +18,7 @@ class World:
         self.generator    : WorldGenerator = WorldGenerator()
 
         if self.world_id is None:
-            raise ValueError(f"World '{self.world_name}' does not exist in the database.")
+            pass#raise ValueError(f"World '{self.world_name}' does not exist in the database.")
 
     def _get_world_id(self):
         """Retrieve the world ID from the database."""

@@ -46,6 +46,12 @@ class BlockMetadataLoader:
         """
         self._check_initialized()
 
+        if not isinstance(block_id, str):
+            try:
+                block_id = str(block_id)
+            except ValueError:
+                raise ValueError(f"Block ID {block_id} not found in metadata. Wrong type!")
+
         if block_id not in self.metadata:
             raise ValueError(f"Block ID {block_id} not found in metadata.")
         
@@ -61,6 +67,12 @@ class BlockMetadataLoader:
         :raises ValueError: If the block ID or property is not found in the metadata.
         """
         self._check_initialized()
+
+        if not isinstance(block_id, str):
+            try:
+                block_id = str(block_id)
+            except ValueError:
+                raise ValueError(f"Block ID {block_id} not found in metadata. Wrong type!")
 
         if block_id not in self.metadata:
             raise ValueError(f"Block ID {block_id} not found in metadata.")

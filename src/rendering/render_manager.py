@@ -3,6 +3,8 @@
 import pygame
 import commons
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
+import numpy as np
+
 
 class RenderManager:
     """
@@ -17,10 +19,15 @@ class RenderManager:
         :param color_key: Tuple[int, int, int], RGB value for transparency in surfaces.
         """
         self.current_position = current_position
+        self.current_chunk_position = self.get_chunk_position()
+        self.initializing = True
         self.color_key = color_key
-        self.chunk_matrix = [[None for _ in range(3)] for _ in range(3)]
-        self.surface_matrix = [[self.create_surface() for _ in range(3)] for _ in range(3)]
+        self.chunk_matrix = np.matrix([[None for _ in range(3)] for _ in range(3)])
+        self.surface_matrix = np.matrix([[self.create_surface() for _ in range(3)] for _ in range(3)])
         self.moving_elements = []
+    
+    def get_chunk_position(self):
+        return int((self.current_position[0] + commons.WIDTH/2) / commons.CHUNK_SIZE_PIXELS), int((self.current_position[1] + commons.HEIGHT/2) / commons.CHUNK_SIZE_PIXELS)
 
     def create_surface(self):
         """
@@ -39,11 +46,85 @@ class RenderManager:
 
         :param world: The game world object that provides chunk-loading functionality.
         """
-        for i in range(3):
-            for j in range(3):
-                chunk_x = (self.current_position[0] // commons.CHUNK_SIZE_PIXELS) + (i - 1)
-                chunk_y = (self.current_position[1] // commons.CHUNK_SIZE_PIXELS) + (j - 1)
-                self.chunk_matrix[i][j] = world.load_chunk(chunk_x, chunk_y)
+        if self.current_chunk_position != (new_pos := self.get_chunk_position()):
+            dif = pygame.Vector2(new_pos) - pygame.Vector2(self.current_chunk_position)
+            #print(dif)
+            self.current_chunk_position = new_pos
+
+            if dif.x:
+                if dif.x > 0:
+                    #print(np.vectorize(id)(self.surface_matrix))
+                    buff = self.surface_matrix[:, 0].copy()
+                    self.surface_matrix[:, 0] = self.surface_matrix[:, 1]
+                    self.surface_matrix[:, 1] = self.surface_matrix[:, 2]
+                    self.surface_matrix[:, 2] = buff
+                    #print(np.vectorize(id)(self.surface_matrix))
+                    self.chunk_matrix[:, 0] = self.chunk_matrix[:, 1]
+                    self.chunk_matrix[:, 1] = self.chunk_matrix[:, 2]
+
+                    
+                    chunk_x = self.chunk_matrix[0, 2].pos.x + 1
+                    for i in range(3):
+                        chunk_y = self.chunk_matrix[0, 0].pos.y + i 
+                        self.chunk_matrix[i, 2] = world.load_chunk(chunk_x, chunk_y)
+                        self.chunk_matrix[i, 2].has_changes = True
+                else:
+                    buff = self.surface_matrix[:, 2].copy()
+                    self.surface_matrix[:, 2] = self.surface_matrix[:, 1]
+                    self.surface_matrix[:, 1] = self.surface_matrix[:, 0]
+                    self.surface_matrix[:, 0] = buff
+                    
+                    self.chunk_matrix[:, 2] = self.chunk_matrix[:, 1]
+                    self.chunk_matrix[:, 1] = self.chunk_matrix[:, 0]
+
+                    chunk_x = self.chunk_matrix[0, 0].pos.x - 1
+                    for i in range(3):
+                        chunk_y = self.chunk_matrix[0, 0].pos.y + i 
+                        self.chunk_matrix[i, 0] = world.load_chunk(chunk_x, chunk_y)
+                        self.chunk_matrix[i, 0].has_changes = True
+            if dif.y:
+                if dif.y > 0:
+                    buff = self.surface_matrix[0, :].copy()
+                    self.surface_matrix[0, :] = self.surface_matrix[1, :]
+                    self.surface_matrix[1, :] = self.surface_matrix[2, :]
+                    self.surface_matrix[2, :] = buff
+                    #print(np.vectorize(id)(self.surface_matrix))
+                    self.chunk_matrix[0, :] = self.chunk_matrix[1, :]
+                    self.chunk_matrix[1, :] = self.chunk_matrix[2, :]
+
+
+                    chunk_y = self.chunk_matrix[2, 0].pos.y + 1
+
+                    for j in range(3):
+                        chunk_x = self.chunk_matrix[2, 0].pos.x + j 
+                        self.chunk_matrix[2, j] = world.load_chunk(chunk_x, chunk_y)
+                        self.chunk_matrix[2, j].has_changes = True
+                else:
+                    buff = self.surface_matrix[2, :].copy()
+                    self.surface_matrix[2, :] = self.surface_matrix[1, :]
+                    self.surface_matrix[1, :] = self.surface_matrix[0, :]
+                    self.surface_matrix[0, :] = buff
+                    #print(np.vectorize(id)(self.surface_matrix))
+                    self.chunk_matrix[2, :] = self.chunk_matrix[1, :]
+                    self.chunk_matrix[1, :] = self.chunk_matrix[0, :]
+
+
+                    chunk_y = self.chunk_matrix[0, 0].pos.y - 1
+
+                    for j in range(3):
+                        chunk_x = self.chunk_matrix[0, 0].pos.x + j 
+                        self.chunk_matrix[0, j] = world.load_chunk(chunk_x, chunk_y)
+                        self.chunk_matrix[0, j].has_changes = True
+
+        if self.initializing:
+            self.initializing = False
+            
+            for i in range(3):
+                for j in range(3):
+                    chunk_x = (self.current_position[0] // commons.CHUNK_SIZE_PIXELS) + (j - 1)
+                    chunk_y = (self.current_position[1] // commons.CHUNK_SIZE_PIXELS) + (i - 1)
+                    self.chunk_matrix[i, j] = world.load_chunk(chunk_x, chunk_y)
+                    self.chunk_matrix[i, j].has_changes = True
 
     def render_chunks(self, screen):
         """
@@ -53,12 +134,15 @@ class RenderManager:
         """
         for i in range(3):
             for j in range(3):
-                chunk_surface = self.surface_matrix[i][j]
-                chunk_data = self.chunk_matrix[i][j]
+                chunk_surface = self.surface_matrix[i, j]
+                chunk_data = self.chunk_matrix[i, j]
 
                 # Calculate chunk position relative to the current position
-                chunk_x = (i - 1) * commons.CHUNK_SIZE_PIXELS - (self.current_position[0] % commons.CHUNK_SIZE_PIXELS)
-                chunk_y = (j - 1) * commons.CHUNK_SIZE_PIXELS - (self.current_position[1] % commons.CHUNK_SIZE_PIXELS)
+                #chunk_x = (j - 1) * commons.CHUNK_SIZE_PIXELS - (self.current_position[0])
+                #chunk_y = (i - 1) * commons.CHUNK_SIZE_PIXELS - (self.current_position[1])
+
+                chunk_x = chunk_data.pos.x * commons.CHUNK_SIZE_PIXELS - (self.current_position[0]) + commons.WIDTH /2
+                chunk_y = chunk_data.pos.y * commons.CHUNK_SIZE_PIXELS - (self.current_position[1]) + commons.HEIGHT /2
 
                 self.render_single_chunk(chunk_surface, chunk_data)
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
@@ -79,9 +163,10 @@ class RenderManager:
         for x in range(chunk.blocks_grid.shape[1]):
             for y in range(chunk.blocks_grid.shape[2]):
                 for layer in range(chunk.blocks_grid.shape[0]):
-                    block = chunk.blocks_grid[layer, x, y]
+                    block = chunk.blocks_grid[layer, y, x]
                     if block:  # Skip empty blocks
                         block_color = BLOCK_METADATA.get_property_by_id(block, "color")
+                        ##print(f"Analisando {BLOCK_METADATA.get_name_by_id(block)}, cor: {block_color}")
                         block_rect = pygame.Rect(
                             x * commons.BLOCK_SIZE,
                             y * commons.BLOCK_SIZE,

@@ -5,7 +5,7 @@ from perlin_noise import PerlinNoise
 from .world_elements.chunk import Chunk
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 import commons
-
+import numba
 
 class WorldGenerator:
     """
@@ -19,8 +19,10 @@ class WorldGenerator:
 
         :param noise_generator: An instance of PerlinNoise.
         """
-        self.noise_generator = PerlinNoise(octaves=3)
+        self.underground_noise_generator = PerlinNoise(octaves=6)
+        self.surface_noise_generator = PerlinNoise(octaves=2)
 
+    
     def generate_chunk(self, chunk_pos):
         """
         Generates a chunk at a specific chunk position.
@@ -46,27 +48,27 @@ class WorldGenerator:
                 world_y = base_y * commons.CHUNK_SIZE + y
 
                 # Get Perlin noise value
-                surface_y = int(self.noise_generator.get_noise(world_x/100, 0) * 100) # 0 - 100
-                unoise = self.noise_generator.get_noise(world_x/100, world_y/100)  # 0.0 - 1.0
+                surface_y = int(self.surface_noise_generator([world_x/100, 0]) * commons.CHUNK_SIZE * 4) # 0 - 100
+                unoise = abs(self.underground_noise_generator([world_x/100, world_y/100]))  # 0.0 - 1.0
 
                 # Map noise to two layers: 0 = air, 1 = ground, 2 = stone
                 if world_y == surface_y: # Surface
                     if unoise >= 0.02:
-                        blocks_grid[0, x, y] = GRASS
-                        collidible_grid[x, y] = True
+                        blocks_grid[0, y, x] = GRASS
+                        collidible_grid[y, x] = True
                     
-                    blocks_grid[1, x, y] = GRASS
+                    blocks_grid[1, y, x] = GRASS
                 
                 elif world_y > surface_y: # Underground
-                    if unoise >= 0.4:
-                        blocks_grid[1, x, y] = STONE
-                        blocks_grid[0, x, y] = STONE
+                    if unoise >= 0.09:
+                        blocks_grid[1, y, x] = STONE
+                        blocks_grid[0, y, x] = STONE
                         collidible_grid[x, y] = True
 
-                    elif unoise >= 0.3:
-                        blocks_grid[1, x, y] = DIRT
-                        blocks_grid[0, x, y] = DIRT
-                        collidible_grid[x, y] = True
+                    elif unoise >= 0.04:
+                        blocks_grid[1, y, x] = DIRT
+                        blocks_grid[0, y, x] = DIRT
+                        collidible_grid[y, x] = True
                     
                     
 
@@ -76,10 +78,11 @@ class WorldGenerator:
 
         # Create a Chunk object
         chunk = Chunk(
-            pos=pygame.math.Vector2(chunk_pos),
-            world_elements=[],  # No static elements yet
-            blocks_grid=blocks_grid,
-            collidible_grid=collidible_grid,
-            has_changes=False
+            x=chunk_pos[0],
+            y=chunk_pos[1]
         )
+
+        chunk.blocks_grid = blocks_grid
+        chunk.collidable_grid = collidible_grid
+
         return chunk
