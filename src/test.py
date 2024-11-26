@@ -12,8 +12,8 @@ def main():
     #print(BLOCK_METADATA.metadata)
     
     # Screen dimensions
-    SCREEN_WIDTH, SCREEN_HEIGHT = 1600, 900
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    commons.WIDTH, commons.HEIGHT = 1600, 900
+    screen = pygame.display.set_mode((commons.WIDTH, commons.HEIGHT))
     pygame.display.set_caption("Render Manager Demo")
 
     # Constants
@@ -60,11 +60,19 @@ def main():
         if keys[pygame.K_DOWN]:
             commons.STARTING_POSITION[1] += 5
 
+
+        mouse_pos = pygame.Vector2(pygame.mouse.get_pos())
+        mouse_rect = pygame.Rect((0, 0), (100, 100))
+        mouse_rect.center = mouse_pos
         
+        print(int((render_manager.current_position[0] + commons.WIDTH/2) / commons.CHUNK_SIZE_PIXELS), int((render_manager.current_position[1] + commons.HEIGHT/2) / commons.CHUNK_SIZE_PIXELS))
+        print(int((mouse_pos.x + commons.WIDTH/2) / commons.CHUNK_SIZE_PIXELS), int((mouse_pos.y + commons.HEIGHT/2) / commons.CHUNK_SIZE_PIXELS))
+
 
         # Render everything
         screen.fill((100, 100, 100))  # Background color
         render_manager.render_all(screen)
+        pygame.draw.rect(screen, (0, 255, 0), mouse_rect)
         pygame.display.update()
 
         # Limit frame rate

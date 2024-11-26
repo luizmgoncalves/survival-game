@@ -27,7 +27,7 @@ class RenderManager:
         self.moving_elements = []
     
     def get_chunk_position(self):
-        return int((self.current_position[0] + commons.WIDTH/2) / commons.CHUNK_SIZE_PIXELS), int((self.current_position[1] + commons.HEIGHT/2) / commons.CHUNK_SIZE_PIXELS)
+        return int((self.current_position[0]+ commons.WIDTH /2) // commons.CHUNK_SIZE_PIXELS), int((self.current_position[1]+ commons.HEIGHT /2) // commons.CHUNK_SIZE_PIXELS)
 
     def create_surface(self):
         """
@@ -118,11 +118,13 @@ class RenderManager:
 
         if self.initializing:
             self.initializing = False
+
+            self.current_chunk_position = self.get_chunk_position()
             
             for i in range(3):
                 for j in range(3):
-                    chunk_x = (self.current_position[0] // commons.CHUNK_SIZE_PIXELS) + (j - 1)
-                    chunk_y = (self.current_position[1] // commons.CHUNK_SIZE_PIXELS) + (i - 1)
+                    chunk_x = self.current_chunk_position[0] + (j - 1)
+                    chunk_y = self.current_chunk_position[1] + (i - 1)
                     self.chunk_matrix[i, j] = world.load_chunk(chunk_x, chunk_y)
                     self.chunk_matrix[i, j].has_changes = True
 
@@ -141,8 +143,8 @@ class RenderManager:
                 #chunk_x = (j - 1) * commons.CHUNK_SIZE_PIXELS - (self.current_position[0])
                 #chunk_y = (i - 1) * commons.CHUNK_SIZE_PIXELS - (self.current_position[1])
 
-                chunk_x = chunk_data.pos.x * commons.CHUNK_SIZE_PIXELS - (self.current_position[0]) + commons.WIDTH /2
-                chunk_y = chunk_data.pos.y * commons.CHUNK_SIZE_PIXELS - (self.current_position[1]) + commons.HEIGHT /2
+                chunk_x = chunk_data.pos.x * commons.CHUNK_SIZE_PIXELS - (self.current_position[0]) #+ commons.WIDTH /2
+                chunk_y = chunk_data.pos.y * commons.CHUNK_SIZE_PIXELS - (self.current_position[1]) #+ commons.HEIGHT /2
 
                 self.render_single_chunk(chunk_surface, chunk_data)
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
@@ -158,6 +160,9 @@ class RenderManager:
             return  # Skip rendering if chunk is not loaded.
 
         surface.fill(self.color_key)  # Clear surface with transparent background.
+
+        #off = 10
+        #pygame.draw.rect(surface, (0, 100, 0), (off/2, off/2, commons.CHUNK_SIZE_PIXELS-off, commons.CHUNK_SIZE_PIXELS-off))
 
         # Render the blocks in the chunk
         for x in range(chunk.blocks_grid.shape[1]):

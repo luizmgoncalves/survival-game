@@ -58,12 +58,13 @@ class WorldGenerator:
                         collidible_grid[y, x] = True
                     
                     blocks_grid[1, y, x] = GRASS
+                    collidible_grid[y, x] = True
                 
                 elif world_y > surface_y: # Underground
                     if unoise >= 0.09:
                         blocks_grid[1, y, x] = STONE
                         blocks_grid[0, y, x] = STONE
-                        collidible_grid[x, y] = True
+                        collidible_grid[y, x] = True
 
                     elif unoise >= 0.04:
                         blocks_grid[1, y, x] = DIRT

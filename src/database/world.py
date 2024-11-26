@@ -93,12 +93,12 @@ class World:
         # Determine the chunk and block indices for the starting position
         chunk_x, block_x_offset = divmod(x, commons.CHUNK_SIZE_PIXELS)
         block_x = block_x_offset // commons.BLOCK_SIZE
-        if x < 0:
+        if x < 0 and not chunk_x:
             chunk_x -= 1
 
         chunk_y, block_y_offset = divmod(y, commons.CHUNK_SIZE_PIXELS)
         block_y = block_y_offset // commons.BLOCK_SIZE
-        if y < 0:
+        if y < 0 and not chunk_y:
             chunk_y -= 1
 
         # Initialize the list to store collidable blocks
@@ -137,10 +137,10 @@ class World:
 
                 # Get the chunk at the current position
                 chunk_key = (current_chunk_x, current_chunk_y)
-                chunk = self.all_chunks.load_chunk(chunk_key)
+                chunk = self.all_chunks.get(chunk_key, None)
 
                 if chunk is None:
-                    # If the chunk isn't loaded, raise an error
+                    continue # If the chunk isn't loaded, raise an error
                     raise RuntimeError("Attempting to get collision blocks from non-generated chunks")
 
                 # Check if the block at the local position is collidable
