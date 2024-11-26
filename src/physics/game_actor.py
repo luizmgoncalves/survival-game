@@ -1,6 +1,6 @@
 import pygame
 from itertools import cycle
-from moving_element import CollidableMovingElement
+from .moving_element import CollidableMovingElement
 
 class GameActor(CollidableMovingElement):
     """

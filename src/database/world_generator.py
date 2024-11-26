@@ -19,7 +19,7 @@ class WorldGenerator:
 
         :param noise_generator: An instance of PerlinNoise.
         """
-        self.underground_noise_generator = PerlinNoise(octaves=6)
+        self.underground_noise_generator = PerlinNoise(octaves=3)
         self.surface_noise_generator = PerlinNoise(octaves=2)
 
     
@@ -41,11 +41,14 @@ class WorldGenerator:
 
         # Generate block data for each position
         base_x, base_y = chunk_pos
+        chunk_world_x = base_x * commons.CHUNK_SIZE
+        chunk_world_y = base_y * commons.CHUNK_SIZE
+
         for y in range(commons.CHUNK_SIZE):
             for x in range(commons.CHUNK_SIZE):
                 # Calculate global block position
-                world_x = base_x * commons.CHUNK_SIZE + x
-                world_y = base_y * commons.CHUNK_SIZE + y
+                world_x = chunk_world_x + x
+                world_y = chunk_world_y + y
 
                 # Get Perlin noise value
                 surface_y = int(self.surface_noise_generator([world_x/100, 0]) * commons.CHUNK_SIZE * 4) # 0 - 100
@@ -53,20 +56,20 @@ class WorldGenerator:
 
                 # Map noise to two layers: 0 = air, 1 = ground, 2 = stone
                 if world_y == surface_y: # Surface
-                    if unoise >= 0.02:
+                    if unoise >= 0.07:
                         blocks_grid[0, y, x] = GRASS
                         collidible_grid[y, x] = True
                     
-                    blocks_grid[1, y, x] = GRASS
-                    collidible_grid[y, x] = True
+                    #blocks_grid[1, y, x] = GRASS
+                    #collidible_grid[y, x] = True
                 
                 elif world_y > surface_y: # Underground
-                    if unoise >= 0.09:
+                    if unoise >= 0.06:
                         blocks_grid[1, y, x] = STONE
                         blocks_grid[0, y, x] = STONE
                         collidible_grid[y, x] = True
 
-                    elif unoise >= 0.04:
+                    elif unoise >= 0.05:
                         blocks_grid[1, y, x] = DIRT
                         blocks_grid[0, y, x] = DIRT
                         collidible_grid[y, x] = True

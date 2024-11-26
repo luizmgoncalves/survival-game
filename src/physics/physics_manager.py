@@ -35,12 +35,13 @@ class PhysicsManager:
         :param delta_time: Time elapsed since the last update (in seconds).
         """
         
-        self.apply_gravity()
-        self.move_entities_and_handle_world_collisions(world)
+        self.apply_gravity(delta_time)
+        self.move_entities_and_handle_world_collisions(world, delta_time)
         self.handle_collisions()
 
         # Update player
-        self.player.update(delta_time)
+        if self.player:
+            self.player.update(delta_time)
 
         # Update player bullets
         for bullet in self.player_bullets:
@@ -58,22 +59,23 @@ class PhysicsManager:
         for element in self.moving_elements:
             element.update(delta_time)
     
-    def apply_gravity(self):
+    def apply_gravity(self, delta_time):
         """
         Apply gravity to all entities affected by physics.
         """
         # Apply gravity to the player
-        self._apply_gravity_to_entity(self.player)
+        if self.player:
+            self._apply_gravity_to_entity(self.player, delta_time)
 
         # Apply gravity to enemies
         for enemy in self.enemies:
-            self._apply_gravity_to_entity(enemy)
+            self._apply_gravity_to_entity(enemy, delta_time)
 
         # Apply gravity to moving elements
         for element in self.moving_elements:
-            self._apply_gravity_to_entity(element)
+            self._apply_gravity_to_entity(element, delta_time)
         
-    def _apply_gravity_to_entity(self, entity: MovingElement):
+    def _apply_gravity_to_entity(self, entity: MovingElement, delta_time):
         """
         Apply gravity to a single entity.
 
@@ -93,12 +95,12 @@ class PhysicsManager:
 
         # Check collisions between player and enemies
         for enemy in self.enemies:
-            if self.player.rect.colliderect(enemy.rect):
+            if self.player and self.player.rect.colliderect(enemy.rect):
                 self._handle_player_enemy_collision(enemy)
 
         # Check collisions between player and moving elements (optional)
         for element in self.moving_elements:
-            if self.player.rect.colliderect(element.rect):
+            if self.player and self.player.rect.colliderect(element.rect):
                 self._handle_player_element_collision(element)
 
     def _handle_bullet_hit_enemy(self, bullet, enemy):
@@ -131,32 +133,33 @@ class PhysicsManager:
         # self.player.take_damage(element.collision_damage)
         pass
     
-    def move_entities_and_handle_world_collisions(self, world):
+    def move_entities_and_handle_world_collisions(self, world, delta_time):
         """
         Move all entities and handle their collisions with the world.
 
         :param world: The World instance to check for collisions.
         """
         # Move player and check collisions
-        self._move_entity_and_handle_collision(self.player, world)
+        if self.player:
+            self._move_entity_and_handle_collision(self.player, world, delta_time)
 
         # Move player bullets
         for bullet in self.player_bullets:
-            self._move_entity_and_handle_collision(bullet, world)
+            self._move_entity_and_handle_collision(bullet, world, delta_time)
 
         # Move enemies
         for enemy in self.enemies:
-            self._move_entity_and_handle_collision(enemy, world)
+            self._move_entity_and_handle_collision(enemy, world, delta_time)
 
         # Move enemy bullets
         for bullet in self.enemy_bullets:  # Added handling for enemy bullets
-            self._move_entity_and_handle_collision(bullet, world)
+            self._move_entity_and_handle_collision(bullet, world, delta_time)
 
         # Move other moving elements
         for element in self.moving_elements:
-            self._move_entity_and_handle_collision(element, world)
+            self._move_entity_and_handle_collision(element, world, delta_time)
 
-    def _move_entity_and_handle_collision(self, entity, world):
+    def _move_entity_and_handle_collision(self, entity, world, delta_time):
         """
         Move a single entity and handle its collisions with the world.
 
@@ -168,4 +171,4 @@ class PhysicsManager:
         collision_blocks = world.get_collision_blocks_around(entity.rect.center, entity.rect.size)
 
         # Move the entity
-        entity.move(collision_blocks)
+        entity.move(collision_blocks, delta_time)

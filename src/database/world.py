@@ -105,12 +105,12 @@ class World:
         collidable_blocks = []
 
         # Calculate the number of blocks in each direction based on dimensions
-        rows_range = dimensions[1] // commons.BLOCK_SIZE  # Vertical range
-        cols_range = dimensions[0] // commons.BLOCK_SIZE  # Horizontal range
+        rows_range = max(dimensions[1] // commons.BLOCK_SIZE, 1)  # Vertical range
+        cols_range = max(dimensions[0] // commons.BLOCK_SIZE, 1)  # Horizontal range
 
         # Iterate through the potential grid area
-        for row_offset in range(-rows_range, rows_range):
-            for col_offset in range(-cols_range, cols_range):
+        for row_offset in range(-rows_range, rows_range+1):
+            for col_offset in range(-cols_range, cols_range+1):
                 # Calculate the relative coordinates of the block
                 local_col = block_x + col_offset
                 local_row = block_y + row_offset
@@ -122,25 +122,25 @@ class World:
                 # Handle column wrapping
                 if local_col < 0:
                     current_chunk_x -= 1
-                    local_col %= commons.CHUNK_SIZE_PIXELS
-                elif local_col >= commons.CHUNK_SIZE_PIXELS:
+                    local_col %= commons.CHUNK_SIZE
+                elif local_col >= commons.CHUNK_SIZE:
                     current_chunk_x += 1
-                    local_col %= commons.CHUNK_SIZE_PIXELS
+                    local_col %= commons.CHUNK_SIZE
 
                 # Handle row wrapping
                 if local_row < 0:
                     current_chunk_y -= 1
-                    local_row %= commons.CHUNK_SIZE_PIXELS
-                elif local_row >= commons.CHUNK_SIZE_PIXELS:
+                    local_row %= commons.CHUNK_SIZE
+                elif local_row >= commons.CHUNK_SIZE:
                     current_chunk_y += 1
-                    local_row %= commons.CHUNK_SIZE_PIXELS
+                    local_row %= commons.CHUNK_SIZE
 
                 # Get the chunk at the current position
                 chunk_key = (current_chunk_x, current_chunk_y)
                 chunk = self.all_chunks.get(chunk_key, None)
 
                 if chunk is None:
-                    continue # If the chunk isn't loaded, raise an error
+                    # If the chunk isn't loaded, raise an error
                     raise RuntimeError("Attempting to get collision blocks from non-generated chunks")
 
                 # Check if the block at the local position is collidable
