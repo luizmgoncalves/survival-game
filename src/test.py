@@ -5,6 +5,8 @@ from physics.moving_element import CollidableMovingElement
 from physics.physics_manager import PhysicsManager
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
 import commons
+import math
+import numpy as np
 import os
 
 def main():
@@ -24,20 +26,27 @@ def main():
     commons.COLOR_KEY = (0, 0, 0)
 
     # Initialize RenderManager and mock world
-    render_manager = RenderManager(commons.STARTING_POSITION, commons.COLOR_KEY)
+    
     world = World('name')
 
     # Main game loop
     clock = pygame.time.Clock()
     running = True
 
-    pedra = CollidableMovingElement((0, 0), (commons.BLOCK_SIZE, commons.BLOCK_SIZE))
+    pedra = CollidableMovingElement(commons.STARTING_POSITION, (commons.BLOCK_SIZE, commons.BLOCK_SIZE))
+    commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
+    render_manager = RenderManager(commons.STARTING_POSITION, commons.COLOR_KEY)
 
     physics_manager = PhysicsManager(None, [], [], [], [pedra])
 
-   #print(world.load_chunk(0, 0).blocks_grid)
+    print(world.load_chunk(0, 0).blocks_grid[0])
+    print(np.vectorize(lambda x: bin(x)[2:].zfill(4))(world.load_chunk(0, 0).edges_matrix[0]))
+
+    delta_time = 1/60
 
     while running:
+        delta_time = clock.tick(50) / 1000
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -57,17 +66,16 @@ def main():
         #os.system("clear")
         
 
-        commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
-
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            pedra.velocity.x = -200
+            pedra.velocity.x = -600
         if keys[pygame.K_RIGHT]: 
-            pedra.velocity.x = 200
+            pedra.velocity.x = 600
         if keys[pygame.K_UP]:
+            
             pedra.velocity.y = -500
         if keys[pygame.K_DOWN]:
-            pass
+            pedra.velocity.y = 500
         if keys[pygame.K_k]:
             pedra.velocity.y = -70
         if keys[pygame.K_ESCAPE]:
@@ -76,31 +84,29 @@ def main():
         pedra.velocity.x *= 0.8
 
 
-        mouse_pos = pygame.mouse.get_pos()
-        mouse_rect = pygame.Rect((0, 0), (100, 100))
-        mouse_rect.centerx = int(mouse_pos[0])
-        mouse_rect.centery = int(mouse_pos[1])
 
-        blocks = world.get_collision_blocks_around((pedra.rect.centerx, pedra.rect.centery), pedra.rect.size)
+        x_dist = math.ceil(pedra.velocity.x * delta_time)
+        y_dist = math.ceil(pedra.velocity.y * delta_time)
+        blocks = world.get_collision_blocks_around(pedra.rect.center, (x_dist, y_dist))
         
 
-        physics_manager.update(1/60, world)
+        physics_manager.update(delta_time, world)
 
         # Render everything
-        screen.fill((100, 100, 100))  # Background color
+        screen.fill((200, 200, 200))  # Background color
+        commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
         render_manager.render_all(screen)
-        pygame.draw.rect(screen, (0, 255, 0), mouse_rect)
+        #pygame.draw.rect(screen, (0, 255, 0), mouse_rect)
 
-        for block in blocks:
-            block.center -= pygame.Vector2(commons.STARTING_POSITION) 
-            pygame.draw.rect(screen, (0, 100, 100), block)
+        #for block in blocks:
+        #    block.center -= pygame.Vector2(commons.STARTING_POSITION) 
+        #    pygame.draw.rect(screen, (0, 100, 100), block)
         
         pygame.draw.rect(screen, (10, 10, 10), ((pedra.rect.topleft[0] - commons.STARTING_POSITION[0], pedra.rect.topleft[1] - commons.STARTING_POSITION[1]), pedra.rect.size))
 
         pygame.display.update()
 
         # Limit frame rate
-        clock.tick(60)
 
     pygame.quit()
 

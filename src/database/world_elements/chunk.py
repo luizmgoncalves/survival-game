@@ -14,8 +14,9 @@ class Chunk:
         """
         self.pos = pygame.math.Vector2(x, y)  # Position of the chunk in chunk coordinates
         self.world_elements = []  # List of static elements (trees, chests, etc.)
-        self.blocks_grid = np.zeros((layers, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=object)  # 3D matrix for block layers
+        self.blocks_grid = np.zeros((layers, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # 3D matrix for block layers
         self.collidable_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)  # Collidable matrix
+        self.edges_matrix = np.ones((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Collidable matrix
         self.has_changes = False  # Tracks whether the chunk has been modified
 
     def add_block(self, block, local_x, local_y, layer):

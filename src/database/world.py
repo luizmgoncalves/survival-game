@@ -4,6 +4,7 @@ from .world_generator import WorldGenerator
 from pygame.rect import Rect
 from typing import Dict
 import commons
+from math import ceil
 
 class World:
     def __init__(self, world_name):
@@ -103,10 +104,11 @@ class World:
 
         # Initialize the list to store collidable blocks
         collidable_blocks = []
+        edge_blocks = []
 
         # Calculate the number of blocks in each direction based on dimensions
-        rows_range = max(dimensions[1] // commons.BLOCK_SIZE, 1)  # Vertical range
-        cols_range = max(dimensions[0] // commons.BLOCK_SIZE, 1)  # Horizontal range
+        rows_range = max(ceil(dimensions[1] / commons.BLOCK_SIZE), 1)  # Vertical range
+        cols_range = max(ceil(dimensions[0] / commons.BLOCK_SIZE), 1)  # Horizontal range
 
         # Iterate through the potential grid area
         for row_offset in range(-rows_range, rows_range+1):
@@ -140,7 +142,7 @@ class World:
                 chunk = self.all_chunks.get(chunk_key, None)
 
                 if chunk is None:
-                    # If the chunk isn't loaded, raise an error
+                    continue# If the chunk isn't loaded, raise an error
                     raise RuntimeError("Attempting to get collision blocks from non-generated chunks")
 
                 # Check if the block at the local position is collidable
@@ -150,7 +152,7 @@ class World:
                     block_world_y = current_chunk_y * commons.CHUNK_SIZE_PIXELS + local_row * commons.BLOCK_SIZE
 
                     # Append the block as a Rect object
-                    collidable_blocks.append(Rect(block_world_x, block_world_y, commons.BLOCK_SIZE, commons.BLOCK_SIZE))
+                    collidable_blocks.append((chunk.edges_matrix[0, local_row, local_col], Rect(block_world_x, block_world_y, commons.BLOCK_SIZE, commons.BLOCK_SIZE)))
 
         return collidable_blocks
 

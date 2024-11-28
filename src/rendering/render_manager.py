@@ -3,7 +3,9 @@
 import pygame
 import commons
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
+from database.world_elements.chunk import Chunk
 import numpy as np
+from pygame.math import Vector2 as V2
 
 
 class RenderManager:
@@ -27,7 +29,7 @@ class RenderManager:
         self.moving_elements = []
     
     def get_chunk_position(self):
-        return int((self.current_position[0]+ commons.WIDTH /2) // commons.CHUNK_SIZE_PIXELS), int((self.current_position[1]+ commons.HEIGHT /2) // commons.CHUNK_SIZE_PIXELS)
+        return int((self.current_position[0] + commons.WIDTH /2) // commons.CHUNK_SIZE_PIXELS), int((self.current_position[1]+ commons.HEIGHT /2) // commons.CHUNK_SIZE_PIXELS)
 
     def create_surface(self):
         """
@@ -47,6 +49,7 @@ class RenderManager:
         :param world: The game world object that provides chunk-loading functionality.
         """
         if self.current_chunk_position != (new_pos := self.get_chunk_position()):
+            print("new chunk")
             dif = pygame.Vector2(new_pos) - pygame.Vector2(self.current_chunk_position)
             #print(dif)
             self.current_chunk_position = new_pos
@@ -149,7 +152,7 @@ class RenderManager:
                 self.render_single_chunk(chunk_surface, chunk_data)
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
 
-    def render_single_chunk(self, surface, chunk):
+    def render_single_chunk(self, surface, chunk: Chunk):
         """
         Renders a single chunk onto a given surface.
 
@@ -169,16 +172,27 @@ class RenderManager:
             for y in range(chunk.blocks_grid.shape[2]):
                 for layer in range(chunk.blocks_grid.shape[0]):
                     block = chunk.blocks_grid[layer, y, x]
+                    edge = chunk.edges_matrix[layer, y, x]
                     if block:  # Skip empty blocks
                         block_color = BLOCK_METADATA.get_property_by_id(block, "color")
                         ##print(f"Analisando {BLOCK_METADATA.get_name_by_id(block)}, cor: {block_color}")
-                        block_rect = pygame.Rect(
-                            x * commons.BLOCK_SIZE,
-                            y * commons.BLOCK_SIZE,
-                            commons.BLOCK_SIZE,
-                            commons.BLOCK_SIZE
-                        )
-                        pygame.draw.rect(surface, block_color, block_rect)
+
+                        if edge == 0b1001:
+                            p = V2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
+                            block_poligon = [p, p+V2(0, commons.BLOCK_SIZE), p+V2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
+                            pygame.draw.polygon(surface, block_color, block_poligon)
+                        elif edge == 0b0011:
+                            p = V2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
+                            block_poligon = [p+V2(commons.BLOCK_SIZE, 0), p+V2(0, commons.BLOCK_SIZE), p+V2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
+                            pygame.draw.polygon(surface, block_color, block_poligon)
+                        else:
+                            block_rect = pygame.Rect(
+                                x * commons.BLOCK_SIZE,
+                                y * commons.BLOCK_SIZE,
+                                commons.BLOCK_SIZE,
+                                commons.BLOCK_SIZE
+                            )
+                            pygame.draw.rect(surface, block_color, block_rect)
 
         # Render static world elements
         for element in chunk.world_elements:

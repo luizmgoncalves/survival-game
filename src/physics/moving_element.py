@@ -1,5 +1,4 @@
 import pygame
-from abc import abstractmethod
 
 
 class MovingElement(pygame.sprite.DirtySprite):
@@ -27,7 +26,6 @@ class MovingElement(pygame.sprite.DirtySprite):
         # Create the pygame Rect for collisions and rendering
         self.rect = pygame.Rect(self.position.x, self.position.y, *self.size)
 
-    @abstractmethod
     def update(self, delta_time):
         """
         Update the position based on velocity.
@@ -62,37 +60,61 @@ class CollidableMovingElement(MovingElement):
 
         :param colliding_rects: A list of rectangles to check for collisions.
         """
+
+        #print(len(colliding_rects))
+        #print(f'Current position {self.rect.topleft}, deltax: {self.velocity.x * delta_time}, deltay: {self.velocity.y * delta_time} - {colliding_rects}')
+
         # Move horizontally (x direction)
         self.rect.x += self.velocity.x * delta_time
 
-        for rect in colliding_rects:
+        collided = False
+
+        _colliding_rects = colliding_rects
+
+        if self.velocity.x > 0:
+            _colliding_rects = colliding_rects[-1::-1] # reverse the list
+
+        for edge, rect in _colliding_rects: 
             if self.rect.colliderect(rect):
+                #print(f'{self.rect} collided with {rect}')
                 if self.velocity.x > 0:  # Moving right
                     self.rect.right = rect.left
-                    self.velocity.x = 0
                     self.collided_right()
                 elif self.velocity.x < 0:  # Moving left
                     self.rect.left = rect.right
-                    self.velocity.x = 0
                     self.collided_left()
+                collided = True
+    
+        if collided:
+            self.velocity.x = 0
+            #print(f'{self.rect} collided in {_colliding_rects} - x')
+        collided = False
+
+        _colliding_rects = colliding_rects
+        if self.velocity.y > 0: 
+            _colliding_rects = colliding_rects[-1::-1]  # reverse the list
 
         # Update position vector to match adjusted rect
         self.position.x, self.position.y = self.rect.topleft
 
         # Move vertically (y direction)
         self.rect.y += self.velocity.y * delta_time
-        
 
-        for rect in colliding_rects:
+        for edge, rect in _colliding_rects:
+            
             if self.rect.colliderect(rect):
+                #print(f'{self.rect} collided with {rect}')
                 if self.velocity.y > 0:  # Moving down
                     self.rect.bottom = rect.top
                     self.collided_down()
                 elif self.velocity.y < 0:  # Moving up
                     self.rect.top = rect.bottom 
                     self.collided_up()
-                print("collided")
-                self.velocity.y = 0
+                collided = True
+
+        if collided:
+            self.velocity.y = 0
+            #print(f'{self.rect} collided in {_colliding_rects} - y')
 
         # Update position vector to match adjusted rect
         self.position.x, self.position.y = self.rect.topleft
@@ -101,26 +123,26 @@ class CollidableMovingElement(MovingElement):
         """
         Handle the collision when the object collides from above.
         """
-        print("Collided up")
+        #print("Collided up")
         # Implement your specific logic for upward collision
 
     def collided_down(self):
         """
         Handle the collision when the object collides from below.
         """
-        print("Collided down")
+        #print("Collided down")
         # Implement your specific logic for downward collision
 
     def collided_left(self):
         """
         Handle the collision when the object collides from the left.
         """
-        print("Collided left")
+        #print("Collided left")
         # Implement your specific logic for leftward collision
 
     def collided_right(self):
         """
         Handle the collision when the object collides from the right.
         """
-        print("Collided right")
+        #print("Collided right")
         # Implement your specific logic for rightward collision

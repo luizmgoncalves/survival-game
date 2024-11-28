@@ -5,7 +5,7 @@ from perlin_noise import PerlinNoise
 from .world_elements.chunk import Chunk
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 import commons
-import numba
+import noise
 
 class WorldGenerator:
     """
@@ -19,8 +19,8 @@ class WorldGenerator:
 
         :param noise_generator: An instance of PerlinNoise.
         """
-        self.underground_noise_generator = PerlinNoise(octaves=3)
-        self.surface_noise_generator = PerlinNoise(octaves=2)
+        #self.underground_noise_generator = PerlinNoise(octaves=4)
+        #self.surface_noise_generator = PerlinNoise(octaves=2)
 
     
     def generate_chunk(self, chunk_pos):
@@ -38,6 +38,9 @@ class WorldGenerator:
 
         blocks_grid = np.zeros((self.LAYERS, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)
         collidible_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)
+        edges_matrix = np.zeros((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)
+
+        #noise = self.perlin.gen
 
         # Generate block data for each position
         base_x, base_y = chunk_pos
@@ -51,29 +54,64 @@ class WorldGenerator:
                 world_y = chunk_world_y + y
 
                 # Get Perlin noise value
-                surface_y = int(self.surface_noise_generator([world_x/100, 0]) * commons.CHUNK_SIZE * 4) # 0 - 100
-                unoise = abs(self.underground_noise_generator([world_x/100, world_y/100]))  # 0.0 - 1.0
+                surface_y = (noise.pnoise1(world_x*0.0009) * commons.CHUNK_SIZE * 4) # 0 - 100
+                surface_y += (noise.pnoise1(world_x*0.05) * commons.CHUNK_SIZE*0.25)
+                surface_y = round(surface_y)
+                unoise = (noise.pnoise2(world_x*0.09, world_y*0.09) * 0.3)  # 0.0 - 1.0
+                unoise += (noise.pnoise2(world_x*0.02, world_y*0.02))
+                unoise = abs(unoise)
 
                 # Map noise to two layers: 0 = air, 1 = ground, 2 = stone
                 if world_y == surface_y: # Surface
-                    if unoise >= 0.07:
+                    if unoise >= 0.01:
                         blocks_grid[0, y, x] = GRASS
                         collidible_grid[y, x] = True
                     
                     #blocks_grid[1, y, x] = GRASS
                     #collidible_grid[y, x] = True
                 
-                elif world_y > surface_y: # Underground
-                    if unoise >= 0.06:
+                elif world_y > surface_y + commons.CHUNK_SIZE and world_y > surface_y: # Underground
+                    if unoise >= 0.3:
                         blocks_grid[1, y, x] = STONE
                         blocks_grid[0, y, x] = STONE
                         collidible_grid[y, x] = True
 
-                    elif unoise >= 0.05:
+                    elif unoise >= 0.1:
                         blocks_grid[1, y, x] = DIRT
                         blocks_grid[0, y, x] = DIRT
                         collidible_grid[y, x] = True
+                elif world_y > surface_y:
+                    if unoise >= 0.4:
+                        blocks_grid[1, y, x] = DIRT
+                        blocks_grid[0, y, x] = DIRT
+                        collidible_grid[y, x] = True
+
+                    elif unoise >= 0.03:
+                        blocks_grid[1, y, x] = DIRT
+                        blocks_grid[0, y, x] = DIRT
+                        collidible_grid[y, x] = True
+                
+                if x == 0 or y == 0:
+                    continue  
+
+                if blocks_grid[0, y, x]:
+                    if blocks_grid[0, y-1, x]:
+                        edges_matrix[0, y-1, x] += 0b0001
+                        edges_matrix[0, y, x] += 0b0100
                     
+                    if blocks_grid[0, y, x-1]:
+                        edges_matrix[0, y, x-1] += 0b0010
+                        edges_matrix[0, y, x] += 0b1000
+                
+                if blocks_grid[1, y, x]:
+                    if blocks_grid[1, y-1, x]:
+                        edges_matrix[1, y-1, x] += 0b0001
+                        edges_matrix[1, y, x] += 0b0100
+                    
+                    if blocks_grid[1, y, x-1]:
+                        edges_matrix[1, y, x-1] += 0b0010
+                        edges_matrix[1, y, x] += 0b1000
+                
                     
 
 
@@ -88,5 +126,6 @@ class WorldGenerator:
 
         chunk.blocks_grid = blocks_grid
         chunk.collidable_grid = collidible_grid
+        chunk.edges_matrix = edges_matrix
 
         return chunk

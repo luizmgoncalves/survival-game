@@ -33,6 +33,6 @@ PLAYER_SIZE = (50, 50)        # Default size
 PLAYER_LIFE = 100             # Default life points
 PLAYER_MAX_VEL = 200          # Default maximum velocity
 
-GRAVITY_ACELERATION = 10
+GRAVITY_ACELERATION = 40
 
 WORLD_SELECTED = '' # World selected on Worlds page to being played

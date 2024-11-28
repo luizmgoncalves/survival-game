@@ -4,6 +4,7 @@ from .enemy import Enemy
 from .bullet import Bullet
 from .moving_element import MovingElement
 from typing import List
+from math import ceil
 
 class PhysicsManager:
     def __init__(self, 
@@ -159,7 +160,7 @@ class PhysicsManager:
         for element in self.moving_elements:
             self._move_entity_and_handle_collision(element, world, delta_time)
 
-    def _move_entity_and_handle_collision(self, entity, world, delta_time):
+    def _move_entity_and_handle_collision(self, entity: MovingElement, world, delta_time):
         """
         Move a single entity and handle its collisions with the world.
 
@@ -168,7 +169,9 @@ class PhysicsManager:
         """
 
         # Get nearby blocks that may collide with the entity
-        collision_blocks = world.get_collision_blocks_around(entity.rect.center, entity.rect.size)
+        x_dist = abs(ceil(entity.velocity.x * delta_time)) + entity.rect.width
+        y_dist = abs(ceil(entity.velocity.y * delta_time)) + entity.rect.height
+        collision_blocks = world.get_collision_blocks_around(entity.rect.center, (x_dist, y_dist))
 
         # Move the entity
         entity.move(collision_blocks, delta_time)

@@ -1,5 +1,5 @@
 import pygame
-from game_actor import GameActor
+from .game_actor import GameActor
 
 P = './game_images/previous/'
 
