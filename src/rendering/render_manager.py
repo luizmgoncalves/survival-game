@@ -213,6 +213,8 @@ class RenderManager:
                     element.position.y
                 )
                 surface.blit(element.image, screen_position)
+            
+            chunk.changes.clear()
         
         if 'line' in chunk.changes:
             for line_index in chunk.changes['line']: #Iterates over the lines that were changed
