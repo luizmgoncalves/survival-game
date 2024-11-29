@@ -62,7 +62,7 @@ class CollidableMovingElement(MovingElement):
         :param colliding_rects: A list of rectangles to check for collisions.
         """
 
-        print(len(colliding_rects))
+        #print(len(colliding_rects))
         #print(f'Current position {self.rect.topleft}, deltax: {self.velocity.x * delta_time}, deltay: {self.velocity.y * delta_time} - {colliding_rects}')
 
         # Move horizontally (x direction)
@@ -77,7 +77,7 @@ class CollidableMovingElement(MovingElement):
 
         for edge, rect in _colliding_rects: 
             if self.rect.colliderect(rect):
-                print(f'{self.rect} collided with {rect} -- x - {self.velocity.y}')
+                #print(f'{self.rect} collided with {rect} -- x - {self.velocity.y}')
                 if self.velocity.x > 0 and edge == 0b0011:
                     dx = self.rect.right - rect.left
                     self.rect.right = rect.left + dx
@@ -137,7 +137,7 @@ class CollidableMovingElement(MovingElement):
 
         for edge, rect in _colliding_rects:
             if self.rect.colliderect(rect):
-                print(f'{self.rect} collided with {rect} -- y')
+                #print(f'{self.rect} collided with {rect} -- y')
                 if self.velocity.y > 0 and edge == 0b0011:
                     dx = self.rect.right - rect.left
                     self.rect.bottom = rect.bottom - dx
@@ -145,12 +145,12 @@ class CollidableMovingElement(MovingElement):
                     self.velocity.x = 0
                 elif self.velocity.y < 0 and edge == 0b0011:
                     dx = self.rect.right - rect.left
-                    print("EXTROU")
+                    #print("EXTROU")
                     if self.rect.bottom > rect.bottom - dx:
                         self.rect.bottom = rect.bottom - dx
                         collided = True
                         self.collided_right()
-                        print("entrou")
+                        #print("entrou")
                 elif self.velocity.y > 0 and edge == 0b1001:
                     dx = rect.right - self.rect.left
                     if abs(dx) < commons.BLOCK_SIZE:

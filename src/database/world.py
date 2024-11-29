@@ -50,6 +50,23 @@ class World:
             # Generate a new chunk if no data exists
             chunk = self.generator.generate_chunk((chunk_x, chunk_y))
 
+            # Verifying around chunks to update their edges matrix
+            for i in range(0, 4):
+                match i:
+                    case 0:
+                        around_chunk = self.all_chunks.get((chunk_x-1, chunk_y))
+                    case 1:
+                        around_chunk = self.all_chunks.get((chunk_x, chunk_y-1))
+                    case 2:
+                        around_chunk = self.all_chunks.get((chunk_x+1, chunk_y))
+                    case 3:
+                        around_chunk = self.all_chunks.get((chunk_x, chunk_y+1))
+                
+                if around_chunk: #Check if it exists
+                    self.generator.update_edges_matrix(chunk, around_chunk, index=i)
+                    
+
+
             # Optionally, save the generated chunk back to the database here
 
         else:
