@@ -1,6 +1,7 @@
 import numpy as np
 import pygame
 import commons
+from typing import Dict
 
 class Chunk:
 
@@ -17,7 +18,14 @@ class Chunk:
         self.blocks_grid = np.zeros((layers, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # 3D matrix for block layers
         self.collidable_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)  # Collidable matrix
         self.edges_matrix = np.ones((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Collidable matrix
-        self.has_changes = False  # Tracks whether the chunk has been modified
+
+        # Changes dict track the changings of the Chunk for Chunk rendering optimization
+        # It can have the line key with the lines that have changed
+        # It can have the column key with the lines that have changed
+        # It can have the block key with the blocks that must be re-rendered
+        # It can have a all key with some irrelevant value that means that the entire Chunk must be rendered
+        # If the all key are in self.changes all other keys are ignored
+        self.changes: Dict[str, list] = {}
 
     def add_block(self, block, local_x, local_y, layer):
         """

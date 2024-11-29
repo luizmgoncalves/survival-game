@@ -124,6 +124,7 @@ class WorldGenerator:
         chunk.blocks_grid = blocks_grid
         chunk.collidable_grid = collidible_grid
         chunk.edges_matrix = edges_matrix
+        chunk.changes['all'] = True
 
         return chunk
 
@@ -138,6 +139,9 @@ class WorldGenerator:
                     if chunk2.blocks_grid[1, i, -1] and chunk1.blocks_grid[1, i, 0]: # Last column <-> First column
                         chunk1.edges_matrix[1, i, 0] += 0b1000
                         chunk2.edges_matrix[1, i, -1] += 0b0010
+                
+                chunk2.changes['column'] = [commons.CHUNK_SIZE-1]
+                chunk1.changes['column'] = [0]
             case 1: # top
                 for i in range(commons.CHUNK_SIZE):
                     if chunk2.blocks_grid[0, -1, i] and chunk1.blocks_grid[0, 0, i]: # Last column <-> First column
@@ -147,6 +151,9 @@ class WorldGenerator:
                     if chunk2.blocks_grid[1, -1, i] and chunk1.blocks_grid[1, 0, i]: # Last column <-> First column
                         chunk1.edges_matrix[1, 0, i] += 0b0100
                         chunk2.edges_matrix[1, -1, i] += 0b0001
+                
+                chunk2.changes['line'] = [commons.CHUNK_SIZE-1]
+                chunk1.changes['line'] = [0]
             case 2: # right
                 for i in range(commons.CHUNK_SIZE):
                     if chunk2.blocks_grid[0, i, 0] and chunk1.blocks_grid[0, i, -1]: # First column <-> Last column
@@ -156,7 +163,9 @@ class WorldGenerator:
                     if chunk2.blocks_grid[1, i, 0] and chunk1.blocks_grid[1, i, -1]: # First column <-> Last column
                         chunk1.edges_matrix[1, i, -1] += 0b0010
                         chunk2.edges_matrix[1, i, 0] += 0b1000
-
+                
+                chunk2.changes['column'] = [0]
+                chunk1.changes['column'] = [commons.CHUNK_SIZE-1]
             case 3: #bottom
                 for i in range(commons.CHUNK_SIZE):
                     if chunk2.blocks_grid[0, 0, i] and chunk1.blocks_grid[0, -1, i]: # First row <-> Last row
@@ -166,6 +175,7 @@ class WorldGenerator:
                     if chunk2.blocks_grid[1, 0, i] and chunk1.blocks_grid[1, -1, i]: # First row <-> Last row
                         chunk1.edges_matrix[1, -1, i] += 0b0001
                         chunk2.edges_matrix[1, 0, i] += 0b0100
-        
-        chunk2.has_changes = True
+                
+                chunk2.changes['line'] = [0]
+                chunk1.changes['line'] = [commons.CHUNK_SIZE-1]
 

@@ -71,7 +71,7 @@ class RenderManager:
                     for i in range(3):
                         chunk_y = self.chunk_matrix[0, 0].pos.y + i 
                         self.chunk_matrix[i, 2] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[i, 2].has_changes = True
+                        self.chunk_matrix[i, 2].changes['all'] = True
                 else:
                     buff = self.surface_matrix[:, 2].copy()
                     self.surface_matrix[:, 2] = self.surface_matrix[:, 1]
@@ -85,14 +85,13 @@ class RenderManager:
                     for i in range(3):
                         chunk_y = self.chunk_matrix[0, 0].pos.y + i 
                         self.chunk_matrix[i, 0] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[i, 0].has_changes = True
+                        self.chunk_matrix[i, 0].changes['all'] = True
             if dif.y:
                 if dif.y > 0:
                     buff = self.surface_matrix[0, :].copy()
                     self.surface_matrix[0, :] = self.surface_matrix[1, :]
                     self.surface_matrix[1, :] = self.surface_matrix[2, :]
                     self.surface_matrix[2, :] = buff
-                    #print(np.vectorize(id)(self.surface_matrix))
                     self.chunk_matrix[0, :] = self.chunk_matrix[1, :]
                     self.chunk_matrix[1, :] = self.chunk_matrix[2, :]
 
@@ -102,13 +101,12 @@ class RenderManager:
                     for j in range(3):
                         chunk_x = self.chunk_matrix[2, 0].pos.x + j 
                         self.chunk_matrix[2, j] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[2, j].has_changes = True
+                        self.chunk_matrix[2, j].changes['all'] = True
                 else:
                     buff = self.surface_matrix[2, :].copy()
                     self.surface_matrix[2, :] = self.surface_matrix[1, :]
                     self.surface_matrix[1, :] = self.surface_matrix[0, :]
                     self.surface_matrix[0, :] = buff
-                    #print(np.vectorize(id)(self.surface_matrix))
                     self.chunk_matrix[2, :] = self.chunk_matrix[1, :]
                     self.chunk_matrix[1, :] = self.chunk_matrix[0, :]
 
@@ -118,7 +116,7 @@ class RenderManager:
                     for j in range(3):
                         chunk_x = self.chunk_matrix[0, 0].pos.x + j 
                         self.chunk_matrix[0, j] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[0, j].has_changes = True
+                        self.chunk_matrix[0, j].changes['all'] = True
 
         if self.initializing:
             self.initializing = False
@@ -130,7 +128,7 @@ class RenderManager:
                     chunk_x = self.current_chunk_position[0] + (j - 1)
                     chunk_y = self.current_chunk_position[1] + (i - 1)
                     self.chunk_matrix[i, j] = world.load_chunk(chunk_x, chunk_y)
-                    self.chunk_matrix[i, j].has_changes = True
+                    self.chunk_matrix[i, j].changes['all'] = True
 
     def render_chunks(self, screen):
         """
@@ -153,74 +151,134 @@ class RenderManager:
                 self.render_single_chunk(chunk_surface, chunk_data)
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
 
-    def render_single_chunk(self, surface, chunk: Chunk):
+    def render_single_chunk(self, surface: pygame.Surface, chunk: Chunk):
         """
         Renders a single chunk onto a given surface.
 
         :param surface: pygame.Surface, the surface to draw on.
         :param chunk: Chunk, the chunk object containing blocks and elements to render.
         """
-        if chunk is None or not chunk.has_changes:
+        if chunk is None or not chunk.changes:
             return  # Skip rendering if chunk is not loaded.
 
-        surface.fill(self.color_key)  # Clear surface with transparent background.
+        if 'all' in chunk.changes:
+            surface.fill(self.color_key)  # Clear surface with transparent background.
 
-        #off = 10
-        #pygame.draw.rect(surface, (0, 100, 0), (off/2, off/2, commons.CHUNK_SIZE_PIXELS-off, commons.CHUNK_SIZE_PIXELS-off))
+            # Render the blocks in the chunk
+            for x in range(commons.CHUNK_SIZE):
+                for y in range(commons.CHUNK_SIZE):
+                    for layer in range(chunk.blocks_grid.shape[0]):
+                        block = chunk.blocks_grid[layer, y, x]
+                        edge = chunk.edges_matrix[layer, y, x]
 
-        # Render the blocks in the chunk
-        for x in range(chunk.blocks_grid.shape[1]):
-            for y in range(chunk.blocks_grid.shape[2]):
-                for layer in range(chunk.blocks_grid.shape[0]):
-                    block = chunk.blocks_grid[layer, y, x]
-                    edge = chunk.edges_matrix[layer, y, x]
-
-                    if block and layer==0:
-                        block_rect = pygame.Rect(
-                                x * commons.BLOCK_SIZE,
-                                y * commons.BLOCK_SIZE,
-                                commons.BLOCK_SIZE,
-                                commons.BLOCK_SIZE
-                            )
-                        match BLOCK_METADATA.get_name_by_id(block):
-                            case "GRASS":
-                                surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
-                            case "STONE":
-                                surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
-                            case "DIRT":
-                                surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
-                        
-                    elif block and layer==0:  # Skip empty blocks
-                        block_color = BLOCK_METADATA.get_property_by_id(block, "color")
-                        ##print(f"Analisando {BLOCK_METADATA.get_name_by_id(block)}, cor: {block_color}")
-
-                        if edge == 0b1001:
-                            p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
-                            block_poligon = [p, p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
-                            pygame.draw.polygon(surface, block_color, block_poligon)
-                        elif edge == 0b0011:
-                            p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
-                            block_poligon = [p+v2(commons.BLOCK_SIZE, 0), p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
-                            pygame.draw.polygon(surface, block_color, block_poligon)
-                        else:
+                        if block and layer==0:
                             block_rect = pygame.Rect(
-                                x * commons.BLOCK_SIZE,
-                                y * commons.BLOCK_SIZE,
-                                commons.BLOCK_SIZE,
-                                commons.BLOCK_SIZE
-                            )
-                            pygame.draw.rect(surface, block_color, block_rect)
+                                    x * commons.BLOCK_SIZE,
+                                    y * commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE
+                                )
+                            match BLOCK_METADATA.get_name_by_id(block):
+                                case "GRASS":
+                                    surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
+                                case "STONE":
+                                    surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
+                                case "DIRT":
+                                    surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
+                            
+                        elif block and layer==0:  # Skip empty blocks
+                            block_color = BLOCK_METADATA.get_property_by_id(block, "color")
 
-        # Render static world elements
-        for element in chunk.world_elements:
-            screen_position = (
-                element.position.x,
-                element.position.y
-            )
-            surface.blit(element.image, screen_position)
+                            if edge == 0b1001:
+                                p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
+                                block_poligon = [p, p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
+                                pygame.draw.polygon(surface, block_color, block_poligon)
+                            elif edge == 0b0011:
+                                p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
+                                block_poligon = [p+v2(commons.BLOCK_SIZE, 0), p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
+                                pygame.draw.polygon(surface, block_color, block_poligon)
+                            else:
+                                block_rect = pygame.Rect(
+                                    x * commons.BLOCK_SIZE,
+                                    y * commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE
+                                )
+                                pygame.draw.rect(surface, block_color, block_rect)
 
+            # Render static world elements
+            for element in chunk.world_elements:
+                screen_position = (
+                    element.position.x,
+                    element.position.y
+                )
+                surface.blit(element.image, screen_position)
+        
+        if 'line' in chunk.changes:
+            for line_index in chunk.changes['line']: #Iterates over the lines that were changed
+                xi = 0
+                yi = line_index * commons.BLOCK_SIZE
+                line_rect = pygame.Rect(xi, yi, commons.CHUNK_SIZE_PIXELS, commons.BLOCK_SIZE) 
+                # Line rectangle
+
+                surface.fill(self.color_key, line_rect)  # Clear line surface with transparent background.
+
+                y = line_index
+
+                for x in range(commons.CHUNK_SIZE):
+                    for layer in range(chunk.blocks_grid.shape[0]):
+                        block = chunk.blocks_grid[layer, y, x]
+                        edge = chunk.edges_matrix[layer, y, x]
+
+                        if block and layer==0:
+                            block_rect = pygame.Rect(
+                                    x * commons.BLOCK_SIZE,
+                                    y * commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE
+                                )
+                            match BLOCK_METADATA.get_name_by_id(block):
+                                case "GRASS":
+                                    surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
+                                case "STONE":
+                                    surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
+                                case "DIRT":
+                                    surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
+
+        if 'column' in chunk.changes:
+            for column_index in chunk.changes['column']: #Iterates over the lines that were changed
+                yi = 0
+                xi = column_index * commons.BLOCK_SIZE
+                col_rect = pygame.Rect(xi, yi, commons.BLOCK_SIZE, commons.CHUNK_SIZE_PIXELS) 
+                # Column rectangle
+
+                surface.fill(self.color_key, col_rect)  # Clear line surface with transparent background.
+
+                x = column_index
+
+                for y in range(commons.CHUNK_SIZE):
+                    for layer in range(chunk.blocks_grid.shape[0]):
+                        block = chunk.blocks_grid[layer, y, x]
+                        edge = chunk.edges_matrix[layer, y, x]
+
+                        if block and layer==0:
+                            block_rect = pygame.Rect(
+                                    x * commons.BLOCK_SIZE,
+                                    y * commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE,
+                                    commons.BLOCK_SIZE
+                                )
+                            match BLOCK_METADATA.get_name_by_id(block):
+                                case "GRASS":
+                                    surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
+                                case "STONE":
+                                    surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
+                                case "DIRT":
+                                    surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
+
+        
         # Flag that the chunk has been rendered
-        chunk.has_changes = False
+        chunk.changes.clear()
 
 
     def render_moving_elements(self, screen):
