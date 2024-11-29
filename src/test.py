@@ -4,6 +4,7 @@ from database.world import World
 from physics.moving_element import CollidableMovingElement
 from physics.physics_manager import PhysicsManager
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
+from images.image_loader import IMAGE_LOADER
 import commons
 import math
 import numpy as np
@@ -18,6 +19,9 @@ def main():
     commons.WIDTH, commons.HEIGHT = 1600, 900
     screen = pygame.display.set_mode((commons.WIDTH, commons.HEIGHT))
     pygame.display.set_caption("Render Manager Demo")
+    IMAGE_LOADER.init()
+
+    print(BLOCK_METADATA.get_name_by_id(0))
 
     # Constants
     #commons.CHUNK_SIZE_PIXELS = 256
@@ -68,9 +72,9 @@ def main():
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            pedra.velocity.x = -600
+            pedra.velocity.x = -300
         if keys[pygame.K_RIGHT]: 
-            pedra.velocity.x = 600
+            pedra.velocity.x = 300
         if keys[pygame.K_UP]:
             
             pedra.velocity.y = -500

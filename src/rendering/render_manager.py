@@ -3,9 +3,10 @@
 import pygame
 import commons
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
+from images.image_loader import IMAGE_LOADER
 from database.world_elements.chunk import Chunk
 import numpy as np
-from pygame.math import Vector2 as V2
+from pygame.math import Vector2 as v2
 
 
 class RenderManager:
@@ -23,7 +24,7 @@ class RenderManager:
         self.current_position = current_position
         self.current_chunk_position = self.get_chunk_position()
         self.initializing = True
-        self.color_key = color_key
+        self.color_key = commons.BLOCK_MASK_COLOR
         self.chunk_matrix = np.matrix([[None for _ in range(3)] for _ in range(3)])
         self.surface_matrix = np.matrix([[self.create_surface() for _ in range(3)] for _ in range(3)])
         self.moving_elements = []
@@ -173,17 +174,33 @@ class RenderManager:
                 for layer in range(chunk.blocks_grid.shape[0]):
                     block = chunk.blocks_grid[layer, y, x]
                     edge = chunk.edges_matrix[layer, y, x]
-                    if block:  # Skip empty blocks
+
+                    if block and layer==0:
+                        block_rect = pygame.Rect(
+                                x * commons.BLOCK_SIZE,
+                                y * commons.BLOCK_SIZE,
+                                commons.BLOCK_SIZE,
+                                commons.BLOCK_SIZE
+                            )
+                        match BLOCK_METADATA.get_name_by_id(block):
+                            case "GRASS":
+                                surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
+                            case "STONE":
+                                surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
+                            case "DIRT":
+                                surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
+                        
+                    elif block and layer==0:  # Skip empty blocks
                         block_color = BLOCK_METADATA.get_property_by_id(block, "color")
                         ##print(f"Analisando {BLOCK_METADATA.get_name_by_id(block)}, cor: {block_color}")
 
                         if edge == 0b1001:
-                            p = V2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
-                            block_poligon = [p, p+V2(0, commons.BLOCK_SIZE), p+V2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
+                            p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
+                            block_poligon = [p, p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
                             pygame.draw.polygon(surface, block_color, block_poligon)
                         elif edge == 0b0011:
-                            p = V2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
-                            block_poligon = [p+V2(commons.BLOCK_SIZE, 0), p+V2(0, commons.BLOCK_SIZE), p+V2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
+                            p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
+                            block_poligon = [p+v2(commons.BLOCK_SIZE, 0), p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
                             pygame.draw.polygon(surface, block_color, block_poligon)
                         else:
                             block_rect = pygame.Rect(

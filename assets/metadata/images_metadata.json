@@ -1,5 +1,17 @@
 {
     "WALLPAPER": {
         "path": "back.jpg"
+    },
+    "GRASS": {
+        "path": "blocks/grass.png",
+        "block": true
+    },
+    "DIRT": {
+        "path": "blocks/dirt.png",
+        "block": true
+    },
+    "STONE": {
+        "path": "blocks/stone.png",
+        "block": true
     }
 }

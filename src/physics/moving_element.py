@@ -1,4 +1,5 @@
 import pygame
+import commons
 
 
 class MovingElement(pygame.sprite.DirtySprite):
@@ -61,7 +62,7 @@ class CollidableMovingElement(MovingElement):
         :param colliding_rects: A list of rectangles to check for collisions.
         """
 
-        #print(len(colliding_rects))
+        print(len(colliding_rects))
         #print(f'Current position {self.rect.topleft}, deltax: {self.velocity.x * delta_time}, deltay: {self.velocity.y * delta_time} - {colliding_rects}')
 
         # Move horizontally (x direction)
@@ -76,14 +77,48 @@ class CollidableMovingElement(MovingElement):
 
         for edge, rect in _colliding_rects: 
             if self.rect.colliderect(rect):
-                #print(f'{self.rect} collided with {rect}')
-                if self.velocity.x > 0:  # Moving right
+                print(f'{self.rect} collided with {rect} -- x - {self.velocity.y}')
+                if self.velocity.x > 0 and edge == 0b0011:
+                    dx = self.rect.right - rect.left
+                    self.rect.right = rect.left + dx
+                    if self.rect.bottom > rect.bottom - dx:
+                        self.rect.bottom = rect.bottom - dx
+                        if self.velocity.y > 0:
+                            self.velocity.y = 0
+                        self.collided_right()
+                elif self.velocity.x < 0 and edge == 0b0011:
+                    dx = self.rect.right - rect.right
+                    self.rect.right = rect.right + dx
+                    if self.rect.bottom > rect.top - dx:
+                        self.rect.bottom = rect.top - dx
+                        if self.velocity.y > 0:
+                            self.velocity.y = 0
+                        self.collided_down()
+                elif self.velocity.x < 0 and edge == 0b1001:
+                    dx = self.rect.left - rect.right
+                    self.rect.left = rect.right + dx
+                    if self.rect.bottom > rect.bottom + dx:
+                        self.rect.bottom = rect.bottom + dx
+                        if self.velocity.y > 0:
+                            self.velocity.y = 0
+                        self.collided_down()
+                elif self.velocity.x > 0 and edge == 0b1001:
+                    dx = self.rect.left - rect.right
+                    self.rect.left = rect.right + dx
+                    if self.rect.bottom > rect.bottom + dx:
+                        self.rect.bottom = rect.bottom + dx
+                        if self.velocity.y > 0:
+                            self.velocity.y = 0
+                        self.collided_down()
+                elif self.velocity.x > 0:  # Moving right
                     self.rect.right = rect.left
                     self.collided_right()
+                    collided = True
                 elif self.velocity.x < 0:  # Moving left
                     self.rect.left = rect.right
                     self.collided_left()
-                collided = True
+                    collided = True
+                
     
         if collided:
             self.velocity.x = 0
@@ -101,16 +136,45 @@ class CollidableMovingElement(MovingElement):
         self.rect.y += self.velocity.y * delta_time
 
         for edge, rect in _colliding_rects:
-            
             if self.rect.colliderect(rect):
-                #print(f'{self.rect} collided with {rect}')
-                if self.velocity.y > 0:  # Moving down
+                print(f'{self.rect} collided with {rect} -- y')
+                if self.velocity.y > 0 and edge == 0b0011:
+                    dx = self.rect.right - rect.left
+                    self.rect.bottom = rect.bottom - dx
+                    self.collided_right()
+                    self.velocity.x = 0
+                elif self.velocity.y < 0 and edge == 0b0011:
+                    dx = self.rect.right - rect.left
+                    print("EXTROU")
+                    if self.rect.bottom > rect.bottom - dx:
+                        self.rect.bottom = rect.bottom - dx
+                        collided = True
+                        self.collided_right()
+                        print("entrou")
+                elif self.velocity.y > 0 and edge == 0b1001:
+                    dx = rect.right - self.rect.left
+                    if abs(dx) < commons.BLOCK_SIZE:
+                        self.rect.bottom = rect.bottom - dx
+                    else:
+                        self.rect.bottom = rect.top
+
+                    self.collided_right()
+                    #print(f"AQUI1: {self.velocity}")
+                elif self.velocity.y < 0 and edge == 0b1001:
+                    dx = rect.right - self.rect.left
+                    if self.rect.bottom > rect.bottom - dx and abs(dx) < commons.BLOCK_SIZE:
+                        self.rect.bottom = rect.bottom - dx
+                        collided = True
+                        self.collided_right()
+                        #print("aqui2")
+                elif self.velocity.y > 0:  # Moving down
                     self.rect.bottom = rect.top
                     self.collided_down()
+                    collided = True
                 elif self.velocity.y < 0:  # Moving up
                     self.rect.top = rect.bottom 
                     self.collided_up()
-                collided = True
+                    collided = True
 
         if collided:
             self.velocity.y = 0
