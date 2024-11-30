@@ -39,3 +39,5 @@ WORLD_SELECTED = '' # World selected on Worlds page to being played
 
 BLOCK_MASK_COLOR = (255, 0, 255)
 MASK_DEFAULT_PATH = 'assets/images/block_masks/'
+
+BACK_LAYER_TRANSPARENCY = 100 # Rule the back layer filtering (max: 255)

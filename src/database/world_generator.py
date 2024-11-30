@@ -67,7 +67,7 @@ class WorldGenerator:
                         blocks_grid[0, y, x] = GRASS
                         collidible_grid[y, x] = True
                     
-                    #blocks_grid[1, y, x] = GRASS
+                    blocks_grid[1, y, x] = GRASS
                     #collidible_grid[y, x] = True
                 
                 elif world_y > surface_y + commons.CHUNK_SIZE and world_y > surface_y: # Underground
@@ -80,16 +80,23 @@ class WorldGenerator:
                         blocks_grid[1, y, x] = DIRT
                         blocks_grid[0, y, x] = DIRT
                         collidible_grid[y, x] = True
+                    
+                    if unoise >= 0.009:
+                        blocks_grid[1, y, x] = DIRT
                 elif world_y > surface_y:
-                    if unoise >= 0.4:
-                        blocks_grid[1, y, x] = DIRT
+                    if unoise >= 0.09:
                         blocks_grid[0, y, x] = DIRT
                         collidible_grid[y, x] = True
+                    
+                    if unoise >= 0.009:
+                        blocks_grid[1, y, x] = DIRT
 
-                    elif unoise >= 0.03:
-                        blocks_grid[1, y, x] = DIRT
-                        blocks_grid[0, y, x] = DIRT
-                        collidible_grid[y, x] = True
+                    #elif unoise >= 0.03:
+                    #    blocks_grid[1, y, x] = DIRT
+                    #    blocks_grid[0, y, x] = DIRT
+                    #    collidible_grid[y, x] = True
+                
+                ###### ----------
                 
                 if blocks_grid[0, y, x]:
                     if y and blocks_grid[0, y-1, x]:
