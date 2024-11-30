@@ -170,38 +170,23 @@ class RenderManager:
                         block = chunk.blocks_grid[layer, y, x]
                         edge = chunk.edges_matrix[layer, y, x]
 
-                        if block and layer==0:
+                        if block:
                             block_rect = pygame.Rect(
-                                    x * commons.BLOCK_SIZE,
-                                    y * commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE
-                                )
-                            match BLOCK_METADATA.get_name_by_id(block):
-                                case "GRASS":
-                                    surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
-                                case "STONE":
-                                    surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
-                                case "DIRT":
-                                    surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
+                                        x * commons.BLOCK_SIZE,
+                                        y * commons.BLOCK_SIZE,
+                                        commons.BLOCK_SIZE,
+                                        commons.BLOCK_SIZE)
                             
-                        # Checks if the upper block has transparency or if there is no block
-                        if block and layer==1 and ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0): 
-                            block_rect = pygame.Rect(
-                                    x * commons.BLOCK_SIZE,
-                                    y * commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE
-                                )
-                            match BLOCK_METADATA.get_name_by_id(block):
-                                case "GRASS":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_GRASS.{edge:04b}"), block_rect)
-                                case "STONE":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_STONE.{edge:04b}"), block_rect)
-                                case "DIRT":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_DIRT.{edge:04b}"), block_rect)
+                            if layer==0:
+                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+                                
+                            # Checks if the upper block has transparency or if there is no block
+                            elif ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0): 
+                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
                             
-                        if block and layer==0 and False:  # Skip empty blocks
+                        if block and layer==0 and False:  # Legacy
                             block_color = BLOCK_METADATA.get_property_by_id(block, "color")
 
                             if edge == 0b1001:
@@ -247,35 +232,20 @@ class RenderManager:
                         block = chunk.blocks_grid[layer, y, x]
                         edge = chunk.edges_matrix[layer, y, x]
 
-                        if block and layer==0:
+                        if block:
                             block_rect = pygame.Rect(
-                                    x * commons.BLOCK_SIZE,
-                                    y * commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE
-                                )
-                            match BLOCK_METADATA.get_name_by_id(block):
-                                case "GRASS":
-                                    surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
-                                case "STONE":
-                                    surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
-                                case "DIRT":
-                                    surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
-                        
-                        if block and layer==1 and ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0): 
-                            block_rect = pygame.Rect(
-                                    x * commons.BLOCK_SIZE,
-                                    y * commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE
-                                )
-                            match BLOCK_METADATA.get_name_by_id(block):
-                                case "GRASS":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_GRASS.{edge:04b}"), block_rect)
-                                case "STONE":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_STONE.{edge:04b}"), block_rect)
-                                case "DIRT":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_DIRT.{edge:04b}"), block_rect)
+                                        x * commons.BLOCK_SIZE,
+                                        y * commons.BLOCK_SIZE,
+                                        commons.BLOCK_SIZE,
+                                        commons.BLOCK_SIZE)
+
+                            if layer==0:
+                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+                            
+                            elif ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0): 
+                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
 
         if 'column' in chunk.changes:
             for column_index in chunk.changes['column']: #Iterates over the lines that were changed
@@ -293,35 +263,20 @@ class RenderManager:
                         block = chunk.blocks_grid[layer, y, x]
                         edge = chunk.edges_matrix[layer, y, x]
 
-                        if block and layer==0:
+                        if block:
                             block_rect = pygame.Rect(
-                                    x * commons.BLOCK_SIZE,
-                                    y * commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE
-                                )
-                            match BLOCK_METADATA.get_name_by_id(block):
-                                case "GRASS":
-                                    surface.blit(IMAGE_LOADER.get_image(f"GRASS.{edge:04b}"), block_rect)
-                                case "STONE":
-                                    surface.blit(IMAGE_LOADER.get_image(f"STONE.{edge:04b}"), block_rect)
-                                case "DIRT":
-                                    surface.blit(IMAGE_LOADER.get_image(f"DIRT.{edge:04b}"), block_rect)
+                                        x * commons.BLOCK_SIZE,
+                                        y * commons.BLOCK_SIZE,
+                                        commons.BLOCK_SIZE,
+                                        commons.BLOCK_SIZE)
 
-                        if block and layer==1 and ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0): 
-                            block_rect = pygame.Rect(
-                                    x * commons.BLOCK_SIZE,
-                                    y * commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE
-                                )
-                            match BLOCK_METADATA.get_name_by_id(block):
-                                case "GRASS":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_GRASS.{edge:04b}"), block_rect)
-                                case "STONE":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_STONE.{edge:04b}"), block_rect)
-                                case "DIRT":
-                                    surface.blit(IMAGE_LOADER.get_image(f"BACK_DIRT.{edge:04b}"), block_rect)
+                            if layer==0:
+                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+                            
+                            elif ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0): 
+                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
 
         
         # Flag that the chunk has been rendered

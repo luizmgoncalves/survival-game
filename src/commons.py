@@ -16,6 +16,11 @@ CHUNK_SIZE_PIXELS = CHUNK_SIZE * BLOCK_SIZE
 CHANGE_PAGE_EVENT = pygame.event.custom_type()
 
 
+# Custom event for item dropping
+# Triggered when a block is broke or if the player drop
+# Has the position and the item id atributes
+ITEM_DROP_EVENT = pygame.event.custom_type()
+
 # Metadata files path
 METADATA_PATH = './assets/metadata/'
 

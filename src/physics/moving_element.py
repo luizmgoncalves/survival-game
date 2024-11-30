@@ -77,7 +77,9 @@ class CollidableMovingElement(MovingElement):
 
         for edge, rect in _colliding_rects: 
             if self.rect.colliderect(rect):
-                #print(f'{self.rect} collided with {rect} -- x - {self.velocity.y}')
+                
+
+
                 if self.velocity.x > 0 and edge == 0b0011:
                     dx = self.rect.right - rect.left
                     self.rect.right = rect.left + dx
@@ -86,6 +88,7 @@ class CollidableMovingElement(MovingElement):
                         if self.velocity.y > 0:
                             self.velocity.y = 0
                         self.collided_right()
+                
                 elif self.velocity.x < 0 and edge == 0b0011:
                     dx = self.rect.right - rect.right
                     self.rect.right = rect.right + dx
@@ -94,6 +97,8 @@ class CollidableMovingElement(MovingElement):
                         if self.velocity.y > 0:
                             self.velocity.y = 0
                         self.collided_down()
+
+                
                 elif self.velocity.x < 0 and edge == 0b1001:
                     dx = self.rect.left - rect.right
                     self.rect.left = rect.right + dx
@@ -102,6 +107,7 @@ class CollidableMovingElement(MovingElement):
                         if self.velocity.y > 0:
                             self.velocity.y = 0
                         self.collided_down()
+                
                 elif self.velocity.x > 0 and edge == 0b1001:
                     dx = self.rect.left - rect.right
                     self.rect.left = rect.right + dx
@@ -110,6 +116,8 @@ class CollidableMovingElement(MovingElement):
                         if self.velocity.y > 0:
                             self.velocity.y = 0
                         self.collided_down()
+
+                
                 elif self.velocity.x > 0:  # Moving right
                     self.rect.right = rect.left
                     self.collided_right()

@@ -1,0 +1,26 @@
+{
+    "1": {
+        "name": "STONE",
+        "image_name": "STONE"
+    },
+    "2": {
+        "name": "WOOD",
+        "image_name": "WOOD"
+    },
+    "3": {
+        "name": "APPLE",
+        "image_name": "APPLE"
+    },
+    "4": {
+        "name": "GRASS",
+        "image_name": "GRASS"
+    },
+    "5": {
+        "name": "IRON_ORE",
+        "image_name": "iron_ore"
+    },
+    "6": {
+        "name": "DIRT",
+        "image_name": "DIRT"
+    }
+}
