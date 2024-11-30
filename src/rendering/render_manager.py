@@ -7,6 +7,7 @@ from images.image_loader import IMAGE_LOADER
 from database.world_elements.chunk import Chunk
 import numpy as np
 from pygame.math import Vector2 as v2
+from threading import Thread
 
 
 class RenderManager:
@@ -146,7 +147,7 @@ class RenderManager:
                 chunk_x = chunk_data.pos.x * commons.CHUNK_SIZE_PIXELS - (self.current_position[0]) #+ commons.WIDTH /2
                 chunk_y = chunk_data.pos.y * commons.CHUNK_SIZE_PIXELS - (self.current_position[1]) #+ commons.HEIGHT /2
 
-                self.render_single_chunk(chunk_surface, chunk_data)
+                Thread(target=self.render_single_chunk, args=[chunk_surface, chunk_data]).run()
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
 
     def render_single_chunk(self, surface: pygame.Surface, chunk: Chunk):
