@@ -6,6 +6,9 @@ from .world_elements.chunk import Chunk
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 import commons
 import noise
+import random
+from .world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
+from .world_elements.static_element import StaticElement
 
 class WorldGenerator:
     """
@@ -21,6 +24,7 @@ class WorldGenerator:
         """
         #self.underground_noise_generator = PerlinNoise(octaves=4)
         #self.surface_noise_generator = PerlinNoise(octaves=2)
+        self.seed = round(random.random()*1000)
 
     
     def generate_chunk(self, chunk_pos):
@@ -40,6 +44,8 @@ class WorldGenerator:
         collidible_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)
         edges_matrix = np.zeros((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)
 
+        chunk_elements = []
+
         #noise = self.perlin.gen
 
         # Generate block data for each position
@@ -54,11 +60,11 @@ class WorldGenerator:
                 world_y = chunk_world_y + y
 
                 # Get Perlin noise value
-                surface_y = (noise.pnoise1(world_x*0.0009) * commons.CHUNK_SIZE * 4) # 0 - 100
-                surface_y += (noise.pnoise1(world_x*0.05) * commons.CHUNK_SIZE*0.25)
+                surface_y = (noise.pnoise1(world_x*0.0009, base=self.seed) * commons.CHUNK_SIZE * 4) # 0 - 100
+                surface_y += (noise.pnoise1(world_x*0.05, base=self.seed) * commons.CHUNK_SIZE*0.25)
                 surface_y = round(surface_y)
-                unoise = (noise.pnoise2(world_x*0.09, world_y*0.09) * 0.3)  # 0.0 - 1.0
-                unoise += (noise.pnoise2(world_x*0.02, world_y*0.02))
+                unoise = (noise.pnoise2(world_x*0.09, world_y*0.09, base=self.seed) * 0.3)  # 0.0 - 1.0
+                unoise += (noise.pnoise2(world_x*0.02, world_y*0.02, base=self.seed))
                 unoise = abs(unoise)
 
                 # Map noise to two layers: 0 = air, 1 = ground, 2 = stone
@@ -66,23 +72,27 @@ class WorldGenerator:
                     if unoise >= 0.01:
                         blocks_grid[0, y, x] = GRASS
                         collidible_grid[y, x] = True
+
+                        if random.random() > 0.95:
+                            chunk_elements.append(self.gen_obj("Large Tree", y, x, base_x, base_y))
                     
                     blocks_grid[1, y, x] = GRASS
-                    #collidible_grid[y, x] = True
                 
                 elif world_y > surface_y + commons.CHUNK_SIZE and world_y > surface_y: # Underground
-                    if unoise >= 0.3:
+                    if unoise >= 0.1:
                         blocks_grid[1, y, x] = STONE
                         blocks_grid[0, y, x] = STONE
                         collidible_grid[y, x] = True
 
-                    elif unoise >= 0.1:
+                    elif unoise >= 0.05 and False:
                         blocks_grid[1, y, x] = DIRT
                         blocks_grid[0, y, x] = DIRT
                         collidible_grid[y, x] = True
                     
-                    if unoise >= 0.009:
-                        blocks_grid[1, y, x] = DIRT
+                    if unoise >= 0.004:
+                        blocks_grid[1, y, x] = STONE
+                    elif unoise >= 0.001:
+                        blocks_grid[1, y, x] = STONE
                 elif world_y > surface_y:
                     if unoise >= 0.09:
                         blocks_grid[0, y, x] = DIRT
@@ -128,12 +138,27 @@ class WorldGenerator:
             y=chunk_pos[1]
         )
 
+        #if chunk_pos == (0, 0):
+        #    chunk.add_static_element(S_ELEMENT_METADATA_LOADER.create_static_element('1', (100, 100)))
+
         chunk.blocks_grid = blocks_grid
         chunk.collidable_grid = collidible_grid
         chunk.edges_matrix = edges_matrix
         chunk.changes['all'] = True
+        chunk.world_elements = chunk_elements
 
         return chunk
+
+    def gen_obj(self, obj_name, line, col, chunk_x, chunk_y):
+        el_id = S_ELEMENT_METADATA_LOADER.get_id_by_name(obj_name)
+
+        pos = (col * commons.BLOCK_SIZE + chunk_x * commons.CHUNK_SIZE_PIXELS, line * commons.BLOCK_SIZE + chunk_y * commons.CHUNK_SIZE_PIXELS)
+
+        obj = S_ELEMENT_METADATA_LOADER.create_static_element(el_id, pos)
+
+        return obj
+
+        
 
     def update_edges_matrix(self, chunk1: Chunk, chunk2: Chunk, index: int):
         match index:

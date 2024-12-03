@@ -5,6 +5,7 @@ from physics.moving_element import CollidableMovingElement
 from physics.physics_manager import PhysicsManager
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
+from database.world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 import commons
 import math
 import numpy as np
@@ -13,11 +14,12 @@ import os
 def main():
     pygame.init()
     BLOCK_METADATA.init()
+    S_ELEMENT_METADATA_LOADER.init()
     #print(BLOCK_METADATA.metadata)
     
     # Screen dimensions
     commons.WIDTH, commons.HEIGHT = 1600, 900
-    screen = pygame.display.set_mode((commons.WIDTH, commons.HEIGHT))
+    screen = pygame.display.set_mode((commons.WIDTH, commons.HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("Render Manager Demo")
     IMAGE_LOADER.init()
 
@@ -59,6 +61,12 @@ def main():
         render_manager.update_position((commons.STARTING_POSITION[0], commons.STARTING_POSITION[1]))
 
         # Update chunks
+        if pygame.mouse.get_pressed()[0]:
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_rect = pygame.Rect(mouse_pos[0]+commons.STARTING_POSITION[0], mouse_pos[1]+commons.STARTING_POSITION[1], 10, 10)
+            world.mine(mouse_rect.topleft, mouse_rect.size, 50, delta_time)
+        
+        world.update_blocks_state()
         render_manager.update_chunks(world)
 
         
@@ -71,14 +79,14 @@ def main():
         
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_a]:
             pedra.velocity.x = -300
-        if keys[pygame.K_RIGHT]: 
+        if keys[pygame.K_d]: 
             pedra.velocity.x = 300
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_w]:
             
             pedra.velocity.y = -500
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_s]:
             pedra.velocity.y = 500
         if keys[pygame.K_k]:
             pedra.velocity.y = -70

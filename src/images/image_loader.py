@@ -2,8 +2,11 @@ import pygame
 import json
 import commons
 from pygame.math import Vector2 as v2
-from typing import List
+from typing import List, Tuple, Dict
 import pprint
+
+class Image(pygame.Surface):
+    offset: v2
 
 class ImageLoader:
     """
@@ -20,7 +23,7 @@ class ImageLoader:
 
     def __init__(self):
         """Initialize the loader, but leave images uninitialized until explicitly set."""
-        self.images = {}
+        self.images: Dict[str, Tuple[pygame.Surface, dict]] = {}
         self.blocks: List[str] = []
         self.masks: List[str] = []
         self._initialized = False  # Track if the loader has been initialized
@@ -47,7 +50,7 @@ class ImageLoader:
             #color_key = commons.BLOCK_MASK_COLOR_KEY
             #image.set_colorkey(color_key)
 
-            self.images[name] = image
+            self.images[name] = image, {}
             self.masks.append(name)
 
     def load_from_json(self, json_path):
@@ -76,30 +79,30 @@ class ImageLoader:
                 edge = mask_name.split("_")[1] # Get the number of the mask
                 surf = pygame.Surface((commons.BLOCK_SIZE, commons.BLOCK_SIZE)).convert()
 
-                surf.blit(self.images[block_name], (0, 0))
-                surf.blit(self.images[mask_name], (0, 0))
+                surf.blit(self.images[block_name][0], (0, 0))
+                surf.blit(self.images[mask_name][0], (0, 0))
                 
                 surf.set_colorkey(commons.BLOCK_MASK_COLOR)
 
-                self.images[f"{block_name}.{edge}"] = surf
+                self.images[f"{block_name}.{edge}"] = surf, self.images[block_name][1]
 
-                back_block = self.images[block_name].copy()
+                back_block = self.images[block_name][0].copy()
                 back_block.set_alpha(commons.BACK_LAYER_TRANSPARENCY)
                 back_block_ = pygame.Surface((commons.BLOCK_SIZE, commons.BLOCK_SIZE)).convert()
                 back_block_.fill((0, 0, 0))
                 back_block_.blit(back_block, (0, 0))
-                back_block_.blit(self.images[mask_name], (0, 0))
+                back_block_.blit(self.images[mask_name][0], (0, 0))
 
-                self.images[f"BACK_{block_name}.{edge}"] = back_block_
+                self.images[f"BACK_{block_name}.{edge}"] = back_block_, self.images[block_name][1]
             
             self.images[f'{block_name}.1111'] = self.images[block_name]
 
-            back_block = self.images[block_name].copy()
+            back_block = self.images[block_name][0].copy()
             back_block.set_alpha(commons.BACK_LAYER_TRANSPARENCY)
             back_block_ = pygame.Surface((commons.BLOCK_SIZE, commons.BLOCK_SIZE)).convert()
             back_block_.fill((0, 0, 0))
             back_block_.blit(back_block, (0, 0))
-            self.images[f"BACK_{block_name}.1111"] = back_block_
+            self.images[f"BACK_{block_name}.1111"] = back_block_, self.images[block_name][1]
 
     def load_image(self, name, details):
         """
@@ -125,7 +128,7 @@ class ImageLoader:
             
             # Store full image if no regions
             if "sprite_regions" not in details:
-                self.images[name] = image
+                self.images[name] = (image, details)
             else:
                 # Process sprite regions in a sprite sheet
                 for region in details["sprite_regions"]:
@@ -139,7 +142,7 @@ class ImageLoader:
                         size = v2(region["scaled_size"])
                         sprite = pygame.transform.scale_by(sprite, (size.x / csize.x, size.y / csize.y) )
 
-                    self.images[sprite_name] = sprite
+                    self.images[sprite_name] = (sprite, region)
                     
         except pygame.error as e:
             raise pygame.error(f"Error loading {details['path']}: {e}")
@@ -148,7 +151,22 @@ class ImageLoader:
         """Retrieve an image or sprite by name."""
         if not self._initialized:
             raise RuntimeError("ImageLoader is not initialized! Call 'init()' before using it.")
-        return self.images.get(name, None)
+        
+        if image_det := self.images.get(name, None):
+            return image_det[0]
+        
+        raise ValueError(f"Image \"{name}\" not exists in metadata")
+
+
+    def get_image_atribute(self, name, atribute):
+        """Retrieve an image or sprite by name."""
+        if not self._initialized:
+            raise RuntimeError("ImageLoader is not initialized! Call 'init()' before using it.")
+        
+        if details := self.images.get(name)[-1]:
+            return details.get(atribute)
+
+        return None
 
 # Initialize the loader in the main program or entry point
 IMAGE_LOADER = ImageLoader()

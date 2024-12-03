@@ -1,7 +1,7 @@
 import pygame
 
 class StaticElement:
-    def __init__(self, name, element_id, dimensions, position, health):
+    def __init__(self, element_id, dimensions, position, health):
         """
         Represents a static element in the game (e.g., trees, chests).
 
@@ -10,10 +10,9 @@ class StaticElement:
         :param position: The position of the element in world coordinates as a Vector2.
         :param health: The current health of the element.
         """
-        self.name = name
-        self.element_id = element_id  # Unique ID for the static element type
-        self.dim = pygame.math.Vector2(dimensions)  # Dimensions (width, height) of the element
-        self.pos = pygame.math.Vector2(position)  # Position in world space
+        self.id = element_id  # Unique ID for the static element type
+        self.rect = pygame.Rect((0, 0), dimensions)
+        self.rect.bottomleft = pygame.math.Vector2(position)  # Dimensions (width, height) of the element
         self.health = health  # Health of the element
 
     def take_damage(self, amount):

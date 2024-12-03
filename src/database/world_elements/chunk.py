@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 import commons
 from typing import Dict
+from .block_metadata_loader import BLOCK_METADATA
 
 class Chunk:
 
@@ -25,22 +26,116 @@ class Chunk:
         # It can have the block key with the blocks that must be re-rendered
         # It can have a all key with some irrelevant value that means that the entire Chunk must be rendered
         # If the all key are in self.changes all other keys are ignored
-        self.changes: Dict[str, list] = {}
+        self.changes: Dict[str, list] = {'all': False,
+                                         'line': [],
+                                         'column': [],
+                                         'block': []}
+    
+    def clear_changes(self):
+        self.changes = {'all': False,
+                        'line': [],
+                        'column': [],
+                        'block': []}
 
-    def add_block(self, block, local_x, local_y, layer):
+    def add_block(self, block, col, row, layer):
         """
         Adds a block to the chunk at the specified local position and layer.
 
         :param block: The block to add.
-        :param local_x: The block's x-coordinate within the chunk.
-        :param local_y: The block's y-coordinate within the chunk.
+        :param col: The block's x-coordinate within the chunk.
+        :param row: The block's y-coordinate within the chunk.
         :param layer: The layer index to which the block belongs.
         """
-        self.blocks_grid[layer, local_y, local_x] = block
-        if layer == 0 and block.is_collidable:  # Only base layer affects collision
-            self.collidable_grid[local_y, local_x] = True
-        self.has_changes = True
 
+        need_around_update = bool(self.blocks_grid[layer, row, col]) ^ bool(block)
+
+        need_update = self.blocks_grid[layer, row, col] != block and (layer == 1 and not self.blocks_grid[0, row, col] or layer == 0)
+
+        self.blocks_grid[layer, row, col] = block
+
+        if layer == 0 and BLOCK_METADATA.get_property_by_id(block, 'collidable'):  # Only base layer affects collision
+            self.collidable_grid[row, col] = True
+        elif layer == 0:
+            self.collidable_grid[row, col] = False
+        
+        if need_around_update:
+            self.update_around(block, layer, col, row)
+        if need_update:
+            self.changes['block'].append((layer, col, row))
+    
+    def remove_block(self, col, row, layer):
+        """
+        Removes a block from the chunk at the specified local position and layer.
+
+        :param col: The block's x-coordinate within the chunk.
+        :param row: The block's y-coordinate within the chunk.
+        :param layer: The layer index from which the block is being removed.
+        """
+
+        block = self.blocks_grid[layer, row, col]
+        if not block:
+            # No block to remove
+            return
+
+        self.changes['block'].append((col, row))
+
+        # Mark the block as removed
+        self.blocks_grid[layer, row, col] = 0
+        self.edges_matrix[layer, row, col] = 0b0000
+
+        # Update collision grid if on the base layer
+        if layer == 0:
+            self.collidable_grid[row, col] = False
+
+        # Update neighboring blocks
+        self.update_around(0, layer, col, row)
+
+    
+    def update_around(self, block, layer, col, row):
+        if block:
+            # Left (col - 1)
+            if col > 0 and self.blocks_grid[layer, row, col - 1] and not (self.edges_matrix[layer, row, col - 1] & 0b0010):
+                self.edges_matrix[layer, row, col - 1] += 0b0010
+                self.changes['block'].append((col-1, row))
+            
+            # Right (col + 1)
+            if col < commons.CHUNK_SIZE - 1 and self.blocks_grid[layer, row, col + 1] and not (self.edges_matrix[layer, row, col + 1] & 0b1000):
+                self.edges_matrix[layer, row, col + 1] += 0b1000
+                self.changes['block'].append((col+1, row))
+            
+            # Up (row - 1)
+            if row > 0 and self.blocks_grid[layer, row - 1, col] and not (self.edges_matrix[layer, row - 1, col] & 0b0001):
+                self.edges_matrix[layer, row - 1, col] += 0b0001
+                self.changes['block'].append((col, row-1))
+            
+            # Down (row + 1)
+            if row < commons.CHUNK_SIZE - 1 and self.blocks_grid[layer, row + 1, col] and not (self.edges_matrix[layer, row + 1, col] & 0b0100):
+                self.edges_matrix[layer, row + 1, col] += 0b0100
+                self.changes['block'].append((col, row+1))
+        
+        else:
+            # Left (col - 1)
+            if col > 0 and self.blocks_grid[layer, row, col - 1] and (self.edges_matrix[layer, row, col - 1] & 0b0010):
+                self.edges_matrix[layer, row, col - 1] -= 0b0010
+                self.changes['block'].append((col-1, row))
+            
+            # Right (col + 1)
+            if col < commons.CHUNK_SIZE - 1 and self.blocks_grid[layer, row, col + 1] and (self.edges_matrix[layer, row, col + 1] & 0b1000):
+                self.edges_matrix[layer, row, col + 1] -= 0b1000
+                self.changes['block'].append((col+1, row))
+            
+            # Up (row - 1)
+            if row > 0 and self.blocks_grid[layer, row - 1, col] and (self.edges_matrix[layer, row - 1, col] & 0b0001):
+                self.edges_matrix[layer, row - 1, col] -= 0b0001
+                self.changes['block'].append((col, row-1))
+            
+            # Down (row + 1)
+            if row < commons.CHUNK_SIZE - 1 and self.blocks_grid[layer, row + 1, col] and (self.edges_matrix[layer, row + 1, col] & 0b0100):
+                self.edges_matrix[layer, row + 1, col] -= 0b0100
+                self.changes['block'].append((col, row+1))
+            
+
+        
     def add_static_element(self, static_element):
         """
         Adds a static element (e.g., tree, chest) to the chunk.
@@ -48,29 +143,3 @@ class Chunk:
         :param static_element: The static element to add.
         """
         self.world_elements.append(static_element)
-        self.has_changes = True
-
-    def clear_changes_flag(self):
-        """Resets the `has_changes` flag to False after saving or syncing."""
-        self.has_changes = False
-
-    def get_block(self, local_x, local_y, layer):
-        """
-        Retrieves a block at the specified local position and layer.
-
-        :param local_x: The block's x-coordinate within the chunk.
-        :param local_y: The block's y-coordinate within the chunk.
-        :param layer: The layer index from which to retrieve the block.
-        :return: The block at the specified position and layer, or None if empty.
-        """
-        return self.blocks_grid[layer, local_y, local_x]
-
-    def is_position_collidable(self, local_x, local_y):
-        """
-        Checks if a position in the chunk is collidable.
-
-        :param local_x: The position's x-coordinate within the chunk.
-        :param local_y: The position's y-coordinate within the chunk.
-        :return: True if collidable, False otherwise.
-        """
-        return self.collidable_grid[local_y, local_x]

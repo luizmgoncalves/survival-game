@@ -96,7 +96,7 @@ class BlockMetadataLoader:
             if block_data.get("name") == block_name:
                 return block_id
 
-        raise ValueError(f"Block name '{block_name}' not found in metadata.")
+        raise KeyError(f"Block name '{block_name}' not found in metadata.")
 
     def __repr__(self):
         """Returns a string representation of the metadata loader."""

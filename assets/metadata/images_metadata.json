@@ -11,7 +11,12 @@
         "block": true
     },
     "STONE": {
-        "path": "blocks/stone.png",
+        "path": "blocks/stone2.png",
         "block": true
+    },
+    "TREE_MAX": {
+        "path": "trees/Cedar Tree max.png",
+        "color_key": [255, 0, 255],
+        "offset": [15, 15]
     }
 }

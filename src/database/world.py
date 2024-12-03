@@ -1,10 +1,12 @@
 from .world_loader import WorldLoader
 from .world_elements.chunk import Chunk
 from .world_generator import WorldGenerator
+from .world_elements.block_metadata_loader import BLOCK_METADATA
 from pygame.rect import Rect
-from typing import Dict
+from typing import Dict, Tuple
 import commons
 from math import ceil
+from pprint import pprint
 
 class World:
     def __init__(self, world_name):
@@ -17,6 +19,7 @@ class World:
         self.db_interface : WorldLoader = WorldLoader()
         self.world_id     : int         = self._get_world_id()
         self.generator    : WorldGenerator = WorldGenerator()
+        self.mining_blocks: Dict[Tuple[int, int, int, int], int] = {}  # Tracks mining level of blocks being mined
 
         if self.world_id is None:
             pass#raise ValueError(f"World '{self.world_name}' does not exist in the database.")
@@ -96,6 +99,135 @@ class World:
         for chunk_x in range(size_x // commons.CHUNK_SIZE):
             for chunk_y in range(size_y // commons.CHUNK_SIZE):
                 self.load_chunk(chunk_x, chunk_y, commons.CHUNK_SIZE, min_health)
+
+    def mine(self, position, dimensions, damage, delta_time):
+        """
+        Handles the mining logic for blocks in a grid-based chunk system.
+
+        Args:
+            position (tuple): The (x, y) coordinates of the starting position in pixels.
+            dimensions (tuple): The dimensions (width, height) of the mining area in pixels.
+            damage (float): The amount of damage dealt per unit of time.
+            delta_time (float): The time since the last update.
+        """
+        # Extract coordinates
+        x, y = position
+
+        # Determine chunk and block indices from position
+        chunk_x, block_x_offset = divmod(x, commons.CHUNK_SIZE_PIXELS)
+        block_x = block_x_offset // commons.BLOCK_SIZE
+        if x < 0 and not block_x_offset:  # Handle negative coordinate edge case
+            chunk_x -= 1
+
+        chunk_y, block_y_offset = divmod(y, commons.CHUNK_SIZE_PIXELS)
+        block_y = block_y_offset // commons.BLOCK_SIZE
+        if y < 0 and not block_y_offset:  # Handle negative coordinate edge case
+            chunk_y -= 1
+
+        # Calculate the range of blocks to consider based on dimensions
+        rows_range = round(dimensions[1] / commons.BLOCK_SIZE)
+        cols_range = round(dimensions[0] / commons.BLOCK_SIZE)
+
+        # Iterate through the blocks in the defined range
+        for row_offset in range(-rows_range, rows_range + 1):
+            for col_offset in range(-cols_range, cols_range + 1):
+                # Determine the local block coordinates
+                local_col = block_x + col_offset
+                local_row = block_y + row_offset
+
+                # Adjust chunk and block indices for wrapping
+                current_chunk_x = chunk_x
+                current_chunk_y = chunk_y
+
+                if local_col < 0:
+                    current_chunk_x -= 1
+                    local_col %= commons.CHUNK_SIZE
+                elif local_col >= commons.CHUNK_SIZE:
+                    current_chunk_x += 1
+                    local_col %= commons.CHUNK_SIZE
+
+                if local_row < 0:
+                    current_chunk_y -= 1
+                    local_row %= commons.CHUNK_SIZE
+                elif local_row >= commons.CHUNK_SIZE:
+                    current_chunk_y += 1
+                    local_row %= commons.CHUNK_SIZE
+
+                # Retrieve the relevant chunk
+                chunk_key = (current_chunk_x, current_chunk_y)
+                chunk = self.all_chunks.get(chunk_key)
+
+                # Skip if the chunk is not loaded
+                if chunk is None:
+                    continue
+
+                # Check for collidable blocks in the current position
+                if chunk.blocks_grid[0, local_row, local_col] or chunk.blocks_grid[1, local_row, local_col]:
+                    # Apply damage to the mining state
+                    key = (current_chunk_x, current_chunk_y, local_row, local_col)
+                    self.mining_blocks[key] = self.mining_blocks.get(key, 0) + damage * delta_time
+
+    def update_blocks_state(self):
+        """
+        Updates the state of blocks being mined, applying damage and handling block destruction.
+        """
+        # Copy all mining blocks to iterate safely
+        blocks_pos_damage = list(self.mining_blocks.items())
+
+        #pprint(self.mining_blocks)
+
+        for (chunk_x, chunk_y, row, col), damage in blocks_pos_damage:
+            # Retrieve the chunk
+            chunk = self.all_chunks.get((chunk_x, chunk_y))
+
+            if chunk is None:
+                continue
+
+            # Check the primary and secondary block layers
+            for layer in (0, 1):
+                block = chunk.blocks_grid[layer, row, col]
+                if block:
+                    # Get the health of the block
+                    health = BLOCK_METADATA.get_property_by_id(block, "health")
+                    if damage >= health:
+                        # Destroy the block
+                        chunk.remove_block(col, row, layer)
+                        self.mining_blocks.pop((chunk_x, chunk_y, row, col))
+
+                        
+                        if col == 0:
+                            side_chunk = self.all_chunks[(chunk_x-1, chunk_y)]
+                            if side_chunk.edges_matrix[layer, row, commons.CHUNK_SIZE-1] & 0b0010:
+                                side_chunk.edges_matrix[layer, row, commons.CHUNK_SIZE-1] -= 0b0010
+                                side_chunk.changes['block'].append((commons.CHUNK_SIZE-1, row))
+                            
+                        if col == commons.CHUNK_SIZE-1:
+                            side_chunk = self.all_chunks[(chunk_x+1, chunk_y)]
+                            if side_chunk.edges_matrix[layer, row, 0] & 0b1000:
+                                side_chunk.edges_matrix[layer, row, 0] -= 0b1000
+                                side_chunk.changes['block'].append((0, row))
+                        
+                        if row == 0:
+                            side_chunk = self.all_chunks[(chunk_x, chunk_y-1)]
+                            if side_chunk.edges_matrix[layer, commons.CHUNK_SIZE-1, col] & 0b0001:
+                                side_chunk.edges_matrix[layer, commons.CHUNK_SIZE-1, col] -= 0b0001
+                                side_chunk.changes['block'].append((col, commons.CHUNK_SIZE-1))
+                        if row == commons.CHUNK_SIZE-1:
+                            side_chunk = self.all_chunks[(chunk_x, chunk_y+1)]
+                            if side_chunk.edges_matrix[layer, 0, col] & 0b0100:
+                                side_chunk.edges_matrix[layer, 0, col] -= 0b0100
+                                side_chunk.changes['block'].append((col, 0))
+                        
+                    else:
+                        # Decrease block damage, considering recuperation
+                        new_damage = damage - commons.BLOCK_RECUPERATION_PERCENTAGE * health
+                        self.mining_blocks[(chunk_x, chunk_y, row, col)] = max(new_damage, 0)
+                        if new_damage <= 0:
+                            self.mining_blocks.pop((chunk_x, chunk_y, row, col))
+                    break
+            else:
+                # Raise error if no block exists at the given position
+                raise ValueError(f"Trying to mine a place with no blocks at ({chunk_x}, {chunk_y}, {row}, {col}).")
 
     def get_collision_blocks_around(self, position, dimensions):
         """

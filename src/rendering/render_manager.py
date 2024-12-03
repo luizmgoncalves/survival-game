@@ -4,6 +4,7 @@ import pygame
 import commons
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
+from database.world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 from database.world_elements.chunk import Chunk
 import numpy as np
 from pygame.math import Vector2 as v2
@@ -24,6 +25,7 @@ class RenderManager:
         """
         self.current_position = current_position
         self.current_chunk_position = self.get_chunk_position()
+        self.current_static_elements = []
         self.initializing = True
         self.color_key = commons.BLOCK_MASK_COLOR
         self.chunk_matrix = np.matrix([[None for _ in range(3)] for _ in range(3)])
@@ -32,6 +34,15 @@ class RenderManager:
     
     def get_chunk_position(self):
         return int((self.current_position[0] + commons.WIDTH /2) // commons.CHUNK_SIZE_PIXELS), int((self.current_position[1]+ commons.HEIGHT /2) // commons.CHUNK_SIZE_PIXELS)
+
+    def _update_static_elements(self):
+
+        self.current_static_elements.clear()
+
+        for i in range(3):
+            for j in range(3):
+                stc_el  = self.chunk_matrix[i, j].world_elements
+                self.current_static_elements.extend(stc_el)
 
     def create_surface(self):
         """
@@ -116,6 +127,8 @@ class RenderManager:
                         chunk_x = self.chunk_matrix[0, 0].pos.x + j 
                         self.chunk_matrix[0, j] = world.load_chunk(chunk_x, chunk_y)
                         self.chunk_matrix[0, j].changes['all'] = True
+            
+            self._update_static_elements()
 
         if self.initializing:
             self.initializing = False
@@ -128,6 +141,8 @@ class RenderManager:
                     chunk_y = self.current_chunk_position[1] + (i - 1)
                     self.chunk_matrix[i, j] = world.load_chunk(chunk_x, chunk_y)
                     self.chunk_matrix[i, j].changes['all'] = True
+            
+            self._update_static_elements()
 
     def render_chunks(self, screen):
         """
@@ -135,6 +150,13 @@ class RenderManager:
 
         :param screen: pygame.Surface, the main game display.
         """
+        for element in self.current_static_elements:
+            image_name = S_ELEMENT_METADATA_LOADER.get_property_by_id(element.id, "image_name")
+            im = IMAGE_LOADER.get_image(image_name)
+            screen_position = v2(element.rect.topleft) - IMAGE_LOADER.get_image_atribute(image_name, "offset") - v2(self.current_position)
+            screen.blit(im, screen_position)
+
+        
         for i in range(3):
             for j in range(3):
                 chunk_surface = self.surface_matrix[i, j]
@@ -149,6 +171,9 @@ class RenderManager:
 
                 Thread(target=self.render_single_chunk, args=[chunk_surface, chunk_data]).run()
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
+            
+        
+
 
     def render_single_chunk(self, surface: pygame.Surface, chunk: Chunk):
         """
@@ -160,7 +185,7 @@ class RenderManager:
         if chunk is None or not chunk.changes:
             return  # Skip rendering if chunk is not loaded.
 
-        if 'all' in chunk.changes:
+        if chunk.changes.get("all"):
             surface.fill(self.color_key)  # Clear surface with transparent background.
 
             # Render the blocks in the chunk
@@ -208,15 +233,15 @@ class RenderManager:
 
             # Render static world elements
             for element in chunk.world_elements:
-                screen_position = (
-                    element.position.x,
-                    element.position.y
-                )
-                surface.blit(element.image, screen_position)
+                break
+                image_name = S_ELEMENT_METADATA_LOADER.get_property_by_id(element.id, "image_name")
+                im = IMAGE_LOADER.get_image(image_name)
+                screen_position = v2(element.rect.topleft) - IMAGE_LOADER.get_image_atribute(image_name, "offset")
+                surface.blit(im, screen_position)
             
-            chunk.changes.clear()
+            chunk.clear_changes()
         
-        if 'line' in chunk.changes:
+        if chunk.changes.get("line"):
             for line_index in chunk.changes['line']: #Iterates over the lines that were changed
                 xi = 0
                 yi = line_index * commons.BLOCK_SIZE
@@ -247,7 +272,7 @@ class RenderManager:
                                 image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
 
-        if 'column' in chunk.changes:
+        if chunk.changes.get('column'):
             for column_index in chunk.changes['column']: #Iterates over the lines that were changed
                 yi = 0
                 xi = column_index * commons.BLOCK_SIZE
@@ -278,9 +303,41 @@ class RenderManager:
                                 image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
 
-        
+        if chunk.changes.get('block'):
+            for block_info in chunk.changes['block']:  # Iterate over the blocks that were changed
+                x, y = block_info  # Each block_info contains the layer, y-coordinate, and x-coordinate
+                print(f"CHANGED BLOCK: {x}, {y}")
+                # Define the rectangle for the block
+                block_rect = pygame.Rect(
+                    x * commons.BLOCK_SIZE,
+                    y * commons.BLOCK_SIZE,
+                    commons.BLOCK_SIZE,
+                    commons.BLOCK_SIZE
+                )
+
+                # Clear the block area on the surface
+                surface.fill(self.color_key, block_rect)
+
+                # Redraw the block based on its layer and edges
+                block = chunk.blocks_grid[0, y, x]
+                edge = chunk.edges_matrix[0, y, x]
+
+                block_1 = chunk.blocks_grid[1, y, x]
+                edge_1 = chunk.edges_matrix[1, y, x]
+
+                if ((edge != 0b1111 and edge != edge_1) or block == 0) and block_1:
+                    # Render the background block
+                    image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(chunk.blocks_grid[1, y, x], 'image_name')}.{chunk.edges_matrix[1, y, x]:04b}"
+                    surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+
+                if block:
+                    # Render the foreground block
+                    image_name = f"{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
+                    surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+
+                
         # Flag that the chunk has been rendered
-        chunk.changes.clear()
+        chunk.clear_changes()
 
 
     def render_moving_elements(self, screen):
