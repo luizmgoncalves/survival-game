@@ -1,7 +1,7 @@
 {
     "1": {
         "name": "STONE",
-        "image_name": "STONE"
+        "image_name": "STONE_ITEM"
     },
     "2": {
         "name": "WOOD",
@@ -21,6 +21,6 @@
     },
     "6": {
         "name": "DIRT",
-        "image_name": "DIRT"
+        "image_name": "DIRT_ITEM"
     }
 }

@@ -2,7 +2,9 @@ from .world_loader import WorldLoader
 from .world_elements.chunk import Chunk
 from .world_generator import WorldGenerator
 from .world_elements.block_metadata_loader import BLOCK_METADATA
+from .world_elements.item_metadata import ITEM_METADATA
 from pygame.rect import Rect
+import pygame
 from typing import Dict, Tuple
 import commons
 from math import ceil
@@ -194,6 +196,14 @@ class World:
                         chunk.remove_block(col, row, layer)
                         self.mining_blocks.pop((chunk_x, chunk_y, row, col))
 
+                        for (item_name, num) in BLOCK_METADATA.get_property_by_id(block, 'drops').items():
+                            for _ in range(num):
+                                drop_event_dict = {
+                                    'item': ITEM_METADATA.get_id_by_name(item_name),
+                                    'pos': (commons.CHUNK_SIZE_PIXELS * chunk_x + commons.BLOCK_SIZE * col, commons.CHUNK_SIZE_PIXELS * chunk_y + commons.BLOCK_SIZE * row)
+                                    }
+
+                                pygame.event.post(pygame.event.Event(commons.ITEM_DROP_EVENT, drop_event_dict))
                         
                         if col == 0:
                             side_chunk = self.all_chunks[(chunk_x-1, chunk_y)]

@@ -10,9 +10,17 @@
         "path": "blocks/dirt.png",
         "block": true
     },
+    "DIRT_ITEM": {
+        "path": "blocks/dirt.png",
+        "scaled_size": [20, 20]
+    },
     "STONE": {
         "path": "blocks/stone2.png",
         "block": true
+    },
+    "STONE_ITEM": {
+        "path": "blocks/stone.png",
+        "scaled_size": [20, 20]
     },
     "TREE_MAX": {
         "path": "trees/Cedar Tree max.png",

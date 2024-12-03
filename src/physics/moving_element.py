@@ -1,6 +1,6 @@
 import pygame
 import commons
-
+from typing import Tuple
 
 class MovingElement(pygame.sprite.DirtySprite):
     """
@@ -11,29 +11,23 @@ class MovingElement(pygame.sprite.DirtySprite):
         velocity (pygame.Vector2): The velocity of the element (units per tick).
         size (tuple[int, int]): The size (width, height) of the element in pixels.
     """
-    def __init__(self, position, size, velocity=(0, 0)):
+    def __init__(self, position: Tuple[int, int], size: Tuple[int, int], velocity: Tuple[int, int] = (0, 0), falls: bool=True):
         """
         Initialize a moving element.
 
         :param position: A tuple (x, y) representing the starting position in world coordinates.
         :param size: A tuple (width, height) representing the size of the element in pixels.
         :param velocity: A tuple (vx, vy) representing the initial velocity.
+        :param falls: A bool b representing if the moving element does fall (needs to have gravity applied).
         """
         super().__init__()
         self.position = pygame.Vector2(position)
         self.velocity = pygame.Vector2(velocity)
         self.size = size
+        self.does_fall = falls
 
         # Create the pygame Rect for collisions and rendering
         self.rect = pygame.Rect(self.position.x, self.position.y, *self.size)
-
-    def update(self, delta_time):
-        """
-        Update the position based on velocity.
-
-        :param delta_time: The time step to apply to the motion.
-        """
-        pass
 
 
 class CollidableMovingElement(MovingElement):
@@ -44,7 +38,7 @@ class CollidableMovingElement(MovingElement):
         resolve_collision: Resolve collisions with other collidable sprites.
         move: Move the element by first handling horizontal movement, then vertical movement.
     """
-    def __init__(self, position, size, velocity=(0, 0)):
+    def __init__(self, position: Tuple[int, int], size: Tuple[int, int], velocity: Tuple[int, int]=(0, 0)):
         """
         Initialize a collidable moving element.
 

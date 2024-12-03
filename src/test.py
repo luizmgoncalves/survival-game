@@ -6,6 +6,7 @@ from physics.physics_manager import PhysicsManager
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
 from database.world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
+from database.world_elements.item_metadata import ITEM_METADATA
 import commons
 import math
 import numpy as np
@@ -15,6 +16,7 @@ def main():
     pygame.init()
     BLOCK_METADATA.init()
     S_ELEMENT_METADATA_LOADER.init()
+    ITEM_METADATA.init()
     #print(BLOCK_METADATA.metadata)
     
     # Screen dimensions
@@ -56,9 +58,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-        # Update logic (e.g., moving elements, position changes)
-        render_manager.update_position((commons.STARTING_POSITION[0], commons.STARTING_POSITION[1]))
+            
+            if event.type == commons.ITEM_DROP_EVENT:
+                physics_manager.spawn_item(event.item, event.pos)
 
         # Update chunks
         if pygame.mouse.get_pressed()[0]:
@@ -104,17 +106,22 @@ def main():
 
         physics_manager.update(delta_time, world)
 
+        commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
+
+        # Update logic (e.g., moving elements, position changes)
+        render_manager.update_position((commons.STARTING_POSITION[0], commons.STARTING_POSITION[1]))
+
         # Render everything
         screen.fill((200, 200, 200))  # Background color
-        commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
-        render_manager.render_all(screen)
+        
+        render_manager.render_all(screen, physics_manager.get_renderable_elements())
         #pygame.draw.rect(screen, (0, 255, 0), mouse_rect)
 
         #for block in blocks:
         #    block.center -= pygame.Vector2(commons.STARTING_POSITION) 
         #    pygame.draw.rect(screen, (0, 100, 100), block)
         
-        pygame.draw.rect(screen, (10, 10, 10), ((pedra.rect.topleft[0] - commons.STARTING_POSITION[0], pedra.rect.topleft[1] - commons.STARTING_POSITION[1]), pedra.rect.size))
+        #pygame.draw.rect(screen, (10, 10, 10), ((pedra.rect.topleft[0] - commons.STARTING_POSITION[0], pedra.rect.topleft[1] - commons.STARTING_POSITION[1]), pedra.rect.size))
 
         pygame.display.update()
 

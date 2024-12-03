@@ -6,7 +6,9 @@ from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
 from database.world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 from database.world_elements.chunk import Chunk
+from physics.moving_element import MovingElement
 import numpy as np
+from typing import List
 from pygame.math import Vector2 as v2
 from threading import Thread
 
@@ -182,8 +184,8 @@ class RenderManager:
         :param surface: pygame.Surface, the surface to draw on.
         :param chunk: Chunk, the chunk object containing blocks and elements to render.
         """
-        if chunk is None or not chunk.changes:
-            return  # Skip rendering if chunk is not loaded.
+        if chunk is None or not any(chunk.changes.values()):
+            return  # Skip rendering if chunk is not loaded or if it does not have changes.
 
         if chunk.changes.get("all"):
             surface.fill(self.color_key)  # Clear surface with transparent background.
@@ -340,35 +342,43 @@ class RenderManager:
         chunk.clear_changes()
 
 
-    def render_moving_elements(self, screen):
+    def render_moving_elements(self, elements: List[MovingElement], screen):
         """
-        Renders all moving elements onto the screen relative to the current position.
+        Renders a list of elements on the screen considering an offset (current_position).
+        If an element does not have an image, a rectangle is rendered instead.
 
-        :param screen: pygame.Surface, the main game display.
+        :param elements: List of MovingElement objects to render.
+        :param screen: Pygame screen surface to draw on.
         """
-        for element in self.moving_elements:
-            # Adjust element's position based on the current position
-            relative_x = element.position[0] - self.current_position[0]
-            relative_y = element.position[1] - self.current_position[1]
+        for element in elements:
+            # Compute the actual position considering the offset
+            actual_x = element.rect.x - self.current_position[0]
+            actual_y = element.rect.y - self.current_position[1]
 
-            screen.blit(element.sprite, (relative_x, relative_y))
+            print(f"Rendering {actual_x} {actual_y}")
 
-    def render_all(self, screen):
+            # Check if the element is within the screen boundaries
+            if (0 <= actual_x < commons.WIDTH and
+                0 <= actual_y < commons.HEIGHT):
+                # Render the element's image if available, otherwise render a rectangle
+                if hasattr(element, 'image') and element.image:
+                    screen.blit(element.image, (actual_x, actual_y))
+                else:
+                    # Draw a rectangle if no image is present
+                    pygame.draw.rect(
+                        screen,
+                        (255, 0, 0),  # Default color (red)
+                        pygame.Rect(actual_x, actual_y, element.rect.width, element.rect.height)
+                    )
+
+    def render_all(self, screen, elements):
         """
         Renders the entire scene, including chunks and moving elements.
 
         :param screen: pygame.Surface, the main game display.
         """
         self.render_chunks(screen)
-        self.render_moving_elements(screen)
-
-    def add_moving_element(self, element):
-        """
-        Adds a new moving element to the render manager.
-
-        :param element: MovingElement, a sprite object to be rendered.
-        """
-        self.moving_elements.append(element)
+        self.render_moving_elements(elements, screen)
 
     def update_position(self, new_position):
         """

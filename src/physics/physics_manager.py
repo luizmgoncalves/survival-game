@@ -2,9 +2,12 @@ import commons
 from .player import Player
 from .enemy import Enemy
 from .bullet import Bullet
-from .moving_element import MovingElement
+from .moving_element import MovingElement, CollidableMovingElement
+from .item import Item
 from typing import List
 from math import ceil
+from random import random
+from pygame.math import Vector2 as v2
 
 class PhysicsManager:
     def __init__(self, 
@@ -26,8 +29,19 @@ class PhysicsManager:
         self.enemies: List[Enemy] = enemies
         self.moving_elements: List[MovingElement] = moving_elements
         self.enemy_bullets: List[Bullet] = enemy_bullets 
-        self.moving_elements: List[MovingElement] = moving_elements
         self.gravity: int = commons.GRAVITY_ACELERATION
+    
+    def spawn_item(self, item_id, pos):
+        r_angle = -180 * random()
+        init_vel = v2.from_polar((commons.ITEM_INITIAL_VELOCITY, r_angle))
+
+        new_item = Item(item_id,pos, init_vel)
+        
+        self.moving_elements.append(new_item)
+    
+    def get_renderable_elements(self):
+        return self.moving_elements
+
 
     def update(self, delta_time, world):
         """
@@ -82,7 +96,8 @@ class PhysicsManager:
 
         :param entity: The entity to which gravity will be applied.
         """
-        entity.velocity.y += self.gravity
+        if entity.does_fall:
+            entity.velocity.y += self.gravity
 
     def handle_collisions(self):
         """

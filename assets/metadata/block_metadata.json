@@ -2,31 +2,44 @@
     "0": {
       "name": "AIR",
       "color": [0, 0, 0],
-      "health": 0
+      "health": 0,
+      "drops": {}
     },
     "1": {
       "name": "GRASS",
       "color": [0, 128, 0],
       "health": 10,
-      "image_name": "GRASS"
+      "image_name": "GRASS",
+      "drops": {
+        "DIRT": 1
+      }
     },
     "2": {
       "name": "DIRT",
       "color": [139, 69, 19],
       "health": 15,
-      "image_name": "DIRT"
+      "image_name": "DIRT",
+      "drops": {
+        "DIRT": 2
+      }
     },
     "3": {
       "name": "STONE",
       "color": [128, 128, 128],
       "health": 30,
-      "image_name": "STONE"
+      "image_name": "STONE",
+      "drops": {
+        "STONE": 1
+      }
     },
     "4": {
       "name": "SAND",
       "color": [194, 178, 128],
       "health": 5,
-      "image_name": "SAND"
+      "image_name": "SAND",
+      "drops": {
+        "STONE": 1
+      }
     }
   }
   

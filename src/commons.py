@@ -48,3 +48,7 @@ MASK_DEFAULT_PATH = 'assets/images/block_masks/'
 BACK_LAYER_TRANSPARENCY = 100 # Rule the back layer filtering (max: 255)
 
 BLOCK_RECUPERATION_PERCENTAGE = 0.009
+
+ITEM_INITIAL_VELOCITY = 600
+
+ITEM_SIZE = BLOCK_SIZE * 0.5
