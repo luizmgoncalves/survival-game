@@ -1,0 +1,87 @@
+import pygame
+from pygame.math import Vector2 as v2
+from image_loader import IMAGE_LOADER  # Certifique-se de que o ImageLoader está no mesmo diretório ou no PYTHONPATH
+import commons
+
+# Inicialize o Pygame e defina a janela
+pygame.init()
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Teste de Animações")
+clock = pygame.time.Clock()
+FPS = 60
+
+# Inicialize o ImageLoader
+IMAGE_LOADER.init()
+
+# Nome do inimigo no JSON
+ENEMY_NAME = "enemy"
+
+# Ações disponíveis para teste
+actions = IMAGE_LOADER.get_enemy_sprites(ENEMY_NAME)
+current_action = "idle"
+current_frame = 0
+
+# Controle do tempo para a animação
+frame_timer = 0
+frame_duration = 200  # Tempo em milissegundos entre os frames
+
+# Posição do inimigo na tela
+enemy_position = v2(400, 300)
+
+
+def handle_input():
+    """Muda a ação com base na entrada do teclado."""
+    global current_action
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_LEFT]:
+        current_action = "walk_left"
+    elif keys[pygame.K_RIGHT]:
+        current_action = "walk_right"
+    elif keys[pygame.K_SPACE]:
+        current_action = "attack"
+    else:
+        current_action = "idle"
+
+
+def draw_enemy():
+    """Desenha o inimigo na tela com base na animação atual."""
+    global current_frame, frame_timer
+
+    # Atualizar o frame atual baseado no tempo
+    frame_timer += clock.get_time()
+    if frame_timer >= frame_duration:
+        current_frame = (current_frame + 1) % len(actions[current_action])
+        frame_timer = 0
+
+    # Desenhar o frame atual
+    frame_image = actions[current_action][current_frame]
+    screen.blit(frame_image, enemy_position)
+
+
+def main():
+    """Loop principal do programa."""
+    running = True
+
+    while running:
+        # Eventos do Pygame
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Entrada do usuário
+        handle_input()
+
+        # Atualizar a tela
+        screen.fill((0, 0, 0))  # Cor de fundo preta
+        draw_enemy()
+
+        # Atualizar o display
+        pygame.display.flip()
+        clock.tick(FPS)
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()

@@ -26,5 +26,175 @@
         "path": "trees/Cedar Tree max.png",
         "color_key": [255, 0, 255],
         "offset": [15, 15]
+    },
+    "ENEMIES": {
+        "spear_enemy": {
+            "path": "enemy/spear_enemy.jpg",
+            "size": [596, 290],
+            "animations": {
+                "walking": {
+                    "frames": [
+                        {"name": "walk1", "x": 20, "y": 236, "width": 48, "height": 45},
+                        {"name": "walk2", "x": 67, "y": 236, "width": 48, "height": 45},
+                        {"name": "walk3", "x": 113, "y": 236, "width": 48, "height": 45},
+                        {"name": "walk4", "x": 164, "y": 236, "width": 48, "height": 45},
+                        {"name": "walk5", "x": 257, "y": 236, "width": 48, "height": 45}
+                    ]
+                },
+                "attacking": {
+                    "frames": [
+                        {"name": "attack1", "x": 17, "y": 64, "width": 48, "height": 48},
+                        {"name": "attack2", "x": 66, "y": 64, "width": 48, "height": 48},
+                        {"name": "attack3", "x": 115, "y": 64, "width": 48, "height": 48},
+                        {"name": "attack4", "x": 158, "y": 64, "width": 48, "height": 48},
+                        {"name": "attack5", "x": 207, "y": 64, "width": 48, "height": 48}
+                    ]
+                },
+                "dying": {
+                    "frames": [
+                        {"name": "die2", "x": 18, "y": 123, "width": 45, "height": 38},
+                        {"name": "die3", "x": 71, "y": 123, "width": 45, "height": 38},
+                        {"name": "die4", "x": 116, "y": 123, "width": 45, "height": 38},
+                        {"name": "die5", "x": 158, "y": 123, "width": 45, "height": 38}
+                    ]
+                }
+            }
+        }, 
+        "arrow_enemy": {
+            "path": "enemy/arrow_enemy.jpg",
+            "size": [589, 295],
+            "animations": {
+                "walking": {
+                    "frames": [
+                        {"name": "walk1", "x": 8, "y": 234, "width": 40, "height": 55},
+                        {"name": "walk2", "x": 55, "y": 234, "width": 40, "height": 55},
+                        {"name": "walk3", "x": 98, "y": 234, "width": 40, "height": 55},
+                        {"name": "walk4", "x": 142, "y": 234, "width": 40, "height": 55},
+                        {"name": "walk5", "x": 186, "y": 234, "width": 40, "height": 55}
+                    ]
+                },
+                "attacking": {
+                    "frames": [
+                        {"name": "attack1", "x": 235, "y": 48, "width": 46, "height": 54},
+                        {"name": "attack2", "x": 8, "y": 108, "width": 46, "height": 54},
+                        {"name": "attack3", "x": 63, "y": 108, "width": 46, "height": 54},
+                        {"name": "attack4", "x": 161, "y": 108, "width": 46, "height": 54},
+                        {"name": "attack5", "x": 204, "y": 108, "width": 46, "height": 54}
+                    ]
+                },
+                "dying": {
+                    "frames": [
+                        {"name": "die1", "x": 3, "y": 181, "width": 48, "height": 49},
+                        {"name": "die2", "x": 63, "y": 181, "width": 48, "height": 49},
+                        {"name": "die3", "x": 112, "y": 181, "width": 48, "height": 49},
+                        {"name": "die4", "x": 116, "y": 181, "width": 48, "height": 49},
+                        {"name": "die5", "x": 158, "y": 181, "width": 48, "height": 49}
+                    ]
+                }
+            }
+        }, 
+        "axe_enemy": {
+            "path": "enemy/axe_enemy.png",
+            "size": [473, 280],
+            "animations": {
+                "walking": {
+                    "frames": [
+                        {"name": "walk1", "x": 6, "y": 191, "width": 32, "height": 35},
+                        {"name": "walk2", "x": 38, "y": 191, "width": 32, "height": 35},
+                        {"name": "walk3", "x": 70, "y": 191, "width": 32, "height": 35},
+                        {"name": "walk4", "x": 100, "y": 191, "width": 32, "height": 35},
+                        {"name": "walk5", "x": 130, "y": 191, "width": 32, "height": 35},
+                        {"name": "walk6", "x": 161, "y": 191, "width": 32, "height": 35}
+                    ]
+                },
+                "attacking": {
+                    "frames": [
+                        {"name": "attack1", "x": 5, "y": 110, "width": 32, "height": 38},
+                        {"name": "attack2", "x": 40, "y": 110, "width": 32, "height": 38},
+                        {"name": "attack3", "x": 73, "y": 110, "width": 32, "height": 38},
+                        {"name": "attack4", "x": 101, "y": 110, "width": 32, "height": 38},
+                        {"name": "attack5", "x": 140, "y": 110, "width": 32, "height": 38},
+                        {"name": "attack6", "x": 171, "y": 110, "width": 32, "height": 38},
+                        {"name": "attack7", "x": 204, "y": 110, "width": 32, "height": 38},
+                        {"name": "attack8", "x": 239, "y": 110, "width": 32, "height": 38}
+                    ]
+                },
+                "dying": {
+                    "frames": [
+                        {"name": "die2", "x": 2, "y": 155, "width": 40, "height": 38},
+                        {"name": "die3", "x": 38, "y": 155, "width": 40, "height": 38},
+                        {"name": "die4", "x": 77, "y": 155, "width": 40, "height": 38},
+                        {"name": "die5", "x": 117, "y": 155, "width": 40, "height": 38},
+                        {"name": "die6", "x": 158, "y": 155, "width": 40, "height": 38}
+                    ]
+                }
+            }
+        }, 
+        "viking_enemy": {
+            "path": "enemy/viking_enemy.jpg",
+            "size": [626, 285],
+            "animations": {
+                "walking": {
+                    "frames": [
+                        {"name": "walk1", "x": 8, "y": 223, "width": 34, "height": 50},
+                        {"name": "walk2", "x": 66, "y": 223, "width": 34, "height": 50},
+                        {"name": "walk3", "x": 121, "y": 223, "width": 34, "height": 50},
+                        {"name": "walk4", "x": 176, "y": 223, "width": 34, "height": 50},
+                        {"name": "walk5", "x": 232, "y": 223, "width": 34, "height": 50},
+                        {"name": "walk6", "x": 292, "y": 223, "width": 34, "height": 50}
+                    ]
+                },
+                "attacking": {
+                    "frames": [
+                        {"name": "attack1", "x": 3, "y": 115, "width": 46, "height": 49},
+                        {"name": "attack2", "x": 60, "y": 115, "width": 46, "height": 49},
+                        {"name": "attack3", "x": 109, "y": 115, "width": 46, "height": 49},
+                        {"name": "attack4", "x": 172, "y": 115, "width": 46, "height": 49},
+                        {"name": "attack5", "x": 227, "y": 115, "width": 46, "height": 49},
+                        {"name": "attack6", "x": 285, "y": 115, "width": 46, "height": 49},
+                        {"name": "attack7", "x": 227, "y": 115, "width": 46, "height": 49},
+                        {"name": "attack8", "x": 344, "y": 115, "width": 46, "height": 49}
+                    ]
+                },
+                "dying": {
+                    "frames": [
+                        {"name": "die2", "x": 10, "y": 66, "width": 48, "height": 47},
+                        {"name": "die3", "x": 64, "y": 66, "width": 48, "height": 47},
+                        {"name": "die4", "x": 125, "y": 66, "width": 48, "height": 47},
+                        {"name": "die5", "x": 178, "y": 66, "width": 48, "height": 47}
+                    ]
+                }
+            }
+        
+        }
+    },
+    "ARSENAL":{
+        "axe":{
+            "path": "enemy/axe_enemy.png",
+            "size": [473, 280],
+            "animations":{
+                "frames":[
+                    {"name": "axe1", "x": 16, "y": 237, "width": 16, "height": 18},
+                        {"name": "axe2", "x": 29, "y": 237, "width": 16, "height": 18},
+                        {"name": "axe3", "x": 45, "y": 237, "width": 16, "height": 18},
+                        {"name": "axe4", "x": 64, "y": 237, "width": 16, "height": 18},
+                        {"name": "axe5", "x": 78, "y": 237, "width": 16, "height": 18},
+                        {"name": "axe6", "x": 94, "y": 237, "width": 16, "height": 18},
+                        {"name": "axe7", "x": 110, "y": 237, "width": 16, "height": 18},
+                        {"name": "axe8", "x": 128, "y": 237, "width": 16, "height": 18}
+                ]
+            }
+        },
+        "arrow":{
+            "path": "enemy/arrow_enemy.jpg",
+            "size": [589, 295],
+            "animations": {
+                    "frames": [
+                        {"name": "arrow", "x": 258, "y": 135, "width": 34, "height": 13}
+                    ]
+                }
+            }
+
     }
-}
+    
+}           
