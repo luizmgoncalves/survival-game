@@ -29,17 +29,14 @@
     },
     "BREAKING_0": {
         "path": "block_masks/breaking0.png",
-        "color_key": [255, 0, 255],
-        "offset": [15, 15]
+        "block": true
     },
     "BREAKING_1": {
         "path": "block_masks/breaking1.png",
-        "color_key": [255, 0, 255],
-        "offset": [15, 15]
+        "block": true
     },
     "BREAKING_2": {
         "path": "block_masks/breaking2.png",
-        "color_key": [255, 0, 255],
-        "offset": [15, 15]
+        "block": true
     }
 }

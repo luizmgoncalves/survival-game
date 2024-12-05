@@ -80,6 +80,9 @@ class ImageLoader:
                 surf = pygame.Surface((commons.BLOCK_SIZE, commons.BLOCK_SIZE)).convert()
 
                 surf.blit(self.images[block_name][0], (0, 0))
+
+                pygame.image.save(surf, "test.png")
+
                 surf.blit(self.images[mask_name][0], (0, 0))
                 
                 surf.set_colorkey(commons.BLOCK_MASK_COLOR)
@@ -96,6 +99,8 @@ class ImageLoader:
                 self.images[f"BACK_{block_name}.{edge}"] = back_block_, self.images[block_name][1]
             
             self.images[f'{block_name}.1111'] = self.images[block_name]
+
+            self.images[f'{block_name}.1111'][0].set_colorkey(commons.BLOCK_MASK_COLOR)
 
             back_block = self.images[block_name][0].copy()
             back_block.set_alpha(commons.BACK_LAYER_TRANSPARENCY)

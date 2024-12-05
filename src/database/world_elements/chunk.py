@@ -21,21 +21,24 @@ class Chunk:
         self.edges_matrix = np.ones((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Collidable matrix
 
         # Changes dict track the changings of the Chunk for Chunk rendering optimization
-        # It can have the line key with the lines that have changed
-        # It can have the column key with the lines that have changed
-        # It can have the block key with the blocks that must be re-rendered
-        # It can have a all key with some irrelevant value that means that the entire Chunk must be rendered
+        # It have the line key with the lines that have changed
+        # It have the column key with the lines that have changed
+        # It have the block key with the blocks (col, row) coordinates that must be rendered again
+        # It have the breaking key with the blocks {(col, row) -> breaking_level} coordinates and the level of breaking on it
+        # It have a all key with some irrelevant value (True by default) that means that the entire Chunk must be rendered
         # If the all key are in self.changes all other keys are ignored
         self.changes: Dict[str, list] = {'all': False,
                                          'line': [],
                                          'column': [],
-                                         'block': []}
+                                         'block': [],
+                                         'breaking': {}}
     
     def clear_changes(self):
         self.changes = {'all': False,
                         'line': [],
                         'column': [],
-                        'block': []}
+                        'block': [],
+                        'breaking': {}}
 
     def add_block(self, block, col, row, layer):
         """

@@ -308,7 +308,6 @@ class RenderManager:
         if chunk.changes.get('block'):
             for block_info in chunk.changes['block']:  # Iterate over the blocks that were changed
                 x, y = block_info  # Each block_info contains the layer, y-coordinate, and x-coordinate
-                print(f"CHANGED BLOCK: {x}, {y}")
                 # Define the rectangle for the block
                 block_rect = pygame.Rect(
                     x * commons.BLOCK_SIZE,
@@ -336,6 +335,44 @@ class RenderManager:
                     # Render the foreground block
                     image_name = f"{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
                     surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+        
+        if chunk.changes.get('breaking'):
+            for block_info, breaking_level in chunk.changes['breaking'].items():  # Iterate over the blocks that were changed
+                x, y = block_info  # Each block_info contains the layer, y-coordinate, and x-coordinate
+                print(f"CHANGED BLOCK: {x}, {y}")
+                # Define the rectangle for the block
+                block_rect = pygame.Rect(
+                    x * commons.BLOCK_SIZE,
+                    y * commons.BLOCK_SIZE,
+                    commons.BLOCK_SIZE,
+                    commons.BLOCK_SIZE
+                )
+
+                # Clear the block area on the surface
+                surface.fill(self.color_key, block_rect)
+
+                # Redraw the block based on its layer and edges
+                block = chunk.blocks_grid[0, y, x]
+                edge = chunk.edges_matrix[0, y, x]
+
+                block_1 = chunk.blocks_grid[1, y, x]
+                edge_1 = chunk.edges_matrix[1, y, x]
+
+                if ((edge != 0b1111 and edge != edge_1) or block == 0) and block_1:
+                    # Render the background block
+                    image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(chunk.blocks_grid[1, y, x], 'image_name')}.{chunk.edges_matrix[1, y, x]:04b}"
+                    surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+
+                    surface.blit(IMAGE_LOADER.get_image(f"BREAKING_{breaking_level}.{edge:04b}"), block_rect)
+
+                if block:
+                    # Render the foreground block
+                    image_name = f"{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
+                    surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
+                
+                    surface.blit(IMAGE_LOADER.get_image(f"BREAKING_{breaking_level}.{edge:04b}"), block_rect)
+                
+                
 
                 
         # Flag that the chunk has been rendered
@@ -355,7 +392,7 @@ class RenderManager:
             actual_x = element.rect.x - self.current_position[0]
             actual_y = element.rect.y - self.current_position[1]
 
-            print(f"Rendering {actual_x} {actual_y}")
+            #print(f"Rendering {actual_x} {actual_y}")
 
             # Check if the element is within the screen boundaries
             if (0 <= actual_x < commons.WIDTH and

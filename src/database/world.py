@@ -176,7 +176,7 @@ class World:
         # Copy all mining blocks to iterate safely
         blocks_pos_damage = list(self.mining_blocks.items())
 
-        #pprint(self.mining_blocks)
+        pprint(self.mining_blocks)
 
         for (chunk_x, chunk_y, row, col), damage in blocks_pos_damage:
             # Retrieve the chunk
@@ -195,6 +195,11 @@ class World:
                         # Destroy the block
                         chunk.remove_block(col, row, layer)
                         self.mining_blocks.pop((chunk_x, chunk_y, row, col))
+
+                        try:
+                            chunk.changes['breaking'].pop((col, row))
+                        except KeyError:
+                            pass
 
                         for (item_name, num) in BLOCK_METADATA.get_property_by_id(block, 'drops').items():
                             for _ in range(num):
@@ -234,6 +239,13 @@ class World:
                         self.mining_blocks[(chunk_x, chunk_y, row, col)] = max(new_damage, 0)
                         if new_damage <= 0:
                             self.mining_blocks.pop((chunk_x, chunk_y, row, col))
+                            chunk.changes['block'].append((col, row))
+                            try:
+                                chunk.changes['breaking'].pop((col, row))
+                            except KeyError:
+                                pass
+                        else:
+                            chunk.changes['breaking'][(col, row)] = int((new_damage / health) * commons.BREAKING_STAGES_NUMBER) # 0 to breaking stages number
                     break
             else:
                 # Raise error if no block exists at the given position
