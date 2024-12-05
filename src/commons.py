@@ -4,7 +4,7 @@ import pygame
 
 WIDTH, HEIGHT = 1920, 1080
 
-CHUNK_SIZE = 40
+CHUNK_SIZE = 31
 BLOCK_SIZE = 32
 
 CHUNK_SIZE_PIXELS = CHUNK_SIZE * BLOCK_SIZE
@@ -39,6 +39,8 @@ PLAYER_LIFE = 100             # Default life points
 PLAYER_MAX_VEL = 200          # Default maximum velocity
 
 GRAVITY_ACELERATION = 40
+
+TERMINAL_SPEED = 1500
 
 WORLD_SELECTED = '' # World selected on Worlds page to being played
 

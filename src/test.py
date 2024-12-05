@@ -20,7 +20,7 @@ def main():
     #print(BLOCK_METADATA.metadata)
     
     # Screen dimensions
-    commons.WIDTH, commons.HEIGHT = 1600, 900
+    commons.WIDTH, commons.HEIGHT = 1920, 1080
     screen = pygame.display.set_mode((commons.WIDTH, commons.HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("Render Manager Demo")
     IMAGE_LOADER.init()

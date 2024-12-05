@@ -116,6 +116,10 @@ class ImageLoader:
                 size = v2(details["scaled_size"])
                 image = pygame.transform.scale_by(image, (size.x / csize.x, size.y / csize.y) )
             
+            if "block_size" in details:
+                size = v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)
+                image = pygame.transform.scale_by(image, (size.x / csize.x, size.y / csize.y) )
+
             if "block" in details:
                 size = v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)
                 image = pygame.transform.scale_by(image, (size.x / csize.x, size.y / csize.y) )

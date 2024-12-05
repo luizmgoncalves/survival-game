@@ -1,6 +1,7 @@
 import pygame
 import commons
 from typing import Tuple
+from pygame.math import Vector2 as v2
 
 class MovingElement(pygame.sprite.DirtySprite):
     """
@@ -21,9 +22,9 @@ class MovingElement(pygame.sprite.DirtySprite):
         :param falls: A bool b representing if the moving element does fall (needs to have gravity applied).
         """
         super().__init__()
-        self.position = pygame.Vector2(position)
-        self.velocity = pygame.Vector2(velocity)
-        self.size = size
+        self.position: v2 = pygame.Vector2(position)
+        self.velocity: v2 = pygame.Vector2(velocity)
+        self.size: v2 = v2(size)
         self.does_fall = falls
 
         # Create the pygame Rect for collisions and rendering

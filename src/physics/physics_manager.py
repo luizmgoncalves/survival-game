@@ -30,6 +30,7 @@ class PhysicsManager:
         self.moving_elements: List[MovingElement] = moving_elements
         self.enemy_bullets: List[Bullet] = enemy_bullets 
         self.gravity: int = commons.GRAVITY_ACELERATION
+        self.terminal_speed = commons.TERMINAL_SPEED
     
     def spawn_item(self, item_id, pos):
         r_angle = -180 * random()
@@ -98,6 +99,9 @@ class PhysicsManager:
         """
         if entity.does_fall:
             entity.velocity.y += self.gravity
+        
+        if entity.velocity.magnitude() > self.terminal_speed:
+            entity.velocity.scale_to_length(self.terminal_speed)
 
     def handle_collisions(self):
         """
