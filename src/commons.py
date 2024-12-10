@@ -21,6 +21,11 @@ CHANGE_PAGE_EVENT = pygame.event.custom_type()
 # Has the position and the item id atributes
 ITEM_DROP_EVENT = pygame.event.custom_type()
 
+# Custom event for item collecting
+# Triggered when a block is getted by the player
+# Has the item id atributes
+ITEM_COLLECT_EVENT = pygame.event.custom_type()
+
 # Metadata files path
 METADATA_PATH = './assets/metadata/'
 
@@ -57,6 +62,6 @@ ITEM_SIZE = BLOCK_SIZE * 0.5
 
 BREAKING_STAGES_NUMBER = 3
 
-ITEM_ATTRACTION_FORCE = 1
+ITEM_ATTRACTION_FORCE = 100
 
-MAX_DISTANCE_OF_ITEM_ATTRACTION = 20 # in pixels
+MAX_DISTANCE_OF_ITEM_ATTRACTION = 200 # in pixels

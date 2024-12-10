@@ -185,7 +185,6 @@ class World:
         # Copy all mining blocks to iterate safely
         blocks_pos_damage = list(self.mining_blocks.items())
 
-        pprint(self.mining_blocks)
 
         for (chunk_x, chunk_y, row, col), damage in blocks_pos_damage:
             # Retrieve the chunk

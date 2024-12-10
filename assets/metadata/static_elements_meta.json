@@ -4,6 +4,8 @@
         "image_name": "TREE_MAX",
         "dimensions": [25, 70],
         "health": [90, 110],
-        "drop": {"WOOD": 5}
+        "drop": {
+            "WOOD": 5
+        }
     }
 }

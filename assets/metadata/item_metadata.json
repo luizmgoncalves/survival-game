@@ -13,7 +13,7 @@
     },
     "4": {
         "name": "GRASS",
-        "image_name": "GRASS"
+        "image_name": "GRASS_ITEM"
     },
     "5": {
         "name": "IRON_ORE",

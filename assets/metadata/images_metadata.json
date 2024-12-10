@@ -6,6 +6,10 @@
         "path": "blocks/grass.png",
         "block": true
     },
+    "GRASS_ITEM": {
+        "path": "blocks/grass.png",
+        "scaled_size": [20, 20]
+    },
     "DIRT": {
         "path": "blocks/dirt.png",
         "block": true
@@ -43,14 +47,14 @@
         "path": "player/idle/idle#.png",
         "flipx": true,
         "scaled_size": [50, 50],
-        "offset": [-10, 0],
+        "offset": [-10, 3],
         "color_key": [113, 102, 79]
     }, 
     "PLAYER_WALKING_#": {
         "path": "player/walking/run#.png",
         "flipx": true,
         "scaled_size": [50, 50],
-        "offset": [-10, 0],
+        "offset": [-10, 3],
         "color_key": [113, 102, 79]
     }
 }

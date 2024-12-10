@@ -11,7 +11,7 @@
       "health": 10,
       "image_name": "GRASS",
       "drops": {
-        "DIRT": 1
+        "GRASS": 1
       }
     },
     "2": {
@@ -20,7 +20,7 @@
       "health": 15,
       "image_name": "DIRT",
       "drops": {
-        "DIRT": 2
+        "DIRT": 1
       }
     },
     "3": {

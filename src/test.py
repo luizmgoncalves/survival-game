@@ -46,7 +46,7 @@ def main():
     commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
     render_manager = RenderManager(commons.STARTING_POSITION, commons.COLOR_KEY)
 
-    physics_manager = PhysicsManager(None, [], [], [], [pedra])
+    physics_manager = PhysicsManager(pedra, [], [], [], [])
 
     print(world.load_chunk(0, 0).blocks_grid[0])
     print(np.vectorize(lambda x: bin(x)[2:].zfill(4))(world.load_chunk(0, 0).edges_matrix[0]))
@@ -62,6 +62,9 @@ def main():
             
             if event.type == commons.ITEM_DROP_EVENT:
                 physics_manager.spawn_item(event.item, event.pos)
+            
+            if event.type == commons.ITEM_COLLECT_EVENT:
+                print(f"Item {ITEM_METADATA.get_name_by_id(event.item)} colected")
 
         # Update chunks
         if pygame.mouse.get_pressed()[0]:

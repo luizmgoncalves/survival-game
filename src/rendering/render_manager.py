@@ -334,7 +334,7 @@ class RenderManager:
         if chunk.changes.get('breaking'):
             for block_info, breaking_level in chunk.changes['breaking'].items():  # Iterate over the blocks that were changed
                 x, y = block_info  # Each block_info contains the layer, y-coordinate, and x-coordinate
-                print(f"CHANGED BLOCK: {x}, {y}")
+                
                 # Define the rectangle for the block
                 block_rect = pygame.Rect(
                     x * commons.BLOCK_SIZE,

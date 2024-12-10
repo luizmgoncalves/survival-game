@@ -8,6 +8,7 @@ from typing import List
 from math import ceil
 from random import random
 from pygame.math import Vector2 as v2
+import pygame
 
 class PhysicsManager:
     def __init__(self, 
@@ -27,8 +28,8 @@ class PhysicsManager:
         self.player: Player = player
         self.player_bullets: List[Bullet] = player_bullets
         self.enemies: List[Enemy] = enemies
-        self.moving_elements: List[MovingElement] = moving_elements
-        self.itens: List[MovingElement] = []
+        self.moving_elements: List[MovingElement] = moving_elements 
+        self.itens: List[Item] = []
         self.enemy_bullets: List[Bullet] = enemy_bullets 
         self.gravity: int = commons.GRAVITY_ACELERATION
         self.terminal_speed = commons.TERMINAL_SPEED
@@ -43,7 +44,7 @@ class PhysicsManager:
         self.itens.append(new_item)
     
     def get_renderable_elements(self):
-        return self.moving_elements
+        return self.moving_elements + [self.player]
 
 
     def update(self, delta_time, world):
@@ -129,6 +130,11 @@ class PhysicsManager:
         for enemy in self.enemies:
             if self.player and self.player.rect.colliderect(enemy.rect):
                 self._handle_player_enemy_collision(enemy)
+        
+        # Check collisions between player and itens (optional)
+        for iten in self.itens:
+            if self.player and self.player.rect.colliderect(iten.rect):
+                self._handle_player_iten_collision(iten)
 
         # Check collisions between player and moving elements (optional)
         for element in self.moving_elements:
@@ -154,6 +160,20 @@ class PhysicsManager:
         #self.player.take_damage(enemy.collision_damage)  # Assuming `collision_damage` attribute
         #enemy.handle_collision_with_player()  # Optional behavior for enemy
         pass
+    
+    def _handle_player_iten_collision(self, iten: Item):
+        """
+        Handle the event where the player collides with a moving element.
+
+        :param element: The Item instance that collided with the player.
+        """
+        # Example: Reduce player's life, or trigger a specific effect
+        # self.player.take_damage(element.collision_damage)
+
+
+        pygame.event.post(pygame.event.Event(commons.ITEM_COLLECT_EVENT, {'item': iten.id}))
+        self.itens.remove(iten)
+        self.moving_elements.remove(iten)
 
     def _handle_player_element_collision(self, element):
         """
