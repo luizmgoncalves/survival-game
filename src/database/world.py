@@ -9,6 +9,7 @@ from typing import Dict, Tuple
 import commons
 from math import ceil
 from pprint import pprint
+from threading import Thread
 
 class World:
     def __init__(self, world_name):
@@ -32,6 +33,27 @@ class World:
         result = self.db_interface._execute_query(query, (self.world_name,))
         return result[0][0] if result else None
 
+    def _gen(self, chunk: Chunk):
+        chunk_x, chunk_y = chunk.pos
+        self.generator.generate_chunk(chunk)
+
+        # Verifying around chunks to update their edges matrix
+        for i in range(0, 4):
+            match i:
+                case 0:
+                    around_chunk = self.all_chunks.get((chunk_x-1, chunk_y))
+                case 1:
+                    around_chunk = self.all_chunks.get((chunk_x, chunk_y-1))
+                case 2:
+                    around_chunk = self.all_chunks.get((chunk_x+1, chunk_y))
+                case 3:
+                    around_chunk = self.all_chunks.get((chunk_x, chunk_y+1))
+            
+            if around_chunk: #Check if it exists
+                self.generator.update_edges_matrix(chunk, around_chunk, index=i)
+        
+        chunk.completed_created = True
+
     def load_chunk(self, chunk_x, chunk_y):
         """
         Load a specific chunk by its coordinates.
@@ -39,7 +61,9 @@ class World:
         """
         chunk_key = (chunk_x, chunk_y)
         if chunk_key in self.all_chunks:
-            return self.all_chunks[chunk_key]  # Return already loaded chunk
+            chunk = self.all_chunks[chunk_key]
+            chunk.changes['all'] = True
+            return chunk  # Return already loaded chunk
         
         x_min = chunk_x * commons.CHUNK_SIZE
         x_max = x_min + commons.CHUNK_SIZE - 1
@@ -47,30 +71,15 @@ class World:
         y_max = y_min + commons.CHUNK_SIZE - 1 
 
         # Try loading data from the database
-        blocks = self.db_interface.load_blocks(self.world_id, x_min, x_max, y_min, y_max)
-        static_objects = self.db_interface.load_static_objects(self.world_id, x_min, x_max, y_min, y_max)
-        moving_entities = self.db_interface.load_moving_entities(self.world_id, x_min, x_max, y_min, y_max)
+        #blocks = self.db_interface.load_blocks(self.world_id, x_min, x_max, y_min, y_max)
+        #static_objects = self.db_interface.load_static_objects(self.world_id, x_min, x_max, y_min, y_max)
+        #moving_entities = self.db_interface.load_moving_entities(self.world_id, x_min, x_max, y_min, y_max)
 
-        if not blocks:
+        if True or not blocks:
             # Generate a new chunk if no data exists
-            chunk = self.generator.generate_chunk((chunk_x, chunk_y))
-
-            # Verifying around chunks to update their edges matrix
-            for i in range(0, 4):
-                match i:
-                    case 0:
-                        around_chunk = self.all_chunks.get((chunk_x-1, chunk_y))
-                    case 1:
-                        around_chunk = self.all_chunks.get((chunk_x, chunk_y-1))
-                    case 2:
-                        around_chunk = self.all_chunks.get((chunk_x+1, chunk_y))
-                    case 3:
-                        around_chunk = self.all_chunks.get((chunk_x, chunk_y+1))
-                
-                if around_chunk: #Check if it exists
-                    self.generator.update_edges_matrix(chunk, around_chunk, index=i)
-                    
-
+            chunk = Chunk(chunk_x, chunk_y)
+            
+            self._gen(chunk)
 
             # Optionally, save the generated chunk back to the database here
 

@@ -27,7 +27,7 @@ class WorldGenerator:
         self.seed = round(random.random()*1000)
 
     
-    def generate_chunk(self, chunk_pos):
+    def generate_chunk(self, chunk: Chunk):
         """
         Generates a chunk at a specific chunk position.
 
@@ -49,7 +49,7 @@ class WorldGenerator:
         #noise = self.perlin.gen
 
         # Generate block data for each position
-        base_x, base_y = chunk_pos
+        base_x, base_y = chunk.pos
         chunk_world_x = base_x * commons.CHUNK_SIZE
         chunk_world_y = base_y * commons.CHUNK_SIZE
 
@@ -132,12 +132,6 @@ class WorldGenerator:
 
 
 
-        # Create a Chunk object
-        chunk = Chunk(
-            x=chunk_pos[0],
-            y=chunk_pos[1]
-        )
-
         #if chunk_pos == (0, 0):
         #    chunk.add_static_element(S_ELEMENT_METADATA_LOADER.create_static_element('1', (100, 100)))
 
@@ -147,7 +141,6 @@ class WorldGenerator:
         chunk.changes['all'] = True
         chunk.world_elements = chunk_elements
 
-        return chunk
 
     def gen_obj(self, obj_name, line, col, chunk_x, chunk_y):
         el_id = S_ELEMENT_METADATA_LOADER.get_id_by_name(obj_name)

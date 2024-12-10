@@ -83,7 +83,6 @@ class RenderManager:
                     for i in range(3):
                         chunk_y = self.chunk_matrix[0, 0].pos.y + i 
                         self.chunk_matrix[i, 2] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[i, 2].changes['all'] = True
                 else:
                     buff = self.surface_matrix[:, 2].copy()
                     self.surface_matrix[:, 2] = self.surface_matrix[:, 1]
@@ -97,7 +96,6 @@ class RenderManager:
                     for i in range(3):
                         chunk_y = self.chunk_matrix[0, 0].pos.y + i 
                         self.chunk_matrix[i, 0] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[i, 0].changes['all'] = True
             if dif.y:
                 if dif.y > 0:
                     buff = self.surface_matrix[0, :].copy()
@@ -113,7 +111,6 @@ class RenderManager:
                     for j in range(3):
                         chunk_x = self.chunk_matrix[2, 0].pos.x + j 
                         self.chunk_matrix[2, j] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[2, j].changes['all'] = True
                 else:
                     buff = self.surface_matrix[2, :].copy()
                     self.surface_matrix[2, :] = self.surface_matrix[1, :]
@@ -128,7 +125,6 @@ class RenderManager:
                     for j in range(3):
                         chunk_x = self.chunk_matrix[0, 0].pos.x + j 
                         self.chunk_matrix[0, j] = world.load_chunk(chunk_x, chunk_y)
-                        self.chunk_matrix[0, j].changes['all'] = True
             
             self._update_static_elements()
 
@@ -142,7 +138,6 @@ class RenderManager:
                     chunk_x = self.current_chunk_position[0] + (j - 1)
                     chunk_y = self.current_chunk_position[1] + (i - 1)
                     self.chunk_matrix[i, j] = world.load_chunk(chunk_x, chunk_y)
-                    self.chunk_matrix[i, j].changes['all'] = True
             
             self._update_static_elements()
 
@@ -155,7 +150,7 @@ class RenderManager:
         for element in self.current_static_elements:
             image_name = S_ELEMENT_METADATA_LOADER.get_property_by_id(element.id, "image_name")
             im = IMAGE_LOADER.get_image(image_name)
-            screen_position = v2(element.rect.topleft) - IMAGE_LOADER.get_image_atribute(image_name, "offset") - v2(self.current_position)
+            screen_position = v2(element.rect.topleft) + IMAGE_LOADER.get_image_atribute(image_name, "offset") - v2(self.current_position)
             screen.blit(im, screen_position)
 
         
@@ -171,7 +166,7 @@ class RenderManager:
                 chunk_x = chunk_data.pos.x * commons.CHUNK_SIZE_PIXELS - (self.current_position[0]) #+ commons.WIDTH /2
                 chunk_y = chunk_data.pos.y * commons.CHUNK_SIZE_PIXELS - (self.current_position[1]) #+ commons.HEIGHT /2
 
-                Thread(target=self.render_single_chunk, args=[chunk_surface, chunk_data]).run()
+                self.render_single_chunk(chunk_surface, chunk_data)
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
             
         
@@ -184,7 +179,7 @@ class RenderManager:
         :param surface: pygame.Surface, the surface to draw on.
         :param chunk: Chunk, the chunk object containing blocks and elements to render.
         """
-        if chunk is None or not any(chunk.changes.values()):
+        if chunk is None or not any(chunk.changes.values()) or not chunk.completed_created:
             return  # Skip rendering if chunk is not loaded or if it does not have changes.
 
         if chunk.changes.get("all"):
@@ -399,7 +394,12 @@ class RenderManager:
                 0 <= actual_y < commons.HEIGHT):
                 # Render the element's image if available, otherwise render a rectangle
                 if hasattr(element, 'image') and element.image:
-                    screen.blit(element.image, (actual_x, actual_y))
+                    image = IMAGE_LOADER.get_image(element.image)
+                    if offset := IMAGE_LOADER.get_image_atribute(element.image, "offset"):
+                        screen.blit(image, (actual_x + offset[0], actual_y + offset[1]))
+                        continue
+                    
+                    screen.blit(image, (actual_x, actual_y))
                 else:
                     # Draw a rectangle if no image is present
                     pygame.draw.rect(

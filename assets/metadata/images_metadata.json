@@ -25,7 +25,7 @@
     "TREE_MAX": {
         "path": "trees/Cedar Tree max.png",
         "color_key": [255, 0, 255],
-        "offset": [15, 15]
+        "offset": [-15, -15]
     },
     "BREAKING_0": {
         "path": "block_masks/breaking0.png",
@@ -38,5 +38,19 @@
     "BREAKING_2": {
         "path": "block_masks/breaking2.png",
         "block": true
+    }, 
+    "PLAYER_IDLE_#": {
+        "path": "player/idle/idle#.png",
+        "flipx": true,
+        "scaled_size": [50, 50],
+        "offset": [-10, 0],
+        "color_key": [113, 102, 79]
+    }, 
+    "PLAYER_WALKING_#": {
+        "path": "player/walking/run#.png",
+        "flipx": true,
+        "scaled_size": [50, 50],
+        "offset": [-10, 0],
+        "color_key": [113, 102, 79]
     }
 }

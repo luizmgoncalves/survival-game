@@ -3,10 +3,9 @@ import json
 import commons
 from pygame.math import Vector2 as v2
 from typing import List, Tuple, Dict
+import os
 import pprint
 
-class Image(pygame.Surface):
-    offset: v2
 
 class ImageLoader:
     """
@@ -62,6 +61,9 @@ class ImageLoader:
             with open(json_path, 'r') as file:
                 data = json.load(file)
                 for name, details in data.items():
+                    if "#" in name:
+                        self.load_bunch_of_images(name, details)
+                        continue
                     self.load_image(name, details)
         except FileNotFoundError:
             raise FileNotFoundError(f"Error: JSON file '{json_path}' not found.")
@@ -70,6 +72,34 @@ class ImageLoader:
 
         self.generate_masked_blocks()
         pprint.pprint(self.images)
+    
+    def load_bunch_of_images(self, name: str, details: dict):
+        assert details['path'].count("#") == name.count("#"), "Different # number in name and path counting"
+
+        index = 0
+        
+
+        while True:
+            new_name = name.replace("#", str(index), 1)
+            new_path = details["path"].replace("#", str(index), 1)
+
+            if "#" in new_path:
+                new_details = details.copy()
+                new_details['path'] = new_path
+                self.load_bunch_of_images(new_name, new_details)
+            elif os.path.exists(commons.DEFAULT_IMAGES_PATH + new_path):
+                new_details = details.copy()
+                new_details['path'] = new_path
+                print(f"{new_name} -- {new_path}")
+                self.load_image(new_name, new_details)
+            else:
+                break
+                
+            
+            
+
+            index += 1
+            
     
     def generate_masked_blocks(self):
         for block_name in self.blocks:
@@ -80,8 +110,6 @@ class ImageLoader:
                 surf = pygame.Surface((commons.BLOCK_SIZE, commons.BLOCK_SIZE)).convert()
 
                 surf.blit(self.images[block_name][0], (0, 0))
-
-                pygame.image.save(surf, "test.png")
 
                 surf.blit(self.images[mask_name][0], (0, 0))
                 
@@ -138,6 +166,15 @@ class ImageLoader:
             # Store full image if no regions
             if "sprite_regions" not in details:
                 self.images[name] = (image, details)
+
+                if "flipx" in details:
+                    self.flip_image(name, x=True)
+                
+                if "flipy" in details:
+                    self.flip_image(name, y=True)
+
+                if "flipxy" in details:
+                    self.flip_image(name, x=True, y=True)
             else:
                 # Process sprite regions in a sprite sheet
                 for region in details["sprite_regions"]:
@@ -150,6 +187,15 @@ class ImageLoader:
                     if "scaled_size" in region:
                         size = v2(region["scaled_size"])
                         sprite = pygame.transform.scale_by(sprite, (size.x / csize.x, size.y / csize.y) )
+                    
+                    if "flipx" in details:
+                        self.flip_image(sprite_name, x=True)
+                    
+                    if "flipy" in details:
+                        self.flip_image(sprite_name, y=True)
+
+                    if "flipxy" in details:
+                        self.flip_image(sprite_name, x=True, y=True)
 
                     self.images[sprite_name] = (sprite, region)
                     
@@ -163,8 +209,51 @@ class ImageLoader:
         
         if image_det := self.images.get(name, None):
             return image_det[0]
-        
-        raise ValueError(f"Image \"{name}\" not exists in metadata")
+        else:
+            raise KeyError(f"Image '{name}' not found in the ImageLoader!")
+
+    def flip_image(self, image_name: str, x=False, y=False) -> str:
+        """Flip an image and return its name.
+
+        :param image_name: The name of the image to flip.
+        :param x: Whether to flip horizontally.
+        :param y: Whether to flip vertically.
+        :return: The name of the flipped image.
+        :raises RuntimeError: If the ImageLoader is not initialized.
+        :raises ValueError: If the flipped image already exists.
+        """
+        if image_det := self.images.get(image_name, None):
+            if not x and not y:
+                raise ValueError(f"Trying to flip without setting x or y axis")
+            image = image_det[0]
+
+            if x and not y:
+                flipped_x_name = f'{image_name}.FLIPED_X'
+                if flipped_x_name in self.images:
+                    raise ValueError(f"Flipped image '{flipped_x_name}' already exists!")
+                imagex = pygame.transform.flip(image, True, False)
+                self.images[flipped_x_name] = (imagex, image_det[1])
+                return flipped_x_name
+
+            if y and not x:
+                flipped_y_name = f'{image_name}.FLIPED_Y'
+                if flipped_y_name in self.images:
+                    raise ValueError(f"Flipped image '{flipped_y_name}' already exists!")
+                imagey = pygame.transform.flip(image, False, True)
+                self.images[flipped_y_name] = (imagey, image_det[1])
+                return flipped_y_name
+
+            if x and y:
+                flipped_xy_name = f'{image_name}.FLIPED_XY'
+                if flipped_xy_name in self.images:
+                    raise ValueError(f"Flipped image '{flipped_xy_name}' already exists!")
+                imagexy = pygame.transform.flip(image, True, True)
+                self.images[flipped_xy_name] = (imagexy, image_det[1])
+
+                return flipped_xy_name
+
+        else:
+            raise KeyError(f"Image '{image_name}' not found in the ImageLoader!")
 
 
     def get_image_atribute(self, name, atribute):
@@ -173,9 +262,9 @@ class ImageLoader:
             raise RuntimeError("ImageLoader is not initialized! Call 'init()' before using it.")
         
         if details := self.images.get(name)[-1]:
-            return details.get(atribute)
-
-        return None
+            return details.get(atribute, None)
+        else:
+            raise KeyError(f"Image '{name}' not found in the ImageLoader!")
 
 # Initialize the loader in the main program or entry point
 IMAGE_LOADER = ImageLoader()

@@ -20,6 +20,8 @@ class Chunk:
         self.collidable_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)  # Collidable matrix
         self.edges_matrix = np.ones((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Collidable matrix
 
+        self.completed_created = False
+
         # Changes dict track the changings of the Chunk for Chunk rendering optimization
         # It have the line key with the lines that have changed
         # It have the column key with the lines that have changed

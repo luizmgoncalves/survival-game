@@ -10,4 +10,4 @@ class Item(CollidableMovingElement):
         size = (commons.ITEM_SIZE, commons.ITEM_SIZE)
         super().__init__(position, size, velocity)
 
-        self.image = IMAGE_LOADER.get_image(ITEM_METADATA.get_property_by_id(item_id, 'image_name'))
+        self.image = ITEM_METADATA.get_property_by_id(item_id, 'image_name')

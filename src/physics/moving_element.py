@@ -145,7 +145,6 @@ class CollidableMovingElement(MovingElement):
                     dx = self.rect.right - rect.left
                     self.rect.bottom = rect.bottom - dx
                     self.collided_right()
-                    self.velocity.x = 0
                 elif self.velocity.y < 0 and edge == 0b0011:
                     dx = self.rect.right - rect.left
                     #print("EXTROU")

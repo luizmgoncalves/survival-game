@@ -28,6 +28,7 @@ class PhysicsManager:
         self.player_bullets: List[Bullet] = player_bullets
         self.enemies: List[Enemy] = enemies
         self.moving_elements: List[MovingElement] = moving_elements
+        self.itens: List[MovingElement] = []
         self.enemy_bullets: List[Bullet] = enemy_bullets 
         self.gravity: int = commons.GRAVITY_ACELERATION
         self.terminal_speed = commons.TERMINAL_SPEED
@@ -39,6 +40,7 @@ class PhysicsManager:
         new_item = Item(item_id,pos, init_vel)
         
         self.moving_elements.append(new_item)
+        self.itens.append(new_item)
     
     def get_renderable_elements(self):
         return self.moving_elements
@@ -52,6 +54,7 @@ class PhysicsManager:
         """
         
         self.apply_gravity(delta_time)
+        self.apply_player_attraction_force()
         self.move_entities_and_handle_world_collisions(world, delta_time)
         self.handle_collisions()
 
@@ -74,6 +77,15 @@ class PhysicsManager:
         # Update other moving elements
         for element in self.moving_elements:
             element.update(delta_time)
+    
+    def apply_player_attraction_force(self):
+        if not self.player:
+            return
+        
+        for i in range(len(self.itens)):
+            dif = self.player.position - self.itens[i].position
+            if dif.length() <= commons.MAX_DISTANCE_OF_ITEM_ATTRACTION:
+                self.itens[i].velocity += dif.normalize() * commons.ITEM_ATTRACTION_FORCE
     
     def apply_gravity(self, delta_time):
         """

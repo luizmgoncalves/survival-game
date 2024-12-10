@@ -2,6 +2,7 @@ import pygame
 from rendering.render_manager import RenderManager
 from database.world import World
 from physics.moving_element import CollidableMovingElement
+from physics.player import Player
 from physics.physics_manager import PhysicsManager
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
@@ -41,7 +42,7 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    pedra = CollidableMovingElement(commons.STARTING_POSITION, (commons.BLOCK_SIZE, commons.BLOCK_SIZE))
+    pedra = Player()
     commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
     render_manager = RenderManager(commons.STARTING_POSITION, commons.COLOR_KEY)
 
@@ -82,9 +83,9 @@ def main():
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            pedra.velocity.x = -300
+            pedra.walk_left()
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]: 
-            pedra.velocity.x = 300
+            pedra.walk_right()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             
             pedra.velocity.y = -500

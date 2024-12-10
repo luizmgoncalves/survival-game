@@ -34,9 +34,9 @@ DEFAULT_DB_PATH = './assets/database/'
 DEFAULT_SOUND_PATH = './assets/audio/'
 
 PLAYER_START_POSITION = (100, 100)  # Starting position
-PLAYER_SIZE = (50, 50)        # Default size
+PLAYER_SIZE = (30, 50)        # Default size
 PLAYER_LIFE = 100             # Default life points
-PLAYER_MAX_VEL = 200          # Default maximum velocity
+PLAYER_MAX_VEL = 900          # Default maximum velocity
 
 GRAVITY_ACELERATION = 40
 
@@ -56,3 +56,7 @@ ITEM_INITIAL_VELOCITY = 600
 ITEM_SIZE = BLOCK_SIZE * 0.5
 
 BREAKING_STAGES_NUMBER = 3
+
+ITEM_ATTRACTION_FORCE = 1
+
+MAX_DISTANCE_OF_ITEM_ATTRACTION = 20 # in pixels
