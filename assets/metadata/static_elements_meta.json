@@ -5,7 +5,7 @@
         "dimensions": [25, 70],
         "health": [90, 110],
         "drop": {
-            "WOOD": 5
+            "DIRT": 5
         }
     }
 }

@@ -1,12 +1,13 @@
 import numpy as np
 import pygame
 import commons
-from typing import Dict
+from typing import Dict, List
+from pygame.math import Vector2 as v2
 from .block_metadata_loader import BLOCK_METADATA
+from .static_element import StaticElement
 
 class Chunk:
-
-    def __init__(self, x, y, layers=2):
+    def __init__(self, x: float, y: float, layers: int = 2):
         """
         Represents a section of the world, loaded into memory as needed.
 
@@ -14,26 +15,22 @@ class Chunk:
         :param y: The chunk's y-coordinate in the world grid.
         :param layers: Number of block layers in the chunk.
         """
-        self.pos = pygame.math.Vector2(x, y)  # Position of the chunk in chunk coordinates
-        self.world_elements = []  # List of static elements (trees, chests, etc.)
-        self.blocks_grid = np.zeros((layers, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # 3D matrix for block layers
-        self.collidable_grid = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)  # Collidable matrix
-        self.edges_matrix = np.ones((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Collidable matrix
+        self.pos: v2 = v2(x, y)  # Position of the chunk in chunk coordinates
+        self.world_elements: List[StaticElement] = []  # List of static elements (trees, chests, etc.)
+        self.blocks_grid: np.ndarray = np.zeros((layers, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # 3D matrix for block layers
+        self.collidable_grid: np.ndarray = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)  # Collidable matrix
+        self.edges_matrix: np.ndarray = np.ones((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Edge matrix
 
-        self.completed_created = False
+        self.completed_created: bool = False
 
-        # Changes dict track the changings of the Chunk for Chunk rendering optimization
-        # It have the line key with the lines that have changed
-        # It have the column key with the lines that have changed
-        # It have the block key with the blocks (col, row) coordinates that must be rendered again
-        # It have the breaking key with the blocks {(col, row) -> breaking_level} coordinates and the level of breaking on it
-        # It have a all key with some irrelevant value (True by default) that means that the entire Chunk must be rendered
-        # If the all key are in self.changes all other keys are ignored
-        self.changes: Dict[str, list] = {'all': False,
-                                         'line': [],
-                                         'column': [],
-                                         'block': [],
-                                         'breaking': {}}
+        # Changes dictionary tracks the changes of the chunk for rendering optimization
+        self.changes: Dict[str, list] = {
+            'all': False,          # If True, the entire chunk must be rendered
+            'line': [],            # List of changed line indices
+            'column': [],          # List of changed column indices
+            'block': [],           # List of block coordinates (col, row) to re-render
+            'breaking': {}         # Dict mapping (col, row) to breaking levels
+        }
     
     def clear_changes(self):
         self.changes = {'all': False,

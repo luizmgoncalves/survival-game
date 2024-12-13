@@ -8,7 +8,7 @@ from images.image_loader import IMAGE_LOADER
 from typing import List
 
 class GameActor(CollidableMovingElement):
-    def __init__(self, pos: v2, size: v2, life: float, max_vel: float, 
+    def __init__(self, pos: v2, size: v2, life: float, max_vel: float, jump_strength: float,
                  walk_right: Animation = None, walk_left: Animation = None,
                  run_right: Animation = None, run_left: Animation = None,
                  idle_right: Animation = None, idle_left: Animation = None,
@@ -22,7 +22,7 @@ class GameActor(CollidableMovingElement):
         self.attack_area  : Rect  = pygame.Rect(0, 0, size[0] * 1.5, size[1])
         self.attack_time  : float = 0
         self.max_vel      : float = max_vel
-        self.jump_strength: float = 200
+        self.jump_strength: float = jump_strength
 
         # Animations
         self.walk_anim_right : Animation = walk_right
@@ -42,6 +42,11 @@ class GameActor(CollidableMovingElement):
 
         # Set the image based on the current animation or default to None
         self.image : str = self._current_anim.get_current_frame()
+
+        # State variables
+        self.w_left  = False
+        self.w_right = False
+        self.running = False
 
     @property
     def current_animation(self) -> Animation:
@@ -79,8 +84,8 @@ class GameActor(CollidableMovingElement):
         # Choose the correct animation based on state
         if self.jumping:
             self.current_animation = self.jump_anim_left if self.facing_left else self.jump_anim_right
-        elif abs(self.velocity.x) > 100:
-            if abs(self.velocity.x) > self.max_vel / 2:
+        elif self.w_left or self.w_right:
+            if self.running:
                 self.current_animation = self.run_anim_left if self.facing_left else self.run_anim_right
             else:
                 self.current_animation = self.walk_anim_left if self.facing_left else self.walk_anim_right
@@ -92,7 +97,6 @@ class GameActor(CollidableMovingElement):
             self.current_animation.update(delta_time)
             self.image = self.current_animation.get_current_frame()
 
-
     def jump(self):
         """
         Make the actor jump by applying a vertical velocity.
@@ -102,7 +106,7 @@ class GameActor(CollidableMovingElement):
         if not self.jumping:
             self.jumping = True
             self.velocity.y = -self.jump_strength
-    
+
     def collided_down(self):
         """
         Handle the collision when the object collides from below.
@@ -120,6 +124,8 @@ class GameActor(CollidableMovingElement):
         """
         self.velocity.x = -self.max_vel / 2
         self.facing_left = True
+        self.w_left = True
+        self.w_right = False
 
     def walk_right(self):
         """
@@ -129,6 +135,8 @@ class GameActor(CollidableMovingElement):
         """
         self.velocity.x = self.max_vel / 2
         self.facing_left = False
+        self.w_right = True
+        self.w_left = False
 
     def run_left(self):
         """
@@ -138,6 +146,9 @@ class GameActor(CollidableMovingElement):
         """
         self.velocity.x = -self.max_vel
         self.facing_left = True
+        self.w_left = True
+        self.w_right = False
+        self.running = True
 
     def run_right(self):
         """
@@ -147,6 +158,20 @@ class GameActor(CollidableMovingElement):
         """
         self.velocity.x = self.max_vel
         self.facing_left = False
+        self.w_right = True
+        self.w_left = False
+        self.running = True
+
+    def stop_moving(self):
+        """
+        Stop the actor's horizontal movement.
+
+        :return: None
+        """
+        self.velocity.x = 0
+        self.w_left = False
+        self.w_right = False
+        self.running = False
 
     def attack(self):
         """

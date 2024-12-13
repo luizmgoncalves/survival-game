@@ -26,7 +26,7 @@
     "3": {
       "name": "STONE",
       "color": [128, 128, 128],
-      "health": 30,
+      "health": 5,
       "image_name": "STONE",
       "drops": {
         "STONE": 1

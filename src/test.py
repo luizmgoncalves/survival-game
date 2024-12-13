@@ -63,6 +63,9 @@ def main():
             if event.type == commons.ITEM_DROP_EVENT:
                 physics_manager.spawn_item(event.item, event.pos)
             
+            if event.type == commons.S_ELEMENT_BROKEN:
+                render_manager._update_static_elements()
+            
             if event.type == commons.ITEM_COLLECT_EVENT:
                 print(f"Item {ITEM_METADATA.get_name_by_id(event.item)} colected")
 
@@ -85,23 +88,9 @@ def main():
         
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            pedra.walk_left()
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]: 
-            pedra.walk_right()
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
-            
-            pedra.velocity.y = -500
-        if keys[pygame.K_s]  or keys[pygame.K_DOWN]:
-            pedra.velocity.y = 500
-        if keys[pygame.K_k]:
-            pedra.velocity.y = -70
+
         if keys[pygame.K_ESCAPE]:
             break
-        
-        pedra.velocity.x *= 0.8
-
-
 
         x_dist = math.ceil(pedra.velocity.x * delta_time)
         y_dist = math.ceil(pedra.velocity.y * delta_time)
@@ -109,6 +98,10 @@ def main():
         
 
         physics_manager.update(delta_time, world)
+
+        pedra.handle_input(keys)
+
+
 
         commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
 

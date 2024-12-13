@@ -26,6 +26,11 @@ ITEM_DROP_EVENT = pygame.event.custom_type()
 # Has the item id atributes
 ITEM_COLLECT_EVENT = pygame.event.custom_type()
 
+# Custom event for static element breaking
+# Triggered when a element is broke
+# Has no atributes
+S_ELEMENT_BROKEN = pygame.event.custom_type()
+
 # Metadata files path
 METADATA_PATH = './assets/metadata/'
 

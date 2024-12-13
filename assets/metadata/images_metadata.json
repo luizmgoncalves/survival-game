@@ -56,5 +56,12 @@
         "scaled_size": [50, 50],
         "offset": [-10, 3],
         "color_key": [113, 102, 79]
+    }, 
+    "PLAYER_JUMPING_#": {
+        "path": "player/jumping/jump#.png",
+        "flipx": true,
+        "scaled_size": [50, 50],
+        "offset": [-10, 3],
+        "color_key": [113, 102, 79]
     }
 }

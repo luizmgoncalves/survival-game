@@ -1,4 +1,5 @@
 import pygame
+import commons
 
 class StaticElement:
     def __init__(self, element_id, dimensions, position, health):
@@ -15,13 +16,13 @@ class StaticElement:
         self.rect.bottomleft = pygame.math.Vector2(position)  # Dimensions (width, height) of the element
         self.health = health  # Health of the element
 
-    def take_damage(self, amount):
+    def take_damage(self, damage, delta_time):
         """
         Reduces the health of the element by a specified amount.
 
         :param amount: Amount of damage to deal.
         """
-        self.health = max(0, self.health - amount)
+        self.health = max(0, self.health - damage * delta_time)
 
     def is_destroyed(self):
         """

@@ -70,48 +70,18 @@ class CollidableMovingElement(MovingElement):
         if self.velocity.x > 0:
             _colliding_rects = colliding_rects[-1::-1] # reverse the list
 
+        ramps = [(edge, rect) for edge, rect in _colliding_rects if edge == 0b0011 or edge == 0b1001]
+
         for edge, rect in _colliding_rects: 
             if self.rect.colliderect(rect):
-                
-
-
                 if self.velocity.x > 0 and edge == 0b0011:
-                    dx = self.rect.right - rect.left
-                    self.rect.right = rect.left + dx
-                    if self.rect.bottom > rect.bottom - dx:
-                        self.rect.bottom = rect.bottom - dx
-                        if self.velocity.y > 0:
-                            self.velocity.y = 0
-                        self.collided_right()
-                
+                    pass
                 elif self.velocity.x < 0 and edge == 0b0011:
-                    dx = self.rect.right - rect.right
-                    self.rect.right = rect.right + dx
-                    if self.rect.bottom > rect.top - dx:
-                        self.rect.bottom = rect.top - dx
-                        if self.velocity.y > 0:
-                            self.velocity.y = 0
-                        self.collided_down()
-
-                
+                    pass
                 elif self.velocity.x < 0 and edge == 0b1001:
-                    dx = self.rect.left - rect.right
-                    self.rect.left = rect.right + dx
-                    if self.rect.bottom > rect.bottom + dx:
-                        self.rect.bottom = rect.bottom + dx
-                        if self.velocity.y > 0:
-                            self.velocity.y = 0
-                        self.collided_down()
-                
+                    pass
                 elif self.velocity.x > 0 and edge == 0b1001:
-                    dx = self.rect.left - rect.right
-                    self.rect.left = rect.right + dx
-                    if self.rect.bottom > rect.bottom + dx:
-                        self.rect.bottom = rect.bottom + dx
-                        if self.velocity.y > 0:
-                            self.velocity.y = 0
-                        self.collided_down()
-
+                    pass
                 
                 elif self.velocity.x > 0:  # Moving right
                     self.rect.right = rect.left
@@ -121,6 +91,10 @@ class CollidableMovingElement(MovingElement):
                     self.rect.left = rect.right
                     self.collided_left()
                     collided = True
+        
+        for edge, rect in ramps:
+            if self.rect.colliderect(rect):
+                pass
                 
     
         if collided:
@@ -140,35 +114,14 @@ class CollidableMovingElement(MovingElement):
 
         for edge, rect in _colliding_rects:
             if self.rect.colliderect(rect):
-                #print(f'{self.rect} collided with {rect} -- y')
                 if self.velocity.y > 0 and edge == 0b0011:
-                    dx = self.rect.right - rect.left
-                    self.rect.bottom = rect.bottom - dx
-                    self.collided_right()
+                    pass
                 elif self.velocity.y < 0 and edge == 0b0011:
-                    dx = self.rect.right - rect.left
-                    #print("EXTROU")
-                    if self.rect.bottom > rect.bottom - dx:
-                        self.rect.bottom = rect.bottom - dx
-                        collided = True
-                        self.collided_right()
-                        #print("entrou")
+                    pass
                 elif self.velocity.y > 0 and edge == 0b1001:
-                    dx = rect.right - self.rect.left
-                    if abs(dx) < commons.BLOCK_SIZE:
-                        self.rect.bottom = rect.bottom - dx
-                    else:
-                        self.rect.bottom = rect.top
-
-                    self.collided_right()
-                    #print(f"AQUI1: {self.velocity}")
+                    pass
                 elif self.velocity.y < 0 and edge == 0b1001:
-                    dx = rect.right - self.rect.left
-                    if self.rect.bottom > rect.bottom - dx and abs(dx) < commons.BLOCK_SIZE:
-                        self.rect.bottom = rect.bottom - dx
-                        collided = True
-                        self.collided_right()
-                        #print("aqui2")
+                    pass
                 elif self.velocity.y > 0:  # Moving down
                     self.rect.bottom = rect.top
                     self.collided_down()
@@ -177,6 +130,37 @@ class CollidableMovingElement(MovingElement):
                     self.rect.top = rect.bottom 
                     self.collided_up()
                     collided = True
+        
+        for edge, rect in ramps:
+            if self.rect.colliderect(rect):
+                if self.velocity.y > 0 and edge == 0b0011:
+                    dx = self.rect.right - rect.left
+                    if self.rect.bottom > rect.bottom - dx and dx > 0:
+                        self.rect.bottom = max(rect.bottom - dx, rect.top)
+                        collided = True
+                        self.collided_down()
+
+                elif self.velocity.y < 0 and edge == 0b0011:
+                    dx = self.rect.right - rect.left
+                    if self.rect.bottom > rect.bottom - dx and dx > 0:
+                        self.rect.bottom = rect.bottom - dx
+                        collided = True
+                        self.collided_down()
+                    
+                elif self.velocity.y > 0 and edge == 0b1001:
+                    dx = rect.right - self.rect.left
+                    if self.rect.bottom > rect.bottom - dx and dx > 0:
+                        self.rect.bottom = max(rect.bottom - dx, rect.top)
+                        collided = True
+                        self.collided_down()
+
+
+                elif self.velocity.y < 0 and edge == 0b1001:
+                    dx = rect.right - self.rect.left
+                    if self.rect.bottom > rect.bottom - dx and abs(dx) < commons.BLOCK_SIZE:
+                        self.rect.bottom = rect.bottom - dx
+                        collided = True
+                        self.collided_down()
 
         if collided:
             self.velocity.y = 0

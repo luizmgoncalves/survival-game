@@ -3,9 +3,10 @@ from .world_elements.chunk import Chunk
 from .world_generator import WorldGenerator
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 from .world_elements.item_metadata import ITEM_METADATA
+from .world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 from pygame.rect import Rect
 import pygame
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Set
 import commons
 from math import ceil
 from pprint import pprint
@@ -23,6 +24,7 @@ class World:
         self.world_id     : int         = self._get_world_id()
         self.generator    : WorldGenerator = WorldGenerator()
         self.mining_blocks: Dict[Tuple[int, int, int, int], int] = {}  # Tracks mining level of blocks being mined
+        self.mining_objects: Dict[Chunk, int] = {}  # Tracks mining level of blocks being mined
 
         if self.world_id is None:
             pass#raise ValueError(f"World '{self.world_name}' does not exist in the database.")
@@ -139,6 +141,8 @@ class World:
         rows_range = round(dimensions[1] / commons.BLOCK_SIZE)
         cols_range = round(dimensions[0] / commons.BLOCK_SIZE)
 
+        visited_chunks : Set[Chunk] = set()
+
         # Iterate through the blocks in the defined range
         for row_offset in range(-rows_range, rows_range + 1):
             for col_offset in range(-cols_range, cols_range + 1):
@@ -171,12 +175,33 @@ class World:
                 # Skip if the chunk is not loaded
                 if chunk is None:
                     continue
+                
+                visited_chunks.add(chunk)
 
                 # Check for collidable blocks in the current position
                 if chunk.blocks_grid[0, local_row, local_col] or chunk.blocks_grid[1, local_row, local_col]:
                     # Apply damage to the mining state
                     key = (current_chunk_x, current_chunk_y, local_row, local_col)
                     self.mining_blocks[key] = self.mining_blocks.get(key, 0) + damage * delta_time
+        
+        mining_area = pygame.Rect(x, y, dimensions[0], dimensions[1])
+
+        for chunk in visited_chunks:
+            for s_el in chunk.world_elements:
+                if mining_area.colliderect(s_el.rect):
+                    # Apply damage to the static object's mining state
+                    print(f'Aqui está!!!')
+                    s_el.take_damage(damage, delta_time)
+                    print(s_el.health)
+                    if s_el.is_destroyed():
+                        drops = S_ELEMENT_METADATA_LOADER.get_property_by_id(s_el.id, "drop")
+                        for iten_name, quant in drops.items():
+                            item_id = ITEM_METADATA.get_id_by_name(iten_name)
+                            for _ in range(quant):
+                                pygame.event.post(pygame.event.Event(commons.ITEM_DROP_EVENT, {"item": item_id, "pos": s_el.rect.center}))
+                        chunk.world_elements.remove(s_el)
+                        pygame.event.post(pygame.event.Event(commons.S_ELEMENT_BROKEN))
+        
 
     def update_blocks_state(self):
         """
