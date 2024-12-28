@@ -53,16 +53,18 @@ class WorldGenerator:
         chunk_world_x = base_x * commons.CHUNK_SIZE
         chunk_world_y = base_y * commons.CHUNK_SIZE
 
-        for y in range(commons.CHUNK_SIZE):
-            for x in range(commons.CHUNK_SIZE):
+        for x in range(commons.CHUNK_SIZE):
+            world_x = chunk_world_x + x
+            # Get Perlin noise value
+            surface_y = (noise.pnoise1(world_x*0.0009, base=self.seed) * commons.CHUNK_SIZE * 4) # 0 - 100
+            surface_y += (noise.pnoise1(world_x*0.05, base=self.seed) * commons.CHUNK_SIZE*0.25)
+            surface_y = round(surface_y)
+
+            for y in range(commons.CHUNK_SIZE):
                 # Calculate global block position
-                world_x = chunk_world_x + x
                 world_y = chunk_world_y + y
 
                 # Get Perlin noise value
-                surface_y = (noise.pnoise1(world_x*0.0009, base=self.seed) * commons.CHUNK_SIZE * 4) # 0 - 100
-                surface_y += (noise.pnoise1(world_x*0.05, base=self.seed) * commons.CHUNK_SIZE*0.25)
-                surface_y = round(surface_y)
                 unoise = (noise.pnoise2(world_x*0.09, world_y*0.09, base=self.seed) * 0.3)  # 0.0 - 1.0
                 unoise += (noise.pnoise2(world_x*0.02, world_y*0.02, base=self.seed))
                 unoise = abs(unoise)

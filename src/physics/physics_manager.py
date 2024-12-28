@@ -85,7 +85,7 @@ class PhysicsManager:
         
         for i in range(len(self.itens)):
             dif = self.player.position - self.itens[i].position
-            if dif.length() <= commons.MAX_DISTANCE_OF_ITEM_ATTRACTION:
+            if dif.length() <= commons.MAX_DISTANCE_OF_ITEM_ATTRACTION and dif.length() > 0:
                 self.itens[i].velocity += dif.normalize() * commons.ITEM_ATTRACTION_FORCE
     
     def apply_gravity(self, delta_time):
