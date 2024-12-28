@@ -60,7 +60,7 @@ def main():
         delta_time = clock.tick(50) / 1000
 
         
-        debug.set("events")
+        debug.start_timer("events")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -73,16 +73,16 @@ def main():
             
             if event.type == commons.ITEM_COLLECT_EVENT:
                 print(f"Item {ITEM_METADATA.get_name_by_id(event.item)} colected")
-        debug.get("events")
+        debug.stop_timer("events")
 
         # Update chunks
         
         if pygame.mouse.get_pressed()[0]:
-            debug.set("mining")
+            debug.start_timer("mining")
             mouse_pos = pygame.mouse.get_pos()
             mouse_rect = pygame.Rect(mouse_pos[0]+commons.STARTING_POSITION[0], mouse_pos[1]+commons.STARTING_POSITION[1], 10, 10)
             world.mine(mouse_rect.topleft, mouse_rect.size, 50, delta_time)
-            debug.get("mining")
+            debug.stop_timer("mining")
         
         world.update_blocks_state()
         render_manager.update_chunks(world)
@@ -118,13 +118,13 @@ def main():
         render_manager.update_position((commons.STARTING_POSITION[0], commons.STARTING_POSITION[1]))
 
         # Render everything
-        debug.set("filling")
+        debug.start_timer("filling")
         screen.fill((200, 200, 200))  # Background color
-        debug.get("filling")
+        debug.stop_timer("filling")
         
-        debug.set("render")
+        debug.start_timer("render")
         render_manager.render_all(screen, physics_manager.get_renderable_elements())
-        debug.get("render")
+        debug.stop_timer("render")
         #pygame.draw.rect(screen, (0, 255, 0), mouse_rect)
 
         #for block in blocks:
@@ -139,7 +139,7 @@ def main():
 
     pygame.quit()
     
-    debug.show_statitics()
+    debug.show_statistics()
 
 if __name__ == "__main__":
     main()

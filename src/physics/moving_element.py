@@ -1,6 +1,6 @@
 import pygame
 import commons
-from typing import Tuple
+from typing import Tuple, List
 from pygame.math import Vector2 as v2
 
 class MovingElement(pygame.sprite.DirtySprite):
@@ -49,7 +49,7 @@ class CollidableMovingElement(MovingElement):
         """
         super().__init__(position, size, velocity)
 
-    def move(self, colliding_rects, delta_time):
+    def move(self, colliding_rects: List[pygame.Rect], delta_time: float):
         """
         Move the element first in the x direction, check for collisions, 
         then move in the y direction and check for collisions.
@@ -65,6 +65,7 @@ class CollidableMovingElement(MovingElement):
         one_above = self.rect.copy()
         one_above.y -= commons.BLOCK_SIZE
         one_above_collided = False
+        one_above_y_collision: float = 0.0
 
         self.rect.x += self.velocity.x * delta_time
 
@@ -91,6 +92,7 @@ class CollidableMovingElement(MovingElement):
                     collided = True
             
             if one_above.colliderect(rect):
+                one_above_y_collision = rect.bottom
                 one_above_collided = True
                 
     
@@ -127,11 +129,22 @@ class CollidableMovingElement(MovingElement):
 
         
         for edge, rect in ramps:
-            if self.rect.colliderect(rect) and not one_above_collided:
+            if self.rect.colliderect(rect):
+                
+
                 if self.velocity.y > 0 and edge == 0b0011:
                     dx = self.rect.right - rect.left
+
                     if self.rect.bottom > rect.bottom - dx and dx > 0:
                         self.rect.bottom = max(rect.bottom - dx, rect.top)
+
+                        if one_above_collided:
+                            new_top = max(one_above_y_collision, self.rect.top)
+                            dy = new_top - self.rect.top
+                            self.rect.x -= dy
+                            self.rect.top = new_top
+
+                        
                         collided = True
                         self.collided_down()
 
@@ -139,6 +152,11 @@ class CollidableMovingElement(MovingElement):
                     dx = self.rect.right - rect.left
                     if self.rect.bottom > rect.bottom - dx and dx > 0:
                         self.rect.bottom = rect.bottom - dx
+                        if one_above_collided:
+                            new_top = max(one_above_y_collision, self.rect.top)
+                            dy = new_top - self.rect.top
+                            self.rect.x -= dy
+                            self.rect.top = new_top
                         collided = True
                         self.collided_down()
                     
@@ -146,6 +164,13 @@ class CollidableMovingElement(MovingElement):
                     dx = rect.right - self.rect.left
                     if self.rect.bottom > rect.bottom - dx and dx > 0:
                         self.rect.bottom = max(rect.bottom - dx, rect.top)
+                        
+                        if one_above_collided:
+                            new_top = max(one_above_y_collision, self.rect.top)
+                            dy = new_top - self.rect.top
+                            self.rect.x += dy
+                            self.rect.top = new_top
+                        
                         collided = True
                         self.collided_down()
 
@@ -154,6 +179,13 @@ class CollidableMovingElement(MovingElement):
                     dx = rect.right - self.rect.left
                     if self.rect.bottom > rect.bottom - dx and abs(dx) < commons.BLOCK_SIZE:
                         self.rect.bottom = rect.bottom - dx
+
+                        if one_above_collided:
+                            new_top = max(one_above_y_collision, self.rect.top)
+                            dy = new_top - self.rect.top
+                            self.rect.x += dy
+                            self.rect.top = new_top
+                        
                         collided = True
                         self.collided_down()
 
