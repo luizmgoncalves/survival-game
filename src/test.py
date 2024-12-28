@@ -8,10 +8,13 @@ from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
 from database.world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 from database.world_elements.item_metadata import ITEM_METADATA
+from utils.debug import Debug
 import commons
 import math
 import numpy as np
 import os
+
+debug = Debug()
 
 def main():
     pygame.init()
@@ -48,14 +51,16 @@ def main():
 
     physics_manager = PhysicsManager(pedra, [], [], [], [])
 
-    print(world.load_chunk(0, 0).blocks_grid[0])
-    print(np.vectorize(lambda x: bin(x)[2:].zfill(4))(world.load_chunk(0, 0).edges_matrix[0]))
+    #print(world.load_chunk(0, 0).blocks_grid[0])
+    #print(np.vectorize(lambda x: bin(x)[2:].zfill(4))(world.load_chunk(0, 0).edges_matrix[0]))
 
     delta_time = 1/60
 
     while running:
         delta_time = clock.tick(50) / 1000
 
+        
+        debug.set("events")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -68,12 +73,16 @@ def main():
             
             if event.type == commons.ITEM_COLLECT_EVENT:
                 print(f"Item {ITEM_METADATA.get_name_by_id(event.item)} colected")
+        debug.get("events")
 
         # Update chunks
+        
         if pygame.mouse.get_pressed()[0]:
+            debug.set("mining")
             mouse_pos = pygame.mouse.get_pos()
             mouse_rect = pygame.Rect(mouse_pos[0]+commons.STARTING_POSITION[0], mouse_pos[1]+commons.STARTING_POSITION[1], 10, 10)
             world.mine(mouse_rect.topleft, mouse_rect.size, 50, delta_time)
+            debug.get("mining")
         
         world.update_blocks_state()
         render_manager.update_chunks(world)
@@ -109,9 +118,13 @@ def main():
         render_manager.update_position((commons.STARTING_POSITION[0], commons.STARTING_POSITION[1]))
 
         # Render everything
+        debug.set("filling")
         screen.fill((200, 200, 200))  # Background color
+        debug.get("filling")
         
+        debug.set("render")
         render_manager.render_all(screen, physics_manager.get_renderable_elements())
+        debug.get("render")
         #pygame.draw.rect(screen, (0, 255, 0), mouse_rect)
 
         #for block in blocks:
@@ -125,6 +138,8 @@ def main():
         # Limit frame rate
 
     pygame.quit()
+    
+    debug.show_statitics()
 
 if __name__ == "__main__":
     main()

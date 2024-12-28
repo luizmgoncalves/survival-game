@@ -13,6 +13,7 @@ from pygame.math import Vector2 as v2
 from threading import Thread
 
 
+
 class RenderManager:
     """
     A manager class responsible for handling the rendering of a 3x3 chunk matrix and moving elements.

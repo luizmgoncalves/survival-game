@@ -61,6 +61,11 @@ class CollidableMovingElement(MovingElement):
         #print(f'Current position {self.rect.topleft}, deltax: {self.velocity.x * delta_time}, deltay: {self.velocity.y * delta_time} - {colliding_rects}')
 
         # Move horizontally (x direction)
+
+        one_above = self.rect.copy()
+        one_above.y -= commons.BLOCK_SIZE
+        one_above_collided = False
+
         self.rect.x += self.velocity.x * delta_time
 
         collided = False
@@ -70,19 +75,12 @@ class CollidableMovingElement(MovingElement):
         if self.velocity.x > 0:
             _colliding_rects = colliding_rects[-1::-1] # reverse the list
 
-        ramps = [(edge, rect) for edge, rect in _colliding_rects if edge == 0b0011 or edge == 0b1001]
+        
 
         for edge, rect in _colliding_rects: 
             if self.rect.colliderect(rect):
-                if self.velocity.x > 0 and edge == 0b0011:
+                if edge == 0b0011 or edge == 0b1001:
                     pass
-                elif self.velocity.x < 0 and edge == 0b0011:
-                    pass
-                elif self.velocity.x < 0 and edge == 0b1001:
-                    pass
-                elif self.velocity.x > 0 and edge == 0b1001:
-                    pass
-                
                 elif self.velocity.x > 0:  # Moving right
                     self.rect.right = rect.left
                     self.collided_right()
@@ -91,23 +89,17 @@ class CollidableMovingElement(MovingElement):
                     self.rect.left = rect.right
                     self.collided_left()
                     collided = True
-        
-        for edge, rect in ramps:
-            if self.rect.colliderect(rect):
-                pass
+            
+            if one_above.colliderect(rect):
+                one_above_collided = True
                 
     
         if collided:
             self.velocity.x = 0
-            #print(f'{self.rect} collided in {_colliding_rects} - x')
+        
         collided = False
 
-        _colliding_rects = colliding_rects
-        if self.velocity.y > 0: 
-            _colliding_rects = colliding_rects[-1::-1]  # reverse the list
-
-        # Update position vector to match adjusted rect
-        self.position.x, self.position.y = self.rect.topleft
+        _colliding_rects = colliding_rects if self.velocity.y > 0 else colliding_rects[-1::-1]
 
         # Move vertically (y direction)
         self.rect.y += self.velocity.y * delta_time
@@ -131,8 +123,11 @@ class CollidableMovingElement(MovingElement):
                     self.collided_up()
                     collided = True
         
+        ramps = [(edge, rect) for edge, rect in _colliding_rects if edge == 0b0011 or edge == 0b1001]
+
+        
         for edge, rect in ramps:
-            if self.rect.colliderect(rect):
+            if self.rect.colliderect(rect) and not one_above_collided:
                 if self.velocity.y > 0 and edge == 0b0011:
                     dx = self.rect.right - rect.left
                     if self.rect.bottom > rect.bottom - dx and dx > 0:
