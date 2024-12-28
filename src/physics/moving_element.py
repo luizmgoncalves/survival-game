@@ -55,146 +55,97 @@ class CollidableMovingElement(MovingElement):
         then move in the y direction and check for collisions.
 
         :param colliding_rects: A list of rectangles to check for collisions.
+        :param delta_time: The time delta for movement calculations.
         """
 
-        #print(len(colliding_rects))
-        #print(f'Current position {self.rect.topleft}, deltax: {self.velocity.x * delta_time}, deltay: {self.velocity.y * delta_time} - {colliding_rects}')
+        def handle_horizontal_collisions():
+            nonlocal collided
+
+            for edge, rect in _colliding_rects:
+                if self.rect.colliderect(rect):
+                    if edge not in (0b0011, 0b1001):
+                        if self.velocity.x > 0:  # Moving right
+                            self.rect.right = rect.left
+                            self.collided_right()
+                        elif self.velocity.x < 0:  # Moving left
+                            self.rect.left = rect.right
+                            self.collided_left()
+                        collided = True
+
+                if one_above.colliderect(rect):
+                    nonlocal one_above_collided, one_above_y_collision
+                    one_above_collided = True
+                    one_above_y_collision = rect.bottom
+
+        def handle_vertical_collisions():
+            nonlocal collided
+
+            for edge, rect in _colliding_rects:
+                if self.rect.colliderect(rect):
+                    if edge not in (0b0011, 0b1001):
+                        if self.velocity.y > 0:  # Moving down
+                            self.rect.bottom = rect.top
+                            self.collided_down()
+                        elif self.velocity.y < 0:  # Moving up
+                            self.rect.top = rect.bottom
+                            self.collided_up()
+                        collided = True
+
+        def handle_ramps():
+            nonlocal collided
+
+            for edge, rect in ramps:
+                if self.rect.colliderect(rect):
+                    dx = self.rect.right - rect.left if edge == 0b0011 else rect.right - self.rect.left
+                    ramp_bottom = rect.bottom - dx
+
+                    if dx > 0 and self.rect.bottom > ramp_bottom:
+                        self.rect.bottom = max(ramp_bottom, rect.top)
+                        if one_above_collided:
+                            adjust_for_one_above(edge)
+                        collided = True
+                        self.collided_down()
+
+        def adjust_for_one_above(edge):
+            nonlocal one_above_y_collision
+
+            new_top = max(one_above_y_collision, self.rect.top)
+            dy = new_top - self.rect.top
+            self.rect.x += dy if edge == 0b1001 else -dy
+            self.rect.top = new_top
 
         # Move horizontally (x direction)
-
         one_above = self.rect.copy()
         one_above.y -= commons.BLOCK_SIZE
+
         one_above_collided = False
-        one_above_y_collision: float = 0.0
+        one_above_y_collision = 0.0
 
         self.rect.x += self.velocity.x * delta_time
-
         collided = False
 
-        _colliding_rects = colliding_rects
+        _colliding_rects = colliding_rects[::-1] if self.velocity.x > 0 else colliding_rects
+        handle_horizontal_collisions()
 
-        if self.velocity.x > 0:
-            _colliding_rects = colliding_rects[-1::-1] # reverse the list
-
-        
-
-        for edge, rect in _colliding_rects: 
-            if self.rect.colliderect(rect):
-                if edge == 0b0011 or edge == 0b1001:
-                    pass
-                elif self.velocity.x > 0:  # Moving right
-                    self.rect.right = rect.left
-                    self.collided_right()
-                    collided = True
-                elif self.velocity.x < 0:  # Moving left
-                    self.rect.left = rect.right
-                    self.collided_left()
-                    collided = True
-            
-            if one_above.colliderect(rect):
-                one_above_y_collision = rect.bottom
-                one_above_collided = True
-                
-    
         if collided:
             self.velocity.x = 0
-        
-        collided = False
-
-        _colliding_rects = colliding_rects if self.velocity.y > 0 else colliding_rects[-1::-1]
 
         # Move vertically (y direction)
         self.rect.y += self.velocity.y * delta_time
+        collided = False
 
-        for edge, rect in _colliding_rects:
-            if self.rect.colliderect(rect):
-                if self.velocity.y > 0 and edge == 0b0011:
-                    pass
-                elif self.velocity.y < 0 and edge == 0b0011:
-                    pass
-                elif self.velocity.y > 0 and edge == 0b1001:
-                    pass
-                elif self.velocity.y < 0 and edge == 0b1001:
-                    pass
-                elif self.velocity.y > 0:  # Moving down
-                    self.rect.bottom = rect.top
-                    self.collided_down()
-                    collided = True
-                elif self.velocity.y < 0:  # Moving up
-                    self.rect.top = rect.bottom 
-                    self.collided_up()
-                    collided = True
-        
-        ramps = [(edge, rect) for edge, rect in _colliding_rects if edge == 0b0011 or edge == 0b1001]
+        _colliding_rects = colliding_rects if self.velocity.y > 0 else colliding_rects[::-1]
+        handle_vertical_collisions()
 
-        
-        for edge, rect in ramps:
-            if self.rect.colliderect(rect):
-                
-
-                if self.velocity.y > 0 and edge == 0b0011:
-                    dx = self.rect.right - rect.left
-
-                    if self.rect.bottom > rect.bottom - dx and dx > 0:
-                        self.rect.bottom = max(rect.bottom - dx, rect.top)
-
-                        if one_above_collided:
-                            new_top = max(one_above_y_collision, self.rect.top)
-                            dy = new_top - self.rect.top
-                            self.rect.x -= dy
-                            self.rect.top = new_top
-
-                        
-                        collided = True
-                        self.collided_down()
-
-                elif self.velocity.y < 0 and edge == 0b0011:
-                    dx = self.rect.right - rect.left
-                    if self.rect.bottom > rect.bottom - dx and dx > 0:
-                        self.rect.bottom = rect.bottom - dx
-                        if one_above_collided:
-                            new_top = max(one_above_y_collision, self.rect.top)
-                            dy = new_top - self.rect.top
-                            self.rect.x -= dy
-                            self.rect.top = new_top
-                        collided = True
-                        self.collided_down()
-                    
-                elif self.velocity.y > 0 and edge == 0b1001:
-                    dx = rect.right - self.rect.left
-                    if self.rect.bottom > rect.bottom - dx and dx > 0:
-                        self.rect.bottom = max(rect.bottom - dx, rect.top)
-                        
-                        if one_above_collided:
-                            new_top = max(one_above_y_collision, self.rect.top)
-                            dy = new_top - self.rect.top
-                            self.rect.x += dy
-                            self.rect.top = new_top
-                        
-                        collided = True
-                        self.collided_down()
-
-
-                elif self.velocity.y < 0 and edge == 0b1001:
-                    dx = rect.right - self.rect.left
-                    if self.rect.bottom > rect.bottom - dx and abs(dx) < commons.BLOCK_SIZE:
-                        self.rect.bottom = rect.bottom - dx
-
-                        if one_above_collided:
-                            new_top = max(one_above_y_collision, self.rect.top)
-                            dy = new_top - self.rect.top
-                            self.rect.x += dy
-                            self.rect.top = new_top
-                        
-                        collided = True
-                        self.collided_down()
+        ramps = [(edge, rect) for edge, rect in _colliding_rects if edge in (0b0011, 0b1001)]
+        handle_ramps()
 
         if collided:
             self.velocity.y = 0
-            #print(f'{self.rect} collided in {_colliding_rects} - y')
 
         # Update position vector to match adjusted rect
         self.position.x, self.position.y = self.rect.topleft
+
     
     def collided_up(self):
         """
