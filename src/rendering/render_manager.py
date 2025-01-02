@@ -11,7 +11,7 @@ import numpy as np
 from typing import List
 from pygame.math import Vector2 as v2
 from threading import Thread
-
+from utils.debug import Debug
 
 
 class RenderManager:
@@ -167,8 +167,11 @@ class RenderManager:
                 chunk_x = chunk_data.pos.x * commons.CHUNK_SIZE_PIXELS - (self.current_position[0]) #+ commons.WIDTH /2
                 chunk_y = chunk_data.pos.y * commons.CHUNK_SIZE_PIXELS - (self.current_position[1]) #+ commons.HEIGHT /2
 
+                
                 self.render_single_chunk(chunk_surface, chunk_data)
+                Debug.start_timer("bliting chunk")
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
+                Debug.stop_timer("bliting chunk")
             
         
 
@@ -184,6 +187,7 @@ class RenderManager:
             return  # Skip rendering if chunk is not loaded or if it does not have changes.
 
         if chunk.changes.get("all"):
+            Debug.start_timer("rendering entire chunk")
             surface.fill(self.color_key)  # Clear surface with transparent background.
 
             # Render the blocks in the chunk
@@ -238,6 +242,7 @@ class RenderManager:
                 surface.blit(im, screen_position)
             
             chunk.clear_changes()
+            Debug.stop_timer("rendering entire chunk")
         
         if chunk.changes.get("line"):
             for line_index in chunk.changes['line']: #Iterates over the lines that were changed

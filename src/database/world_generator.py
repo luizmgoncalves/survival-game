@@ -9,6 +9,7 @@ import noise
 import random
 from .world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 from .world_elements.static_element import StaticElement
+from utils.debug import Debug
 
 class WorldGenerator:
     """
@@ -34,6 +35,8 @@ class WorldGenerator:
         :param chunk_pos: Tuple of (chunk_x, chunk_y) defining the chunk's position.
         :return: A Chunk object with generated terrain.
         """
+
+        Debug.start_timer("Generating chunk")
 
         GRASS = BLOCK_METADATA.get_id_by_name("GRASS") # Get the ID for the "GRASS" block.
         DIRT  = BLOCK_METADATA.get_id_by_name("DIRT")  # Get the ID for the "DIRT" block.
@@ -127,21 +130,14 @@ class WorldGenerator:
                     if x and blocks_grid[1, y, x-1]:
                         edges_matrix[1, y, x-1] += 0b0010
                         edges_matrix[1, y, x] += 0b1000
-                
-                    
-
-
-
-
-
-        #if chunk_pos == (0, 0):
-        #    chunk.add_static_element(S_ELEMENT_METADATA_LOADER.create_static_element('1', (100, 100)))
 
         chunk.blocks_grid = blocks_grid
         chunk.collidable_grid = collidible_grid
         chunk.edges_matrix = edges_matrix
         chunk.changes['all'] = True
         chunk.world_elements = chunk_elements
+
+        Debug.stop_timer("Generating chunk")
 
 
     def gen_obj(self, obj_name, line, col, chunk_x, chunk_y):

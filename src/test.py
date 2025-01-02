@@ -51,6 +51,10 @@ def main():
 
     physics_manager = PhysicsManager(pedra, [], [], [], [])
 
+    render_manager.update_chunks(world)
+
+    render_manager.render_all(screen, physics_manager.get_renderable_elements())
+
     #print(world.load_chunk(0, 0).blocks_grid[0])
     #print(np.vectorize(lambda x: bin(x)[2:].zfill(4))(world.load_chunk(0, 0).edges_matrix[0]))
 
