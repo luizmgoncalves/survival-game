@@ -71,7 +71,7 @@ class ImageLoader:
             raise ValueError(f"Error parsing JSON file '{json_path}': {e}")
 
         self.generate_masked_blocks()
-        pprint.pprint(self.images)
+        #pprint.pprint(self.images)
     
     def load_bunch_of_images(self, name: str, details: dict):
         assert details['path'].count("#") == name.count("#"), "Different # number in name and path counting"
@@ -90,7 +90,6 @@ class ImageLoader:
             elif os.path.exists(commons.DEFAULT_IMAGES_PATH + new_path):
                 new_details = details.copy()
                 new_details['path'] = new_path
-                print(f"{new_name} -- {new_path}")
                 self.load_image(new_name, new_details)
             else:
                 break
@@ -177,16 +176,23 @@ class ImageLoader:
                     self.flip_image(name, x=True, y=True)
             else:
                 # Process sprite regions in a sprite sheet
-                for region in details["sprite_regions"]:
-                    sprite_name = name + "." + region["name"]  # Concatenate the sprite name with the region name
+                for sprite_c_name in details["sprite_regions"]:
+                    region = details["sprite_regions"][sprite_c_name]
+                    sprite_name = name + "." + sprite_c_name  # Concatenate the sprite name with the region name
                     x, y, width, height = region["x"], region["y"], region["width"], region["height"]
                     sprite = image.subsurface(pygame.Rect(x, y, width, height))
 
                     csize = v2(sprite.get_size())
 
+                    if "scaled_size" in details:
+                        size = v2(details["scaled_size"])
+                        sprite = pygame.transform.scale_by(sprite, (size.x / csize.x, size.y / csize.y) )
+                    
                     if "scaled_size" in region:
                         size = v2(region["scaled_size"])
                         sprite = pygame.transform.scale_by(sprite, (size.x / csize.x, size.y / csize.y) )
+
+                    self.images[sprite_name] = (sprite, region)
                     
                     if "flipx" in details:
                         self.flip_image(sprite_name, x=True)
@@ -197,7 +203,7 @@ class ImageLoader:
                     if "flipxy" in details:
                         self.flip_image(sprite_name, x=True, y=True)
 
-                    self.images[sprite_name] = (sprite, region)
+                    
                     
         except pygame.error as e:
             raise pygame.error(f"Error loading {details['path']}: {e}")

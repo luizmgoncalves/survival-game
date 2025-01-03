@@ -35,7 +35,7 @@ class Player(GameActor):
 
 
         # Call the parent constructor with these defaults
-        super().__init__(position, size, life, 900, 600, 
+        super().__init__(position, size, life, max_vel, commons.DEFAULT_JUMP_STRENGHT, 
                          w_right, w_left, 
                          w_right, w_left, 
                          idle_right, idle_left, 

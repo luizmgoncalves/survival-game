@@ -8,11 +8,13 @@ from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
 from database.world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 from database.world_elements.item_metadata import ITEM_METADATA
+from physics.enemy import ENEMY_MANAGER
 from utils.debug import Debug
 import commons
 import math
 import numpy as np
 import os
+
 
 debug = Debug()
 
@@ -21,7 +23,7 @@ def main():
     BLOCK_METADATA.init()
     S_ELEMENT_METADATA_LOADER.init()
     ITEM_METADATA.init()
-    #print(BLOCK_METADATA.metadata)
+    
     
     # Screen dimensions
     commons.WIDTH, commons.HEIGHT = 1920, 1080
@@ -29,7 +31,7 @@ def main():
     pygame.display.set_caption("Render Manager Demo")
     IMAGE_LOADER.init()
 
-    print(BLOCK_METADATA.get_name_by_id(0))
+    #print(BLOCK_METADATA.get_name_by_id(0))
 
     # Constants
     #commons.CHUNK_SIZE_PIXELS = 256
@@ -49,11 +51,21 @@ def main():
     commons.STARTING_POSITION = pygame.Vector2(pedra.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
     render_manager = RenderManager(commons.STARTING_POSITION, commons.COLOR_KEY)
 
-    physics_manager = PhysicsManager(pedra, [], [], [], [])
+    new_enemy = ENEMY_MANAGER.spawn_enemy()
+    new_enemy.position.y = -1000
+    new_enemy.rect.y = -1000
+    
+    print(new_enemy.current_animation)
+
+    physics_manager = PhysicsManager(pedra, [], [new_enemy], [], [])
 
     render_manager.update_chunks(world)
 
     render_manager.render_all(screen, physics_manager.get_renderable_elements())
+
+    print(physics_manager.get_renderable_elements())
+
+    
 
     #print(world.load_chunk(0, 0).blocks_grid[0])
     #print(np.vectorize(lambda x: bin(x)[2:].zfill(4))(world.load_chunk(0, 0).edges_matrix[0]))
@@ -104,6 +116,12 @@ def main():
 
         if keys[pygame.K_ESCAPE]:
             break
+        if keys[pygame.K_y]:
+            new_enemy.jump()
+        if keys[pygame.K_g]:
+            new_enemy.walk_left()
+        if keys[pygame.K_j]:
+            new_enemy.walk_right()
 
         x_dist = math.ceil(pedra.velocity.x * delta_time)
         y_dist = math.ceil(pedra.velocity.y * delta_time)
@@ -143,7 +161,7 @@ def main():
 
     pygame.quit()
     
-    debug.show_statistics()
+    #debug.show_statistics()
 
 if __name__ == "__main__":
     main()

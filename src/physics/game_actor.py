@@ -13,12 +13,14 @@ class GameActor(CollidableMovingElement):
                  run_right: Animation = None, run_left: Animation = None,
                  idle_right: Animation = None, idle_left: Animation = None,
                  jump_right: Animation = None, jump_left: Animation = None,
-                 attack_right: Animation = None, attack_left: Animation = None):
+                 attack_right: Animation = None, attack_left: Animation = None,
+                 dying_right: Animation = None, dying_left: Animation = None):
         super().__init__(pos, size)
         self.jumping      : bool  = False
         self.facing_left  : bool  = False
         self.life         : float = life
         self.attacking    : bool  = False
+        self.dying        : bool = False
         self.attack_area  : Rect  = pygame.Rect(0, 0, size[0] * 1.5, size[1])
         self.attack_time  : float = 0
         self.max_vel      : float = max_vel
@@ -30,12 +32,14 @@ class GameActor(CollidableMovingElement):
         self.idle_anim_right : Animation = idle_right
         self.jump_anim_right : Animation = jump_right
         self.attack_anim_right : Animation = attack_right
+        self.dying_anim_right: Animation = dying_right
 
         self.walk_anim_left  : Animation = walk_left
         self.run_anim_left   : Animation = run_left
         self.idle_anim_left  : Animation = idle_left
         self.jump_anim_left  : Animation = jump_left
         self.attack_anim_left : Animation = attack_left
+        self.dying_anim_left: Animation = dying_left
 
         # Default animation
         self._current_anim   : Animation = self.idle_anim_right
@@ -75,14 +79,30 @@ class GameActor(CollidableMovingElement):
             if self.attack_time <= 0:
                 self.attacking = False
 
+        # If the actor is dying, play the dying animation
+        if self.dying:
+            self.current_animation = self.dying_anim_left if self.facing_left else self.dying_anim_right
+            if self.current_animation:
+                self.current_animation.update(delta_time)
+                self.image = self.current_animation.get_current_frame()
+
+                # Check if the dying animation is completed
+                if self.current_animation.run_once and self.current_animation.completed:
+                    self.kill()  # Remove the actor from the scene
+            return  # Skip further updates while dying
+
+
         # Update attack area position
         if self.facing_left:
             self.attack_area.midright = self.rect.midleft
         else:
             self.attack_area.midleft = self.rect.midright
 
+
         # Choose the correct animation based on state
-        if self.jumping:
+        if self.attacking:
+            self.current_animation = self.attack_anim_left if self.facing_left else self.attack_anim_right
+        elif self.jumping:
             self.current_animation = self.jump_anim_left if self.facing_left else self.jump_anim_right
         elif self.w_left or self.w_right:
             if self.running:
@@ -195,7 +215,22 @@ class GameActor(CollidableMovingElement):
         """
         self.life -= amount
         if self.life <= 0:
-            self.kill()  # Remove the sprite from the game
+            self.life = 0
+            self.die()  # Trigger dying state
+
+    def die(self):
+        """
+        Transition to the dying state.
+
+        :return: None
+        """
+        if not self.dying:
+            self.dying = True
+            self.velocity.x = 0  # Stop movement
+            self.velocity.y = 0
+            self.current_animation = self.dying_anim_left if self.facing_left else self.dying_anim_right
+            if self.current_animation:
+                self.current_animation.reset()
 
     def is_alive(self):
         """
@@ -203,4 +238,4 @@ class GameActor(CollidableMovingElement):
 
         :return: True if the actor's life is greater than zero, False otherwise.
         """
-        return self.life > 0
+        return self.life > 0 and not self.dying

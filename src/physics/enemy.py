@@ -1,6 +1,9 @@
 import random
 import json
 import pygame
+import commons
+from rendering.animation import Animation
+from pygame.math import Vector2 as v2
 from .game_actor import GameActor
 from images.image_loader import ImageLoader  # Importando o ImageLoader
 
@@ -9,11 +12,13 @@ class EnemyManager:
         self.enemies = []  # Lista de inimigos ativos
         self.spawn_interval = spawn_interval  # Intervalo para gerar novos inimigos (em segundos)
         self.last_spawn_time = 0  # Tempo de última geração de inimigos
-        self.enemy_types = ["spear_enemy", "arrow_enemy", "axe_enemy", "viking_enemy"]
+        
         
         # Carregar os dados do JSON
-        with open('assets/metadata/images_metadata.json') as f:
-            self.animations_data = json.load(f)["ENEMIES"]
+        with open('assets/metadata/enemies_metadata.json') as f:
+            self.enemies_data = json.load(f)
+
+        self.enemy_types = list(self.enemies_data['ENEMIES'].keys())
 
         # Instância do ImageLoader
         self.image_loader = ImageLoader()
@@ -33,142 +38,133 @@ class EnemyManager:
         self.enemies = [enemy for enemy in self.enemies if not enemy.is_dead]
 
     def spawn_enemy(self):
-        # Escolhe aleatoriamente um inimigo para criar
+        """
+        Spawn an enemy using data from the enemies_data dictionary.
+        """
+        # Randomly choose an enemy type
         enemy_name = random.choice(self.enemy_types)
-        enemy_data = self.animations_data[enemy_name]
-        frames = enemy_data["animations"]
+        enemy_data = self.enemies_data["ENEMIES"][enemy_name]
+        spr_num_data = enemy_data['num_sprites']
 
-        # Define o dano e o dano necessário para morrer de acordo com o tipo de inimigo
-        if enemy_name == "spear_enemy":
-            damage = 10
-            damage_to_die = 50
-        elif enemy_name == "arrow_enemy":
-            damage = 15
-            damage_to_die = 80
-        elif enemy_name == "axe_enemy":
-            damage = 25
-            damage_to_die = 120
-        elif enemy_name == "viking_enemy":
-            damage = 20
-            damage_to_die = 150
+        # Create animations
+        w_right = Animation([f"{enemy_name}.WALKING{i}" for i in range(spr_num_data['walking'])], 0.1, False)
+        w_left = Animation([f"{enemy_name}.WALKING{i}.FLIPED_X" for i in range(spr_num_data['walking'])], 0.1, False)
 
-        # Criação do inimigo com dados aleatórios
+        idle_right = Animation([f"{enemy_name}.IDLE{i}" for i in range(spr_num_data['idle'])], 0.5, False)
+        idle_left = Animation([f"{enemy_name}.IDLE{i}.FLIPED_X" for i in range(spr_num_data['idle'])], 0.5, False)
+
+        attack_right = Animation([f"{enemy_name}.ATTACKING{i}" for i in range(spr_num_data['attacking'])], 0.07, True)
+        attack_left = Animation([f"{enemy_name}.ATTACKING{i}.FLIPED_X" for i in range(spr_num_data['attacking'])], 0.07, True)
+
+        dying_right = Animation([f"{enemy_name}.DYING{i}" for i in range(spr_num_data['dying'])], 0.07, True)
+        dying_left = Animation([f"{enemy_name}.DYING{i}.FLIPED_X" for i in range(spr_num_data['dying'])], 0.07, True)
+
+        # Enemy attributes
+        position = (random.randint(0, 800), random.randint(0, 600))  # Example random position
+        size = (enemy_data['width'], enemy_data['height'])
+        life = enemy_data['life']
+        max_vel = enemy_data['max_vel']
+        attack_range = enemy_data['attack_range']
+        attack_damage = enemy_data['attack_damage']
+
+        # Create the new enemy
         new_enemy = Enemy(
-            name=enemy_name,
-            x=random.randint(100, 800),  # Posição aleatória no eixo X
-            y=random.randint(100, 600),  # Posição aleatória no eixo Y
-            health=100,
-            damage=damage,
-            frames=frames,
-            damage_to_die=damage_to_die  # Dano necessário para iniciar a animação de morte
+            pos=position,
+            size=size,
+            life=life,
+            max_vel=max_vel,
+            attack_range=attack_range,
+            attack_damage=attack_damage,
+            walk_right=w_right,
+            walk_left=w_left,
+            idle_right=idle_right,
+            idle_left=idle_left,
+            attack_right=attack_right,
+            attack_left=attack_left,
+            dying_right=dying_right,
+            dying_left=dying_left,
         )
-        self.enemies.append(new_enemy)  # Adiciona o novo inimigo à lista
 
-    def draw(self, screen):
-        # Desenha todos os inimigos na tela
-        for enemy in self.enemies:
-            enemy.draw(screen)
+        # Add the new enemy to the enemies list
+        self.enemies.append(new_enemy)
+        return new_enemy
+
+ENEMY_MANAGER = EnemyManager()
 
 class Enemy(GameActor):
-    def __init__(self, name, x, y, health, damage, frames, attack_range=100, attack_damage=10, damage_to_die=50):
-        super().__init__(x, y, health)
-        self.name = name
-        self.damage = damage
-        self.attack_range = attack_range
-        self.attack_damage = attack_damage
-        self.damage_to_die = damage_to_die  # Quantidade de dano para iniciar a animação de morte
+    def __init__(self, pos: v2, size: v2, life: float, max_vel: float, attack_range: float = 100, 
+                 attack_damage: float = 10, walk_right: Animation = None, walk_left: Animation = None, 
+                 idle_right: Animation = None, idle_left: Animation = None, 
+                 attack_right: Animation = None, attack_left: Animation = None, 
+                 dying_right: Animation = None, dying_left: Animation = None):
+        """
+        Initialize an Enemy instance.
 
-        # As animações serão passadas por frames (como do json)
-        self.frames = frames
-        self.current_frame_index = 0
-        self.animation_timer = 0
-        self.is_attacking = False
-        self.is_dying = False
-        self.is_dead = False  # Para verificar se o inimigo está morto
+        :param pos: Initial position of the enemy (x, y).
+        :param size: Size of the enemy (width, height).
+        :param life: Health points of the enemy.
+        :param max_vel: Maximum velocity of the enemy.
+        :param attack_range: The range within which the enemy can attack.
+        :param attack_damage: Damage inflicted by the enemy's attack.
+        """
+        super().__init__(pos, size, life, max_vel, jump_strength=commons.DEFAULT_JUMP_STRENGHT,
+                         walk_right=walk_right, walk_left=walk_left,
+                         idle_right=idle_right, idle_left=idle_left,
+                         attack_right=attack_right, attack_left=attack_left,
+                         dying_right=dying_right, dying_left=dying_left)
+        self.attack_range: float = attack_range
+        self.attack_damage: float = attack_damage
 
-        # Variáveis para animações
-        self.current_animation = "walking"
-        self.walking_direction = "right"  # O movimento é sempre da esquerda para a direita
-        self.image_loader = ImageLoader()  # Instância do ImageLoader
-    
-    def update(self, player, dt):
-        # Atualiza o movimento e animação do inimigo
-        if not self.is_dead:
-            self.move_towards_player(player)
-            self.animate(dt)
+    def update_ai(self, player, delta_time: float):
+        """
+        Update the enemy's behavior and animation.
 
-            # Se a distância do player for suficiente, inicia o ataque
-            if self.distance_to_player(player) < self.attack_range and not self.is_attacking:
-                self.is_attacking = True
-                self.attack(player)
+        :param player: The player instance to interact with.
+        :param delta_time: Time elapsed since the last update.
+        """
+        if self.is_alive():
+            # Move toward the player if not in attack range
+            if self.distance_to_player(player) > self.attack_range:
+                self.move_towards_player(player)
+            else:
+                # Attack the player if in range and not already attacking
+                if not self.attacking:
+                    self.attack()
 
-            # Se a saúde do inimigo for zero ou abaixo, inicia a animação de morte
-            if self.health <= 0 and not self.is_dying:
-                self.is_dying = True
-                self.animate_dying()
+        # Update the GameActor state and animations
+        super().update(delta_time)
 
-    def distance_to_player(self, player):
-        # Calcula a distância entre o inimigo e o jogador
-        return ((self.x - player.x) ** 2 + (self.y - player.y) ** 2) ** 0.5
+    def distance_to_player(self, player) -> float:
+        """
+        Calculate the distance to the player.
+
+        :param player: The player instance.
+        :return: Euclidean distance to the player.
+        """
+        return ((self.rect.centerx - player.rect.centerx) ** 2 + (self.rect.centery - player.rect.centery) ** 2) ** 0.5
 
     def move_towards_player(self, player):
-        # O inimigo começa a andar para o player se a distância for maior que o alcance de ataque
-        if not self.is_dying and not self.is_attacking:
-            if self.distance_to_player(player) > self.attack_range:
-                if self.walking_direction == "right":
-                    self.x += 2  # Ajuste a velocidade do movimento
-                else:
-                    self.x -= 2
+        """
+        Move the enemy toward the player.
 
-    def attack(self, player):
-        # Aplica dano ao jogador
-        player.health -= self.attack_damage
-
-    def animate(self, dt):
-        if self.is_attacking:
-            self.play_attack_animation(dt)
-        elif self.is_dying:
-            self.play_dying_animation(dt)
+        :param player: The player instance.
+        """
+        if player.rect.centerx < self.rect.centerx:
+            self.walk_left()
         else:
-            self.play_walking_animation(dt)
+            self.walk_right()
 
-    def play_walking_animation(self, dt):
-        if self.distance_to_player(None) > self.attack_range:  # Só anima se o inimigo não estiver atacando
-            walking_frames = self.frames.get("walking", {}).get("frames", [])
-            self.play_animation(walking_frames, dt)
+    def attack(self):
+        """
+        Start an attack action. Deals damage to the player if within range.
+        """
+        super().attack()
+        # Additional logic to deal damage to the player can be added here.
 
-    def play_attack_animation(self, dt):
-        # Joga a animação de ataque
-        attacking_frames = self.frames.get("attacking", {}).get("frames", [])
-        self.play_animation(attacking_frames, dt)
+    def die(self):
+        """
+        Transition to the dying state and perform additional logic if needed.
+        """
+        super().die()
+        # Add any additional cleanup or effects for the enemy death here.
 
-    def play_dying_animation(self, dt):
-        # Joga a animação de morte
-        dying_frames = self.frames.get("dying", {}).get("frames", [])
-        self.play_animation(dying_frames, dt)
-
-    def play_animation(self, frames, dt):
-        if frames:
-            self.animation_timer += dt
-            if self.animation_timer > 0.1:  # Ajuste o tempo entre os frames
-                self.animation_timer = 0
-                self.current_frame_index += 1
-
-                if self.current_frame_index >= len(frames):
-                    self.current_frame_index = 0  # Volta ao primeiro frame
-
-                frame = frames[self.current_frame_index]
-                image = self.image_loader.load_image(frame['path'])  # Usando o ImageLoader para carregar a imagem
-                if image:
-                    self.image = image
-                    self.rect = self.image.get_rect(topleft=(self.x, self.y))
-
-                # Se o inimigo acabou de morrer (animação de morte completada)
-                if self.is_dying and self.current_frame_index == len(dying_frames) - 1:
-                    self.is_dead = True
-                    self.remove_enemy()  # Método para remover o inimigo do jogo
-
-    def remove_enemy(self):
-        # Remove o inimigo do jogo (pode ser implementado de acordo com a lógica do jogo)
-        print(f"{self.name} foi removido do jogo após morrer.")
-        # Aqui, você pode removê-lo da lista de inimigos ou da cena, dependendo do seu sistema.

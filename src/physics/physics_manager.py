@@ -44,7 +44,7 @@ class PhysicsManager:
         self.itens.append(new_item)
     
     def get_renderable_elements(self):
-        return self.moving_elements + [self.player]
+        return self.moving_elements + [self.player] + self.enemies
 
 
     def update(self, delta_time, world):

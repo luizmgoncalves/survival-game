@@ -3,7 +3,7 @@ import commons
 from typing import Tuple, List
 from pygame.math import Vector2 as v2
 
-class MovingElement(pygame.sprite.DirtySprite):
+class MovingElement(pygame.sprite.Sprite):
     """
     Base class for moving elements in the game, inheriting from pygame's DirtySprite.
 
