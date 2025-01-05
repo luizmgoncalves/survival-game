@@ -1,9 +1,10 @@
 # src/main.py
 import pygame
 from page_manager import PageManager
-from pages import EntryMenu, WorldsPage, SettingsPage
+from pages import EntryMenu, WorldsPage, SettingsPage, WorldPage, CreatingPage
 import commons
 import images.image_loader as image_loader
+from database.world_loader import WORLD_LOADER
 
 pygame.init()
 screen = pygame.display.set_mode((1920/2, 1080/2), pygame.RESIZABLE)
@@ -14,6 +15,8 @@ page_manager = PageManager()
 page_manager.add_page("entry", EntryMenu())
 page_manager.add_page("worlds_page", WorldsPage())
 page_manager.add_page("settings", SettingsPage())
+page_manager.add_page("world", WorldPage())
+page_manager.add_page("create", CreatingPage())
 
 page_manager.set_page("entry")
 

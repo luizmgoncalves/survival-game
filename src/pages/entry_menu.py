@@ -30,7 +30,7 @@ class EntryMenu(Page):
         self.buttons = [
             Button("settings", WIDTH - 50, 50, width=100, height=80, font_size=60, on_click=self.go_to_settings_page),
             Button("Worlds", WIDTH / 2, 400, width=400, font_size=60, on_click=self.go_to_worlds_page), 
-            Button("New World", WIDTH / 2, 550, width=440, font_size=60),
+            Button("New World", WIDTH / 2, 550, width=440, font_size=60, on_click=self.go_to_creating_page),
             Button("Quit", WIDTH / 2, 700, width=300, font_size=60, on_click=self.quit_action),
         ]
         
@@ -42,7 +42,7 @@ class EntryMenu(Page):
 
         self.resize(pygame.display.get_window_size())
     
-    def reset(self):
+    def reset(self, **kwargs):
         self.unselect_all()
 
     def quit_action(self):
@@ -50,6 +50,12 @@ class EntryMenu(Page):
         Action to set QUIT to True, triggered by the Quit button.
         """
         pygame.event.post(pygame.event.Event(pygame.QUIT))
+    
+    def go_to_creating_page(self):
+        """
+        Action to trigger a custom event that changes the page to the WorldsPage.
+        """
+        pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'create'}))
 
     def go_to_worlds_page(self):
         """

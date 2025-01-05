@@ -12,7 +12,7 @@ class Inventory:
         self.max_items_per_slot = max_items_per_slot
         self.items = []  # List to store items and their quantities in insertion order
 
-    def add_item(self, item, quantity=1):
+    def add_item(self, item: int, quantity=1):
         """
         Attempts to add an item to the inventory.
 

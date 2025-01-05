@@ -14,7 +14,7 @@ class GamePage(Page):
         """
         super().__init__()
     
-    def reset(self):
+    def reset(self, **kwargs):
         player = Player()
 
         # Initialize managers for world, rendering, and physics

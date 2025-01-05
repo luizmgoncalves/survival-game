@@ -5,6 +5,7 @@ from gui.label import Label
 from .page import Page
 import commons
 import images.image_loader as image_loader
+from database.world_loader import WORLD_LOADER
 
 ANIMATION_SPEED = 50  # Controls the speed of the animation
 
@@ -35,7 +36,7 @@ class WorldsPage(Page):
         
         self.reset()
     
-    def reset(self):
+    def reset(self, **kwargs):
         self.unselect_all()
 
          # Load worlds from the database
@@ -48,7 +49,7 @@ class WorldsPage(Page):
         # Combine labels, buttons, and world buttons for unified handling
         self.elements = self.labels + self.buttons + self.world_buttons
 
-        if not self.worlds:
+        if not self.world_buttons:
             self.elements.append(self.no_worlds)
         
         self.canvas.empty()
@@ -70,13 +71,26 @@ class WorldsPage(Page):
         Action to trigger a custom event that changes the page back to the EntryMenu.
         """
         pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'entry'}))
+    
+    def go_to_create_world(self):
+        """
+        Action to trigger a custom event that changes the page to the Creating World page.
+        """
+        pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'create'}))
+
+    def go_to_world_page(self, world):
+        """
+        Action to trigger a custom event that changes the page to the World page.
+        """
+        pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'world', 'world': world}))
 
     def load_worlds(self):
         """
         Load world names from the database.
         """
         from random import randint
-        worlds = []#[f'World {i}' for i in range(randint(0, 10))]
+        worlds = WORLD_LOADER.get_worlds() # {world_id: int, name: str, score: int}
+        worlds = [x['name'] for x in worlds]
         #cursor = self.db.cursor()
         #cursor.execute("SELECT name FROM worlds")  # Modify as per your database schema
         #rows = cursor.fetchall()
@@ -92,10 +106,12 @@ class WorldsPage(Page):
         button_height = 60
         for i, world in enumerate(self.worlds):
             if i == 0:
-                button = Button(world, commons.WIDTH/2, commons.HEIGHT/2, width=400, font_size=50)
+                button = Button(world, commons.WIDTH/2, commons.HEIGHT/2, width=400, font_size=50, on_click=self.go_to_world_page, click_args=[world])
             else:
-                button = Button(world, commons.WIDTH*1.5, commons.HEIGHT/2, width=400, font_size=50)
+                button = Button(world, commons.WIDTH*1.5, commons.HEIGHT/2, width=400, font_size=50, on_click=self.go_to_world_page, click_args=[world])
             world_buttons.append(button)
+        
+
         return world_buttons
 
     def resize(self, display_size):
@@ -151,9 +167,9 @@ class WorldsPage(Page):
         Handle key presses to toggle between world buttons.
         """
         if event.key == pygame.K_LEFT:
-            self.switch_world(-1)  # Move to previous world
+            self.switch_world(1)  # Move to previous world
         elif event.key == pygame.K_RIGHT:
-            self.switch_world(1)  # Move to next world
+            self.switch_world(-1)  # Move to next world
 
     def switch_world(self, direction):
         """

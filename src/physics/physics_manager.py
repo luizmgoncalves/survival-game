@@ -3,6 +3,7 @@ from .player import Player
 from .enemy import Enemy
 from .bullet import Bullet
 from .moving_element import MovingElement, CollidableMovingElement
+from .enemy import Enemy
 from .item import Item
 from typing import List
 from math import ceil
@@ -151,7 +152,7 @@ class PhysicsManager:
         enemy.take_damage(bullet.damage)  # Assuming `take_damage()` exists in the Enemy class
         bullet.destroy()  # Assuming bullets have a `destroy()` method
 
-    def _handle_player_enemy_collision(self, enemy):
+    def _handle_player_enemy_collision(self, enemy: Enemy):
         """
         Handle the event where the player collides with an enemy.
 
@@ -159,6 +160,7 @@ class PhysicsManager:
         """
         #self.player.take_damage(enemy.collision_damage)  # Assuming `collision_damage` attribute
         #enemy.handle_collision_with_player()  # Optional behavior for enemy
+        enemy.take_damage(50)
         pass
     
     def _handle_player_iten_collision(self, iten: Item):
@@ -170,10 +172,10 @@ class PhysicsManager:
         # Example: Reduce player's life, or trigger a specific effect
         # self.player.take_damage(element.collision_damage)
 
-
-        pygame.event.post(pygame.event.Event(commons.ITEM_COLLECT_EVENT, {'item': iten.id}))
-        self.itens.remove(iten)
-        self.moving_elements.remove(iten)
+        if self.player.collect(iten.id):
+            pygame.event.post(pygame.event.Event(commons.ITEM_COLLECT_EVENT, {'item': iten.id}))
+            self.itens.remove(iten)
+            self.moving_elements.remove(iten)
 
     def _handle_player_element_collision(self, element):
         """

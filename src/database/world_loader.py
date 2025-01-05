@@ -1,6 +1,8 @@
 import sqlite3
 import os
 import commons
+from utils.inventory import Inventory
+from typing import List, Any, Dict
 
 class WorldLoader:
     FILENAME = 'game.db'
@@ -23,13 +25,34 @@ class WorldLoader:
         with sqlite3.connect(self.db_name) as conn:
             cursor = conn.cursor()
 
-            # Create Worlds table
+            # Create Worlds table without size_x and size_y
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS Worlds (
                     world_id INTEGER PRIMARY KEY,
                     name TEXT UNIQUE,
-                    size_x INTEGER,
-                    size_y INTEGER
+                    score INTEGER DEFAULT 0
+                );
+            ''')
+
+            # Create PlayerLocations table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS PlayerLocations (
+                    world_id INTEGER NOT NULL,
+                    x INTEGER NOT NULL,
+                    y INTEGER NOT NULL,
+                    PRIMARY KEY (world_id),
+                    FOREIGN KEY (world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
+                );
+            ''')
+
+            # Create Inventory table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS Inventory (
+                    world_id INTEGER NOT NULL,
+                    slot INTEGER NOT NULL,
+                    item_count INTEGER NOT NULL CHECK(item_count >= 0),
+                    PRIMARY KEY (world_id, slot),
+                    FOREIGN KEY (world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
                 );
             ''')
 
@@ -45,7 +68,7 @@ class WorldLoader:
                     height INTEGER DEFAULT 1,
                     health INTEGER DEFAULT 100,
                     state TEXT DEFAULT 'active',
-                    FOREIGN KEY(world_id) REFERENCES Worlds(world_id)
+                    FOREIGN KEY(world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
                 );
             ''')
 
@@ -60,7 +83,7 @@ class WorldLoader:
                     health INTEGER,
                     speed INTEGER,
                     state TEXT DEFAULT 'active',
-                    FOREIGN KEY(world_id) REFERENCES Worlds(world_id)
+                    FOREIGN KEY(world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
                 );
             ''')
 
@@ -73,11 +96,134 @@ class WorldLoader:
                     y INTEGER,
                     layer INTEGER,
                     type TEXT,
-                    FOREIGN KEY(world_id) REFERENCES Worlds(world_id)
+                    FOREIGN KEY(world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
                 );
             ''')
 
             print("Database and tables created successfully.")
+    
+    def create_world(self, name, score=0):
+        """
+        Create a new world with the given name and optional score.
+        
+        Args:
+            name (str): The name of the world.
+            score (int): The initial score of the world (default is 0).
+        
+        Raises:
+            ValueError: If a world with the same name already exists.
+        """
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cursor = conn.cursor()
+
+                # Check if the world already exists
+                cursor.execute('SELECT * FROM Worlds WHERE name = ?', (name,))
+                if cursor.fetchone():
+                    print(f"A world with the name '{name}' already exists.")
+                    return False
+
+                # Insert the new world into the Worlds table
+                cursor.execute('''
+                    INSERT INTO Worlds (name, score)
+                    VALUES (?, ?);
+                ''', (name, score))
+
+                print(f"World '{name}' created successfully with score {score}.")
+                return True
+        except sqlite3.Error as e:
+            print(f"An error occurred while creating the world: {e}")
+            return False
+    
+    def delete_world(self, name):
+        """
+        Delete a specific world and all its associated data from the database.
+
+        Args:
+            name (str): The name of the world to be deleted.
+
+        Returns:
+            bool: True if the world was successfully deleted, False if the world was not found.
+        """
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cursor = conn.cursor()
+
+                # Check if the world exists
+                cursor.execute('SELECT world_id FROM Worlds WHERE name = ?', (name,))
+                world = cursor.fetchone()
+                if not world:
+                    print(f"World '{name}' does not exist.")
+                    return False
+
+                # Delete the world (triggers cascading deletion)
+                cursor.execute('DELETE FROM Worlds WHERE name = ?', (name,))
+                conn.commit()
+
+                print(f"World '{name}' and all associated data have been successfully deleted.")
+                return True
+        except sqlite3.Error as e:
+            print(f"An error occurred while deleting the world: {e}")
+            return False
+    
+    def set_world_score(self, name, score):
+        """
+        Update the score for a specific world.
+        
+        Args:
+            name (str): The name of the world.
+            score (int): The new score to set.
+        
+        Raises:
+            ValueError: If the world does not exist.
+        """
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cursor = conn.cursor()
+
+                # Check if the world exists
+                cursor.execute('SELECT world_id FROM Worlds WHERE name = ?', (name,))
+                if not cursor.fetchone():
+                    raise ValueError(f"World '{name}' does not exist.")
+
+                # Update the world's score
+                cursor.execute('''
+                    UPDATE Worlds
+                    SET score = ?
+                    WHERE name = ?;
+                ''', (score, name))
+                conn.commit()
+
+                print(f"Score for world '{name}' updated to {score}.")
+        except sqlite3.Error as e:
+            print(f"An error occurred while updating the score: {e}")
+    
+    def load_inventory(self, world_id):
+        """
+        Load the inventory for a specific world.
+
+        :param world_id: The ID of the world whose inventory is to be loaded.
+        :return: An Inventory object populated with the data from the database.
+        """
+        inventory = Inventory()
+
+        query = """
+        SELECT slot, item_count FROM Inventory WHERE world_id = ?
+        """
+        params = (world_id,)
+
+        try:
+            # Retrieve inventory data from the database
+            inventory_data = self._execute_query(query, params)
+
+            # Add each item to the Inventory object
+            for slot, item_count in inventory_data:
+                if not inventory.add_item(slot, item_count):
+                    print(f"Failed to add item in slot {slot} with count {item_count}")
+        except sqlite3.Error as e:
+            print(f"An error occurred while loading inventory: {e}")
+
+        return inventory
 
 
     def _execute_query(self, query, params):
@@ -148,12 +294,59 @@ class WorldLoader:
         query = "SELECT world_id FROM Worlds WHERE name = ?"
         result = self._execute_query(query, (name,))
         return result[0][0] if result else None
-    
-    def get_worlds_names(self):
-        """Retrieve the world ID for a given world name."""
-        query = "SELECT * FROM Worlds"
-        result = self._execute_query(query, [])
-        return result
+
+    def get_worlds(self) -> List[Dict[str, Any]]:
+        """
+        Retrieve a list of all worlds already created.
+
+        Returns:
+            list: A list of dictionaries, where each dictionary represents a world
+                with keys 'world_id', 'name', and 'score'.
+        """
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cursor = conn.cursor()
+
+                # Query all worlds from the Worlds table
+                cursor.execute('SELECT world_id, name, score FROM Worlds')
+                rows = cursor.fetchall()
+
+                # Convert the result to a list of dictionaries
+                worlds = [{'world_id': row[0], 'name': row[1], 'score': row[2]} for row in rows]
+
+                return worlds
+        except sqlite3.Error as e:
+            print(f"An error occurred while fetching the worlds: {e}")
+            return []
+        
+    def get_world(self, name: str):
+        """
+        Retrieve a specific world by its name.
+
+        Args:
+            name (str): The name of the world to retrieve.
+
+        Returns:
+            dict or None: A dictionary representing the world with keys 'world_id',
+                        'name', and 'score' if found; None if the world does not exist.
+        """
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cursor = conn.cursor()
+
+                # Query the world from the Worlds table
+                cursor.execute('SELECT world_id, name, score FROM Worlds WHERE name = ?', (name,))
+                row = cursor.fetchone()
+
+                if row:
+                    # Return the world as a dictionary
+                    return {'world_id': row[0], 'name': row[1], 'score': row[2]}
+                else:
+                    # Return None if the world does not exist
+                    return None
+        except sqlite3.Error as e:
+            print(f"An error occurred while fetching the world: {e}")
+            return None
 
 WORLD_LOADER = WorldLoader()
 

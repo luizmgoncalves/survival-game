@@ -58,6 +58,15 @@ class CollidableMovingElement(MovingElement):
         :param delta_time: The time delta for movement calculations.
         """
 
+        tallest_down = None
+        last_velocity = self.velocity.x
+
+        def get_tallest_down_collision(rect: pygame.Rect):
+            nonlocal tallest_down
+            if tallest_down is None  or rect.top < tallest_down:
+                tallest_down = rect.top
+
+
         def handle_horizontal_collisions():
             nonlocal collided
 
@@ -71,6 +80,7 @@ class CollidableMovingElement(MovingElement):
                             self.rect.left = rect.right
                             self.collided_left()
                         collided = True
+                        get_tallest_down_collision(rect)
 
                 if one_above.colliderect(rect):
                     nonlocal one_above_collided, one_above_y_collision
@@ -105,14 +115,21 @@ class CollidableMovingElement(MovingElement):
                             adjust_for_one_above(edge)
                         collided = True
                         self.collided_down()
+                    
+                    if tallest_down is not None and self.rect.bottom <= tallest_down:
+                        self.velocity.x = last_velocity
 
         def adjust_for_one_above(edge):
-            nonlocal one_above_y_collision
+            nonlocal one_above_y_collision, last_velocity
 
             new_top = max(one_above_y_collision, self.rect.top)
             dy = new_top - self.rect.top
             self.rect.x += dy if edge == 0b1001 else -dy
             self.rect.top = new_top
+
+            if dy:
+                self.velocity.x = 0
+                last_velocity = 0
 
         # Move horizontally (x direction)
         one_above = self.rect.copy()
@@ -145,6 +162,7 @@ class CollidableMovingElement(MovingElement):
 
         # Update position vector to match adjusted rect
         self.position.x, self.position.y = self.rect.topleft
+
 
     
     def collided_up(self):

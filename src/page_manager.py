@@ -13,14 +13,14 @@ class PageManager:
     def set_page(self, name):
         self.current_page = self.pages.get(name)
 
-    def handle_events(self, event):
+    def handle_events(self, event: pygame.event.Event):
         if event.type == pygame.VIDEORESIZE:
             for page in self.pages.values():
                 page.resize(event.size)
 
         if event.type == commons.CHANGE_PAGE_EVENT:
             self.set_page(event.page)
-            self.current_page.reset()
+            self.current_page.reset(**event.dict)
 
         if self.current_page:
             self.current_page.handle_events(event)

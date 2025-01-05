@@ -48,7 +48,7 @@ class SettingsPage(Page):
             else:
                 button.unselect()  # Custom method to visually deselect a button
     
-    def reset(self):
+    def reset(self, **kwargs):
         self.unselect_all()
     
     def unselect_all(self):

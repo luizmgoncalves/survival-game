@@ -12,6 +12,7 @@ from physics.enemy import ENEMY_MANAGER
 from utils.debug import Debug
 import commons
 import math
+from pygame.math import Vector2 as v2
 import numpy as np
 import os
 
@@ -96,7 +97,8 @@ def main():
         if pygame.mouse.get_pressed()[0]:
             debug.start_timer("mining")
             mouse_pos = pygame.mouse.get_pos()
-            mouse_rect = pygame.Rect(mouse_pos[0]+commons.STARTING_POSITION[0], mouse_pos[1]+commons.STARTING_POSITION[1], 10, 10)
+            mouse_rect = pygame.Rect(0, 0, 10, 10)
+            mouse_rect.center = v2(mouse_pos) + commons.STARTING_POSITION 
             world.mine(mouse_rect.topleft, mouse_rect.size, 50, delta_time)
             debug.stop_timer("mining")
         

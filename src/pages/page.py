@@ -7,7 +7,7 @@ class Page(ABC):
         pass
 
     @abstractmethod
-    def reset(self):
+    def reset(self, **kwargss):
         """
         Reset the state of the page.
         """

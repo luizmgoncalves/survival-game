@@ -1,6 +1,7 @@
 from .game_actor import GameActor
 from rendering.animation import Animation
 from images.image_loader import IMAGE_LOADER
+from utils.inventory import Inventory
 import pygame
 import commons
 
@@ -41,6 +42,11 @@ class Player(GameActor):
                          idle_right, idle_left, 
                          jump_right, jump_left,
                          w_right, w_left)
+
+        self.inventory = Inventory()
+
+    def collect(self, iten: int):
+        return self.inventory.add_item(iten, 1)
 
     def handle_input(self, keys):
         """

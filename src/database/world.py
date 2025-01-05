@@ -4,6 +4,7 @@ from .world_generator import WorldGenerator
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 from .world_elements.item_metadata import ITEM_METADATA
 from .world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
+import numba
 from pygame.rect import Rect
 import pygame
 from typing import Dict, Tuple, Set
@@ -11,6 +12,14 @@ import commons
 from math import ceil
 from pprint import pprint
 from threading import Thread
+
+
+def get_chunk_block_coordinates(val: int) -> Tuple[int, int]:
+    chunk_v, block_v_offset = divmod(val, commons.CHUNK_SIZE_PIXELS)
+    block_v = block_v_offset // commons.BLOCK_SIZE
+    if val < 0 and not block_v_offset:  # Handle negative coordinate edge case
+        chunk_v -= 1
+    return chunk_v, block_v, (val // commons.BLOCK_SIZE) # Chunk pos, block pos in chunk, block absolute pos
 
 class World:
     def __init__(self, world_name):
@@ -123,29 +132,27 @@ class World:
             damage (float): The amount of damage dealt per unit of time.
             delta_time (float): The time since the last update.
         """
+        
         # Extract coordinates
         x, y = position
 
         # Determine chunk and block indices from position
-        chunk_x, block_x_offset = divmod(x, commons.CHUNK_SIZE_PIXELS)
-        block_x = block_x_offset // commons.BLOCK_SIZE
-        if x < 0 and not block_x_offset:  # Handle negative coordinate edge case
-            chunk_x -= 1
+        chunk_x, block_x, block_abs_x = get_chunk_block_coordinates(x)
+        chunk_y, block_y, block_abs_y = get_chunk_block_coordinates(y)
 
-        chunk_y, block_y_offset = divmod(y, commons.CHUNK_SIZE_PIXELS)
-        block_y = block_y_offset // commons.BLOCK_SIZE
-        if y < 0 and not block_y_offset:  # Handle negative coordinate edge case
-            chunk_y -= 1
+        final_chunk_x, final_block_x, final_abs_x = get_chunk_block_coordinates(x+dimensions[0])
+        final_chunk_y, final_block_y, final_abs_y = get_chunk_block_coordinates(y+dimensions[1])
 
-        # Calculate the range of blocks to consider based on dimensions
-        rows_range = round(dimensions[1] / commons.BLOCK_SIZE)
-        cols_range = round(dimensions[0] / commons.BLOCK_SIZE)
+        rows_range = final_abs_y - block_abs_y
+        cols_range = final_abs_x - block_abs_x
+
+
+
 
         visited_chunks : Set[Chunk] = set()
 
-        # Iterate through the blocks in the defined range
-        for row_offset in range(-rows_range, rows_range + 1):
-            for col_offset in range(-cols_range, cols_range + 1):
+        for row_offset in range(0, rows_range + 1):
+            for col_offset in range(0, cols_range + 1):
                 # Determine the local block coordinates
                 local_col = block_x + col_offset
                 local_row = block_y + row_offset
