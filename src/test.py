@@ -101,8 +101,10 @@ def main():
             mouse_rect.center = v2(mouse_pos) + commons.STARTING_POSITION 
             world.mine(mouse_rect.topleft, mouse_rect.size, 50, delta_time)
             debug.stop_timer("mining")
+
+            print(pedra.inventory)
         
-        world.update_blocks_state()
+        world.update_world_state(delta_time)
         render_manager.update_chunks(world)
 
         

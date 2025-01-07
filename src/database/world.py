@@ -1,5 +1,6 @@
 from .world_loader import WorldLoader
 from .world_elements.chunk import Chunk
+from .world_elements.static_element import StaticElement
 from .world_generator import WorldGenerator
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 from .world_elements.item_metadata import ITEM_METADATA
@@ -33,7 +34,7 @@ class World:
         self.world_id     : int         = self._get_world_id()
         self.generator    : WorldGenerator = WorldGenerator()
         self.mining_blocks: Dict[Tuple[int, int, int, int], int] = {}  # Tracks mining level of blocks being mined
-        self.mining_objects: Dict[Chunk, int] = {}  # Tracks mining level of blocks being mined
+        self.mining_objects: Dict[StaticElement, Chunk] = {}  # Tracks mining level of blocks being mined
 
         if self.world_id is None:
             pass#raise ValueError(f"World '{self.world_name}' does not exist in the database.")
@@ -199,18 +200,15 @@ class World:
                     # Apply damage to the static object's mining state
                     print(f'Aqui está!!!')
                     s_el.take_damage(damage, delta_time)
-                    print(s_el.health)
-                    if s_el.is_destroyed():
-                        drops = S_ELEMENT_METADATA_LOADER.get_property_by_id(s_el.id, "drop")
-                        for iten_name, quant in drops.items():
-                            item_id = ITEM_METADATA.get_id_by_name(iten_name)
-                            for _ in range(quant):
-                                pygame.event.post(pygame.event.Event(commons.ITEM_DROP_EVENT, {"item": item_id, "pos": s_el.rect.center}))
-                        chunk.world_elements.remove(s_el)
-                        pygame.event.post(pygame.event.Event(commons.S_ELEMENT_BROKEN))
+                    self.mining_objects[s_el] = chunk
+                    
         
 
-    def update_blocks_state(self):
+    def update_world_state(self, delta_time: float):
+        self.update_blocks_state(delta_time)
+        self.update_objects_state(delta_time)
+    
+    def update_blocks_state(self, delta_time: float):
         """
         Updates the state of blocks being mined, applying damage and handling block destruction.
         """
@@ -275,7 +273,7 @@ class World:
                         
                     else:
                         # Decrease block damage, considering recuperation
-                        new_damage = damage - commons.BLOCK_RECUPERATION_PERCENTAGE * health
+                        new_damage = damage - commons.BLOCK_RECUPERATION_PERCENTAGE * delta_time
                         self.mining_blocks[(chunk_x, chunk_y, row, col)] = max(new_damage, 0)
                         if new_damage <= 0:
                             self.mining_blocks.pop((chunk_x, chunk_y, row, col))
@@ -290,6 +288,31 @@ class World:
             else:
                 # Raise error if no block exists at the given position
                 raise ValueError(f"Trying to mine a place with no blocks at ({chunk_x}, {chunk_y}, {row}, {col}).")
+
+
+    def update_objects_state(self, delta_time: float):
+        destroyed_objects = []
+        
+        for s_el, chunk in self.mining_objects.items():
+            print(s_el.health)
+            if s_el.is_destroyed():
+                drops = S_ELEMENT_METADATA_LOADER.get_property_by_id(s_el.id, "drop")
+                for iten_name, quant in drops.items():
+                    item_id = ITEM_METADATA.get_id_by_name(iten_name)
+                    for _ in range(quant):
+                        pygame.event.post(pygame.event.Event(commons.ITEM_DROP_EVENT, {"item": item_id, "pos": s_el.rect.center}))
+                chunk.world_elements.remove(s_el)
+                destroyed_objects.append(s_el)
+                pygame.event.post(pygame.event.Event(commons.S_ELEMENT_BROKEN))
+            else:
+                s_el.health += commons.BLOCK_RECUPERATION_PERCENTAGE * delta_time 
+
+                if s_el.health >= s_el.max_health:
+                    s_el.health = s_el.max_health
+                    destroyed_objects.append(s_el)
+        
+        for o in destroyed_objects:
+            self.mining_objects.pop(o)
 
     def get_collision_blocks_around(self, position, dimensions):
         """

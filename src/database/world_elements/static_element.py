@@ -11,10 +11,11 @@ class StaticElement:
         :param position: The position of the element in world coordinates as a Vector2.
         :param health: The current health of the element.
         """
-        self.id = element_id  # Unique ID for the static element type
-        self.rect = pygame.Rect((0, 0), dimensions)
+        self.id: int = element_id  # Unique ID for the static element type
+        self.rect: pygame.rect.Rect = pygame.Rect((0, 0), dimensions)
         self.rect.bottomleft = pygame.math.Vector2(position)  # Dimensions (width, height) of the element
-        self.health = health  # Health of the element
+        self.max_health: float = health
+        self.health: float = health  # Health of the element
 
     def take_damage(self, damage, delta_time):
         """
