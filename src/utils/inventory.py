@@ -1,7 +1,7 @@
 
 
 class Inventory:
-    def __init__(self, max_slots=10, max_items_per_slot=64):
+    def __init__(self, max_slots=9, max_items_per_slot=64):
         """
         Initializes the inventory.
         
@@ -10,7 +10,8 @@ class Inventory:
         """
         self.max_slots = max_slots
         self.max_items_per_slot = max_items_per_slot
-        self.items = []  # List to store items and their quantities in insertion order
+        self.items = [{} for i in range(self.max_slots)]  # List to store items and their quantities in insertion order
+        self._selected: int = 0
 
     def add_item(self, item: int, quantity=1):
         """
@@ -21,19 +22,87 @@ class Inventory:
         :return: True if the item was added successfully, False otherwise.
         """
         for entry in self.items:
-            if entry['item'] == item:
+            if not entry:
+                entry['item'] = item
+                entry['quantity'] = 1
+                return True
+            
+            elif entry['item'] == item:
                 if entry['quantity'] + quantity <= self.max_items_per_slot:
                     entry['quantity'] += quantity
                     return True
 
-        if len(self.items) < self.max_slots:
-            if quantity <= self.max_items_per_slot:
-                self.items.append({"item": item, "quantity": quantity})
-                return True
-            else:
-                return False
         return False
 
+    def set_slot(self, slot_index: int, item: int, quantity: int):
+        """
+        Sets a specific slot with the given item and quantity.
+        
+        :param slot_index: The index of the slot to set.
+        :param item: The item to store in the slot.
+        :param quantity: The quantity of the item to store.
+        :raises ValueError: If the quantity exceeds the maximum items per slot.
+        """
+        if not (0 <= slot_index < self.max_slots):
+            return
+        if quantity > self.max_items_per_slot:
+            return
+        
+        self.items[slot_index] = {"item": item, "quantity": quantity}
+
+    def get_slot(self, slot_index: int):
+        """
+        Gets the contents of a specific slot.
+        
+        :param slot_index: The index of the slot to retrieve.
+        :return: A dictionary with the item and quantity, or None if the slot is empty.
+        :raises ValueError: If the slot index is out of range.
+        """
+        if not (0 <= slot_index < self.max_slots):
+            return None
+        
+        if not self.items[slot_index]:
+            return -1, -1
+        
+        return self.items[slot_index]['item'], self.items[slot_index]['quantity']
+
+    def get_slots(self):
+        r = []
+        for s in range(len(self.items)):
+            r.append(self.get_slot(s))
+
+    @property
+    def selected(self):
+        """
+        Getter for the selected slot.
+        
+        :return: The currently selected slot.
+        """
+        return self._selected
+
+    @selected.setter
+    def selected(self, value):
+        """
+        Setter for the selected slot.
+        
+        :param value: The new slot to select.
+        Adjusts to the closest valid value if out of range.
+        """
+        if value < 0:
+            self._selected = 0
+        elif value >= self.max_slots:
+            self._selected = self.max_slots - 1
+        else:
+            self._selected = value
+
+    def scroll(self, direction: int):
+        """
+        Scrolls the selected slot up or down.
+        
+        :param direction: The direction to scroll (positive to increment, negative to decrement).
+        Wraps around if the end or beginning is reached.
+        """
+        self._selected = (self._selected + direction) % self.max_slots
 
     def __repr__(self):
         """Returns a string representation of the inventory."""

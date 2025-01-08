@@ -19,7 +19,7 @@ class Chunk:
         self.world_elements: List[StaticElement] = []  # List of static elements (trees, chests, etc.)
         self.blocks_grid: np.ndarray = np.zeros((layers, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # 3D matrix for block layers
         self.collidable_grid: np.ndarray = np.zeros((commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=bool)  # Collidable matrix
-        self.edges_matrix: np.ndarray = np.ones((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Edge matrix
+        self.edges_matrix: np.ndarray = np.zeros((2, commons.CHUNK_SIZE, commons.CHUNK_SIZE), dtype=int)  # Edge matrix
 
         self.completed_created: bool = False
 
@@ -60,8 +60,7 @@ class Chunk:
         elif layer == 0:
             self.collidable_grid[row, col] = False
         
-        if need_around_update:
-            self.update_around(block, layer, col, row)
+        self.update_around(block, layer, col, row)
         if need_update:
             self.changes['block'].append((layer, col, row))
     
@@ -91,29 +90,40 @@ class Chunk:
 
         # Update neighboring blocks
         self.update_around(0, layer, col, row)
+    
+    def update_edges(self):
+        for x in range(commons.CHUNK_SIZE):
+            for y in range(commons.CHUNK_SIZE):
+                for l in range(2):
+                    self.update_around(self.blocks_grid[l, x, y], l, x, y)
 
     
     def update_around(self, block, layer, col, row):
-        if block:
+        if block != 0:
             # Left (col - 1)
             if col > 0 and self.blocks_grid[layer, row, col - 1] and not (self.edges_matrix[layer, row, col - 1] & 0b0010):
                 self.edges_matrix[layer, row, col - 1] += 0b0010
+                self.edges_matrix[layer, row, col] += 0b1000
                 self.changes['block'].append((col-1, row))
             
             # Right (col + 1)
             if col < commons.CHUNK_SIZE - 1 and self.blocks_grid[layer, row, col + 1] and not (self.edges_matrix[layer, row, col + 1] & 0b1000):
                 self.edges_matrix[layer, row, col + 1] += 0b1000
+                self.edges_matrix[layer, row, col] += 0b0010
                 self.changes['block'].append((col+1, row))
             
             # Up (row - 1)
             if row > 0 and self.blocks_grid[layer, row - 1, col] and not (self.edges_matrix[layer, row - 1, col] & 0b0001):
                 self.edges_matrix[layer, row - 1, col] += 0b0001
+                self.edges_matrix[layer, row, col] += 0b0100
                 self.changes['block'].append((col, row-1))
             
             # Down (row + 1)
             if row < commons.CHUNK_SIZE - 1 and self.blocks_grid[layer, row + 1, col] and not (self.edges_matrix[layer, row + 1, col] & 0b0100):
                 self.edges_matrix[layer, row + 1, col] += 0b0100
+                self.edges_matrix[layer, row, col] += 0b0001
                 self.changes['block'].append((col, row+1))
+
         
         else:
             # Left (col - 1)

@@ -58,6 +58,7 @@ class PhysicsManager:
         self.apply_gravity(delta_time)
         self.apply_player_attraction_force()
         self.move_entities_and_handle_world_collisions(world, delta_time)
+        self.apply_friction()
         self.handle_collisions()
 
         # Update player
@@ -79,6 +80,40 @@ class PhysicsManager:
         # Update other moving elements
         for element in self.moving_elements:
             element.update(delta_time)
+    
+    def apply_friction(self):
+        # Update player
+        if self.player:
+            if self.player.is_falling:
+                self.player.velocity.x *= 0.97  # Apply lower friction when falling
+            else:
+                self.player.velocity.x *= 0.6  # Apply higher friction when on terrain
+
+        # Update player bullets
+        for bullet in self.player_bullets:
+            # Bullets in motion typically experience minimal friction, if any
+            bullet.velocity.x *= 0.99
+            bullet.velocity.y *= 0.99  # Optional: Apply slight air resistance
+
+        # Update enemy bullets
+        for bullet in self.enemy_bullets:
+            # Similar to player bullets, apply minimal friction
+            bullet.velocity.x *= 0.99
+            bullet.velocity.y *= 0.99
+
+        # Update enemies
+        for enemy in self.enemies:
+            if enemy.is_falling:
+                enemy.velocity.x *= 0.95  # Slightly reduce friction when falling
+            else:
+                enemy.velocity.x *= 0.6 # Apply more significant friction on the ground
+
+        # Update other moving elements
+        for element in self.moving_elements:
+            if hasattr(element, 'is_falling') and element.is_falling:
+                element.velocity.x *= 0.95  # Reduced friction for falling elements
+            else:
+                element.velocity.x *= 0.85  # Normal friction for grounded elements
     
     def apply_player_attraction_force(self):
         if not self.player:

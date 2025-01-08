@@ -1,4 +1,5 @@
 import pygame
+from pygame.math import Vector2 as v2
 
 # Constants and event types shared across multiple modules
 
@@ -43,7 +44,6 @@ DEFAULT_DB_PATH = './assets/database/'
 #Audio files path
 DEFAULT_SOUND_PATH = './assets/audio/'
 
-PLAYER_START_POSITION = (100, 100)  # Starting position
 PLAYER_SIZE = (30, 50)        # Default size
 PLAYER_LIFE = 100             # Default life points
 PLAYER_MAX_VEL = 900          # Default maximum velocity
@@ -74,3 +74,11 @@ MAX_DISTANCE_OF_ITEM_ATTRACTION = 200 # in pixels
 DEFAULT_JUMP_STRENGHT = 500
 
 DEFAULT_WALKING_VEL = 500
+
+
+DEFAULT_START_PLAYER_POSITION = pygame.math.Vector2(0, -100)
+
+CURRENT_POSITION = pygame.math.Vector2(0, 0)
+
+
+INVENTORY_POS = lambda : v2(pygame.display.get_window_size()[0]/2, pygame.display.get_window_size()[1]-200)

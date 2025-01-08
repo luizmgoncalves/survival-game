@@ -4,13 +4,17 @@ import pygame
 import commons
 from database.world_elements.block_metadata_loader import BLOCK_METADATA
 from images.image_loader import IMAGE_LOADER
+from database.world_elements.item_metadata import ITEM_METADATA
 from database.world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
 from database.world_elements.chunk import Chunk
 from physics.moving_element import MovingElement
+from physics.player import Player
 import numpy as np
 from typing import List
 from pygame.math import Vector2 as v2
 from threading import Thread
+from utils.inventory import Inventory
+from functools import lru_cache
 from utils.debug import Debug
 
 
@@ -173,7 +177,104 @@ class RenderManager:
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
                 Debug.stop_timer("bliting chunk")
             
+    def render_inventory(self, screen: pygame.Surface, inventory: Inventory):
+        inv_image = IMAGE_LOADER.get_image("INVENTORY")
+
+        inv_rect = pygame.rect.Rect((0, 0), inv_image.get_size())
+                               
+        inv_rect.center = commons.INVENTORY_POS()
+        inv_poses = [
+            10,
+            46,
+            82,
+            118,
+            154,
+            190,
+            226,
+            266,
+            297
+        ]
+        inv_h = 13
+
+        screen.blit(inv_image, inv_rect)
+
+
+        for pos, element in enumerate(inventory.items):
+            if not element:
+                continue
         
+            iten = element['item']
+            num = element['quantity']
+            num_im = self.render_number_image(num)
+            iten_image = IMAGE_LOADER.get_image(ITEM_METADATA.get_property_by_id(iten, "image_name"))
+            pos = v2(inv_poses[pos], inv_h)
+            new_pos = v2(inv_rect.topleft) + pos
+            screen.blit(iten_image, new_pos)
+            screen.blit(num_im, new_pos - v2(0, 5))
+        
+        selected = inventory.selected
+        selected_light = self.create_circle_image(50)
+        pos = v2(inv_poses[selected], inv_h) + v2 (20, 20)
+        new_pos = v2(inv_rect.topleft) + pos
+        screen.blit(selected_light, new_pos - v2 (35, 35))
+
+    
+    @lru_cache(maxsize=1)
+    def create_circle_image(self, size: int, circle_color=(255, 255, 255), bg_color=(0, 0, 0)):
+        """
+        Creates a Pygame Surface with a circle centered in a square.
+        
+        Args:
+            size (int): The size of the square surface (width and height).
+            circle_color (tuple): RGB color of the circle. Default is white (255, 255, 255).
+            bg_color (tuple): RGB color of the background. Default is black (0, 0, 0).
+        
+        Returns:
+            pygame.Surface: A Pygame surface containing the circle image.
+        """
+        # Initialize Pygame if not already initialized
+        if not pygame.get_init():
+            pygame.init()
+        
+        # Create a square surface with the background color
+        surface = pygame.Surface((size, size))
+        surface.fill(bg_color)
+        
+        # Draw the circle centered in the square
+        center = (size // 2, size // 2)
+        radius = size // 2 - 2  # Slight padding for the circle
+        pygame.draw.circle(surface, circle_color, center, radius)
+        surface.set_colorkey((0, 0, 0))
+        surface.set_alpha(100)
+        
+        return surface
+
+
+    @lru_cache(maxsize=64)
+    def render_number_image(self, number, font_size=20, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
+        """
+        Renders an image of a number using Pygame.
+        
+        Args:
+            number (int or float): The number to render.
+            font_size (int): Size of the font. Default is 50.
+            font_color (tuple): RGB color of the font. Default is white (255, 255, 255).
+            bg_color (tuple): RGB color of the background. Default is black (0, 0, 0).
+        
+        Returns:
+            pygame.Surface: A Pygame surface containing the rendered number.
+        """
+        # Initialize Pygame if not already initialized
+        if not pygame.get_init():
+            pygame.init()
+        
+        # Create a font object
+        font = pygame.font.Font(None, font_size)  # Default Pygame font
+        
+        # Render the number as a surface
+        text_surface = font.render(str(number), True, font_color, bg_color)
+        
+        return text_surface
 
 
     def render_single_chunk(self, surface: pygame.Surface, chunk: Chunk):
@@ -414,7 +515,7 @@ class RenderManager:
                         pygame.Rect(actual_x, actual_y, element.rect.width, element.rect.height)
                     )
 
-    def render_all(self, screen, elements):
+    def render_all(self, screen, elements, player: Player):
         """
         Renders the entire scene, including chunks and moving elements.
 
@@ -422,6 +523,7 @@ class RenderManager:
         """
         self.render_chunks(screen)
         self.render_moving_elements(elements, screen)
+        self.render_inventory(screen, player.inventory)
 
     def update_position(self, new_position):
         """

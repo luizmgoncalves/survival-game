@@ -35,5 +35,20 @@ class StaticElement:
 
     def __repr__(self):
         """Returns a string representation of the static element."""
-        return (f"StaticElement(name={self.name},id={self.element_id}, pos={self.pos}, "
-                f"dim={self.dim}, health={self.health})")
+        return (f"StaticElement(id={self.id}, pos={self.rect.topleft}, "
+                f"dim={self.rect.size}, health={self.health})")
+
+    @classmethod
+    def from_dict(cls, static_element):
+        """
+        Cria uma instância de StaticElement a partir de um dicionário.
+
+        :param static_element: Dicionário com as informações do elemento.
+        :return: Instância de StaticElement.
+        """
+        element_id = static_element['type']  # 'type' é o ID do elemento
+        dimensions = (static_element['width'], static_element['height'])
+        position = (static_element['x'], static_element['y'])
+        health = static_element['health']
+        return cls(element_id, dimensions, position, health)
+

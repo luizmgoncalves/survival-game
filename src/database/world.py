@@ -11,7 +11,6 @@ import pygame
 from typing import Dict, Tuple, Set
 import commons
 from math import ceil
-from pprint import pprint
 from threading import Thread
 
 
@@ -31,19 +30,17 @@ class World:
         self.world_name   : str         = world_name
         self.all_chunks   : Dict[tuple[int, int], Chunk]        = {}
         self.db_interface : WorldLoader = WorldLoader()
-        self.world_id     : int         = self._get_world_id()
-        self.generator    : WorldGenerator = WorldGenerator()
+        self.world        : dict        = self.db_interface.get_world(self.world_name)
+        self.world_id     : int         = self.world['world_id']
+        self.generator    : WorldGenerator = WorldGenerator(self.world['seed'])
         self.mining_blocks: Dict[Tuple[int, int, int, int], int] = {}  # Tracks mining level of blocks being mined
         self.mining_objects: Dict[StaticElement, Chunk] = {}  # Tracks mining level of blocks being mined
 
-        if self.world_id is None:
-            pass#raise ValueError(f"World '{self.world_name}' does not exist in the database.")
 
-    def _get_world_id(self):
-        """Retrieve the world ID from the database."""
-        query = "SELECT world_id FROM Worlds WHERE name = ?"
-        result = self.db_interface._execute_query(query, (self.world_name,))
-        return result[0][0] if result else None
+        if self.world_id is None:
+            raise ValueError(f"World '{self.world_name}' does not exist in the database.")
+
+        self.load_all_data()
 
     def _gen(self, chunk: Chunk):
         chunk_x, chunk_y = chunk.pos
@@ -77,15 +74,6 @@ class World:
             chunk.changes['all'] = True
             return chunk  # Return already loaded chunk
         
-        x_min = chunk_x * commons.CHUNK_SIZE
-        x_max = x_min + commons.CHUNK_SIZE - 1
-        y_min = chunk_y * commons.CHUNK_SIZE
-        y_max = y_min + commons.CHUNK_SIZE - 1 
-
-        # Try loading data from the database
-        #blocks = self.db_interface.load_blocks(self.world_id, x_min, x_max, y_min, y_max)
-        #static_objects = self.db_interface.load_static_objects(self.world_id, x_min, x_max, y_min, y_max)
-        #moving_entities = self.db_interface.load_moving_entities(self.world_id, x_min, x_max, y_min, y_max)
 
         if True or not blocks:
             # Generate a new chunk if no data exists
@@ -111,17 +99,73 @@ class World:
         self.all_chunks[chunk_key] = chunk
         return chunk
 
-    def load_all_chunks(self, min_health=None):
-        """Load all chunks for the entire world with optional health filtering."""
-        query = "SELECT size_x, size_y FROM Worlds WHERE world_id = ?"
-        result = self.db_interface._execute_query(query, (self.world_id,))
-        if not result:
-            raise ValueError(f"World size could not be retrieved for '{self.world_name}'.")
+    def save_all_data(self):
+        blocks_to_be_saved = []
+        static_elements_to_be_saved = []
+        chunks_to_be_saved = []
+        for chunk in self.all_chunks.values():
+            chunks_to_be_saved.append({'x': chunk.pos.x, 'y': chunk.pos.y})
+            for x in range(commons.CHUNK_SIZE):
+                for y in range(commons.CHUNK_SIZE):
+                    l0 = {'x': x+chunk.pos.x*commons.CHUNK_SIZE, 'y': y+chunk.pos.y*commons.CHUNK_SIZE, 'type': int(chunk.blocks_grid[0, y, x]), 'layer': 0}
+                    l1 = {'x': x+chunk.pos.x*commons.CHUNK_SIZE, 'y': y+chunk.pos.y*commons.CHUNK_SIZE, 'type': int(chunk.blocks_grid[1, y, x]), 'layer': 1}
+                    blocks_to_be_saved.append(l0)
+                    blocks_to_be_saved.append(l1)
+            
+            for s in chunk.world_elements:
+                static_elements_to_be_saved.append(
+                    {'x': s.rect.x, 
+                     'y': s.rect.bottom,
+                     'width': s.rect.w,
+                     'height': s.rect.h,
+                     'health': s.health,
+                     'type': s.id
+                     }
+                )
+        
+        self.db_interface.save_blocks(self.world_id, blocks_to_be_saved)
+        self.db_interface.save_static_objects(self.world_id, static_elements_to_be_saved)
+        self.db_interface.save_chunks(self.world_id, chunks_to_be_saved)
 
-        size_x, size_y = result[0]
-        for chunk_x in range(size_x // commons.CHUNK_SIZE):
-            for chunk_y in range(size_y // commons.CHUNK_SIZE):
-                self.load_chunk(chunk_x, chunk_y, commons.CHUNK_SIZE, min_health)
+    def load_all_data(self):
+        self.load_all_chunks()
+
+    def load_all_chunks(self, min_health=None):
+        chunks = self.db_interface.load_chunks(self.world_id)
+        for c in chunks:
+
+            x, y = c['x'], c['y']
+            new_chunk = Chunk(x, y)
+            blocks = self.db_interface.load_blocks(self.world_id, x*commons.CHUNK_SIZE, (x+1)*commons.CHUNK_SIZE-1, y*commons.CHUNK_SIZE, (y+1)*commons.CHUNK_SIZE-1)
+            for b in blocks:
+                new_chunk.add_block(b[3], b[0]%commons.CHUNK_SIZE, b[1]%commons.CHUNK_SIZE, b[2])
+
+            static_elements = self.db_interface.load_static_objects(self.world_id, x*commons.CHUNK_SIZE_PIXELS, (x+1)*commons.CHUNK_SIZE_PIXELS-1, y*commons.CHUNK_SIZE_PIXELS, (y+1)*commons.CHUNK_SIZE_PIXELS-1)
+
+            for s in static_elements:
+                new_chunk.add_static_element(StaticElement.from_dict(s))
+            
+            self.all_chunks[(x, y)] = new_chunk
+
+            # Verifying around chunks to update their edges matrix
+            for i in range(0, 4):
+                match i:
+                    case 0:
+                        around_chunk = self.all_chunks.get((x-1, y))
+                    case 1:
+                        around_chunk = self.all_chunks.get((x, y-1))
+                    case 2:
+                        around_chunk = self.all_chunks.get((x+1, y))
+                    case 3:
+                        around_chunk = self.all_chunks.get((x, y+1))
+                
+                if around_chunk: #Check if it exists
+                    self.generator.update_edges_matrix(new_chunk, around_chunk, index=i)
+            
+            new_chunk.changes['all'] = True
+
+            new_chunk.completed_created = True
+            
 
     def mine(self, position, dimensions, damage, delta_time):
         """
@@ -140,6 +184,7 @@ class World:
         # Determine chunk and block indices from position
         chunk_x, block_x, block_abs_x = get_chunk_block_coordinates(x)
         chunk_y, block_y, block_abs_y = get_chunk_block_coordinates(y)
+
 
         final_chunk_x, final_block_x, final_abs_x = get_chunk_block_coordinates(x+dimensions[0])
         final_chunk_y, final_block_y, final_abs_y = get_chunk_block_coordinates(y+dimensions[1])
@@ -198,7 +243,6 @@ class World:
             for s_el in chunk.world_elements:
                 if mining_area.colliderect(s_el.rect):
                     # Apply damage to the static object's mining state
-                    print(f'Aqui está!!!')
                     s_el.take_damage(damage, delta_time)
                     self.mining_objects[s_el] = chunk
                     
@@ -294,7 +338,6 @@ class World:
         destroyed_objects = []
         
         for s_el, chunk in self.mining_objects.items():
-            print(s_el.health)
             if s_el.is_destroyed():
                 drops = S_ELEMENT_METADATA_LOADER.get_property_by_id(s_el.id, "drop")
                 for iten_name, quant in drops.items():

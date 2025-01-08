@@ -50,10 +50,10 @@ class WorldPage(Page):
 
         self.go_back_to_worlds_menu()
     
-    def _get_score(self) -> str:
+    def _gen_stats(self) -> str:
         world = WORLD_LOADER.get_world(self.world_name)
 
-        return world.get('score', 0)
+        self.statistics = Label(f"Score: {world.get('score', 0)}, Seed: {world.get('seed', 0)}", commons.WIDTH / 2, 500, font_size=40)
     
     def reset(self, world='', **kwargs):
 
@@ -71,7 +71,7 @@ class WorldPage(Page):
         self.world_name = world
 
         self.world_name_label = Label(f"{world}", commons.WIDTH / 2, 220)
-        self.statistics = Label(f"Score: {self._get_score()}", commons.WIDTH / 2, 500, font_size=40)
+        self._gen_stats()
         self.elements.append(self.world_name_label)
         self.elements.append(self.statistics)
         self.canvas.add(self.world_name_label)

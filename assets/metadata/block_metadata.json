@@ -3,12 +3,14 @@
       "name": "AIR",
       "color": [0, 0, 0],
       "health": 0,
+      "collidable": false,
       "drops": {}
     },
     "1": {
       "name": "GRASS",
       "color": [0, 128, 0],
       "health": 10,
+      "collidable": true,
       "image_name": "GRASS",
       "drops": {
         "GRASS": 1
@@ -18,6 +20,7 @@
       "name": "DIRT",
       "color": [139, 69, 19],
       "health": 15,
+      "collidable": true,
       "image_name": "DIRT",
       "drops": {
         "DIRT": 1
@@ -27,6 +30,7 @@
       "name": "STONE",
       "color": [128, 128, 128],
       "health": 5,
+      "collidable": true,
       "image_name": "STONE",
       "drops": {
         "STONE": 1
@@ -36,6 +40,7 @@
       "name": "SAND",
       "color": [194, 178, 128],
       "health": 5,
+      "collidable": true,
       "image_name": "SAND",
       "drops": {
         "STONE": 1

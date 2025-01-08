@@ -6,14 +6,14 @@ import pygame
 import commons
 
 class Player(GameActor):
-    def __init__(self):
+    def __init__(self, position=commons.DEFAULT_START_PLAYER_POSITION):
         """
         Initialize the Player with default attributes and load sprites using an ImageLoader.
 
         :param IMAGE_LOADER: An instance of the ImageLoader class to load images.
         """
         # Default player settings
-        position = commons.PLAYER_START_POSITION  # Starting position
+        position = position  # Starting position
         size     = commons.PLAYER_SIZE            # Default size
         life     = commons.PLAYER_LIFE            # Default life points
         max_vel  = commons.PLAYER_MAX_VEL         # Default maximum velocity
@@ -31,8 +31,8 @@ class Player(GameActor):
         jump_right = Animation([f"PLAYER_JUMPING_{i}" for i in range(2, 8)], 0.1, True)  # Jumping right
         jump_left = Animation([f"PLAYER_JUMPING_{i}.FLIPED_X" for i in range(2, 8)], 0.1, True)  # Jumping left
 
-        attack_right = Animation([f"PLAYER_ATTACK_{i}" for i in range(10)], 0.07, True)  # Attacking right
-        attack_left = Animation([f"PLAYER_ATTACK_{i}.FLIPED_X" for i in range(10)], 0.07, True)  # Attacking left
+        attack_right = Animation([f"PLAYER_ATTACK_{i}" for i in range(9)], 0.07, True)  # Attacking right
+        attack_left = Animation([f"PLAYER_ATTACK_LEFT{i}.FLIPED_X" for i in range(9)], 0.07, True)  # Attacking left
 
 
         # Call the parent constructor with these defaults
@@ -41,7 +41,7 @@ class Player(GameActor):
                          w_right, w_left, 
                          idle_right, idle_left, 
                          jump_right, jump_left,
-                         w_right, w_left)
+                         attack_right, attack_left)
 
         self.inventory = Inventory()
 
@@ -53,7 +53,6 @@ class Player(GameActor):
         Handle player-specific input for movement, jumping, and attacking.
         :param keys: Dictionary of keys being pressed (from pygame.key.get_pressed()).
         """
-        self.stop_moving()
 
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.walk_left()

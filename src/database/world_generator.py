@@ -17,7 +17,7 @@ class WorldGenerator:
     """
     LAYERS = 2  # Only two layers
 
-    def __init__(self):
+    def __init__(self, seed: int):
         """
         Initializes the WorldGenerator.
 
@@ -25,7 +25,7 @@ class WorldGenerator:
         """
         #self.underground_noise_generator = PerlinNoise(octaves=4)
         #self.surface_noise_generator = PerlinNoise(octaves=2)
-        self.seed = round(random.random()*1000)
+        self.seed = seed
 
     
     def generate_chunk(self, chunk: Chunk):

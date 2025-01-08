@@ -48,6 +48,7 @@ class CollidableMovingElement(MovingElement):
         :param velocity: A tuple (vx, vy) representing the initial velocity.
         """
         super().__init__(position, size, velocity)
+        self.is_falling = True  # Initially assume the object is falling.
 
     def move(self, colliding_rects: List[pygame.Rect], delta_time: float):
         """
@@ -151,6 +152,8 @@ class CollidableMovingElement(MovingElement):
         self.rect.y += self.velocity.y * delta_time
         collided = False
 
+        self.is_falling = True  # Initially assume the object is falling.
+
         _colliding_rects = colliding_rects if self.velocity.y > 0 else colliding_rects[::-1]
         handle_vertical_collisions()
 
@@ -176,6 +179,7 @@ class CollidableMovingElement(MovingElement):
         """
         Handle the collision when the object collides from below.
         """
+        self.is_falling = False  # Initially assume the object is falling.
         #print("Collided down")
         # Implement your specific logic for downward collision
 

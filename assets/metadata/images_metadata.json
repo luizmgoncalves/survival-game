@@ -18,6 +18,9 @@
         "path": "blocks/dirt.png",
         "scaled_size": [20, 20]
     },
+    "INVENTORY": {
+        "path": "inventory/inventory.png"
+    },
     "STONE": {
         "path": "blocks/stone2.png",
         "block": true
@@ -62,6 +65,19 @@
         "flipx": true,
         "scaled_size": [50, 50],
         "offset": [-10, 3],
+        "color_key": [113, 102, 79]
+    }, 
+    "PLAYER_ATTACK_#": {
+        "path": "player/attack/at#.png",
+        "flipx": true,
+        "scaled_size": [78, 50],
+        "offset": [-12, 3],
+        "color_key": [113, 102, 79]
+    },"PLAYER_ATTACK_LEFT#": {
+        "path": "player/attack/at#.png",
+        "flipx": true,
+        "scaled_size": [80, 50],
+        "offset": [-45, 3],
         "color_key": [113, 102, 79]
     },
     "ENEMY_VIKING": {

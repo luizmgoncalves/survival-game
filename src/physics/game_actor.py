@@ -52,6 +52,11 @@ class GameActor(CollidableMovingElement):
         self.w_right = False
         self.running = False
 
+        # Invulnerability state
+        self.invulnerable = False
+        self.invulnerability_time = 0.0
+        self.invulnerability_duration = 1.0  # 1 second of invulnerability
+
     @property
     def current_animation(self) -> Animation:
         """
@@ -73,11 +78,20 @@ class GameActor(CollidableMovingElement):
             self._current_anim.reset()
 
     def update(self, delta_time: float):
+        if abs(self.velocity.x) < 40:  # Threshold for stopping
+            self.stop_moving()
+
         # Handle attack timing
         if self.attacking:
             self.attack_time -= delta_time
             if self.attack_time <= 0:
                 self.attacking = False
+        
+        # Handle invulnerability timer
+        if self.invulnerable:
+            self.invulnerability_time -= delta_time
+            if self.invulnerability_time <= 0:
+                self.invulnerable = False
 
         # If the actor is dying, play the dying animation
         if self.dying:
@@ -201,22 +215,34 @@ class GameActor(CollidableMovingElement):
         """
         if not self.attacking:
             self.attacking = True
-            self.attack_time = 0.5  # Attack lasts for 0.5 seconds by default
+            self.attack_time = 0.6  # Attack lasts for 0.5 seconds by default
             # Define the attack area if necessary (position can depend on facing direction)
             self.attack_area = pygame.Rect(self.rect.centerx, self.rect.centery, 50, 30)
             if self.facing_left:
                 self.attack_area = pygame.Rect(self.rect.centerx - 50, self.rect.centery, 50, 30)
 
-    def take_damage(self, amount):
+    def take_damage(self, amount, direction='left'):
         """
-        Reduce the actor's life by a given amount.
+        Reduce the actor's life by a given amount, if not invulnerable.
 
         :param amount: The damage amount to apply.
         """
-        self.life -= amount
-        if self.life <= 0:
-            self.life = 0
-            self.die()  # Trigger dying state
+        if not self.invulnerable:
+            self.life -= amount
+            if self.life <= 0:
+                self.life = 0
+                self.die()  # Trigger dying state
+
+            # Trigger invulnerability
+            self.invulnerable = True
+            self.invulnerability_time = self.invulnerability_duration
+
+            if direction == 'left':
+                self.velocity.x = -700
+                self.velocity.y = -500
+            else:
+                self.velocity.x = 700
+                self.velocity.y = -500
 
     def die(self):
         """
