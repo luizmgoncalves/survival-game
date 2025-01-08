@@ -274,16 +274,18 @@ class WorldLoader:
             cursor = conn.cursor()
 
             # Insert new inventory data
-            for i in range(9):
+            for i in range(inventory.max_slots):
+                slot = i
+                quant, item = inventory.get_slot(i)
                 cursor.execute(
                     "INSERT OR REPLACE INTO Inventory (world_id, slot, item_count, item_type) VALUES (?, ?, ?, ?)",
-                    (world_id, slot, item['quantity'], item['item'])
+                    (world_id, slot, quant, item)
                 )
 
             conn.commit()
             print(f"Inventory for world_id {world_id} saved successfully.")
 
-    def load_inventory(self, world_id):
+    def load_inventory(self, world_id, inventory: Inventory):
         """Load the inventory for a specific world.
 
         Args:
@@ -303,10 +305,9 @@ class WorldLoader:
             rows = cursor.fetchall()
 
             # Convert to list of dictionaries
-            inventory = [
-                {'slot': row[0], 'item_count': row[1], 'item_type': row[2]}
-                for row in rows
-            ]
+            for row in rows:
+                slot, quant, item = row
+                inventory.set_slot(slot, str(item), quant)
 
             print(f"Inventory for world_id {world_id} loaded successfully.")
             return inventory

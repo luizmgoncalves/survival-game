@@ -45,7 +45,7 @@ class Inventory:
         """
         if not (0 <= slot_index < self.max_slots):
             return
-        if quantity > self.max_items_per_slot:
+        if quantity > self.max_items_per_slot or quantity < 0:
             return
         
         self.items[slot_index] = {"item": item, "quantity": quantity}
@@ -64,7 +64,7 @@ class Inventory:
         if not self.items[slot_index]:
             return -1, -1
         
-        return self.items[slot_index]['item'], self.items[slot_index]['quantity']
+        return self.items[slot_index]['quantity'], self.items[slot_index]['item']
 
     def get_slots(self):
         r = []

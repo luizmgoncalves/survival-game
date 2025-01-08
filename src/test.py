@@ -52,6 +52,8 @@ def main():
 
     player = Player(start_pos)
 
+    WORLD_LOADER.load_inventory(world.world_id, player.inventory)
+
     commons.CURRENT_POSITION = pygame.Vector2(player.rect.center ) - pygame.Vector2(commons.WIDTH, commons.HEIGHT)/2
     render_manager = RenderManager(commons.CURRENT_POSITION, commons.COLOR_KEY)
 
@@ -149,7 +151,8 @@ def main():
 
         # Limit frame rate
 
-    world.db_interface.save_player_location(world.world_id, player.rect.x, player.rect.y) 
+    world.db_interface.save_player_location(world.world_id, player.rect.x, player.rect.y)
+    world.db_interface.save_inventory(world.world_id, player.inventory)
     world.save_all_data()
     pygame.quit()
     
