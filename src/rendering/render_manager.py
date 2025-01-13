@@ -68,6 +68,21 @@ class RenderManager:
 
         :param world: The game world object that provides chunk-loading functionality.
         """
+        if self.initializing:
+            self.initializing = False
+
+            self.current_chunk_position = self.get_chunk_position()
+            
+            for i in range(3):
+                for j in range(3):
+                    chunk_x = self.current_chunk_position[0] + (j - 1)
+                    chunk_y = self.current_chunk_position[1] + (i - 1)
+                    self.chunk_matrix[i, j] = world.load_chunk(chunk_x, chunk_y)
+            
+            self._update_static_elements()
+            
+            return
+        
         if self.current_chunk_position != (new_pos := self.get_chunk_position()):
             
             dif = pygame.Vector2(new_pos) - pygame.Vector2(self.current_chunk_position)
@@ -130,19 +145,6 @@ class RenderManager:
                     for j in range(3):
                         chunk_x = self.chunk_matrix[0, 0].pos.x + j 
                         self.chunk_matrix[0, j] = world.load_chunk(chunk_x, chunk_y)
-            
-            self._update_static_elements()
-
-        if self.initializing:
-            self.initializing = False
-
-            self.current_chunk_position = self.get_chunk_position()
-            
-            for i in range(3):
-                for j in range(3):
-                    chunk_x = self.current_chunk_position[0] + (j - 1)
-                    chunk_y = self.current_chunk_position[1] + (i - 1)
-                    self.chunk_matrix[i, j] = world.load_chunk(chunk_x, chunk_y)
             
             self._update_static_elements()
 
@@ -409,7 +411,10 @@ class RenderManager:
 
         if chunk.changes.get('block'):
             for block_info in chunk.changes['block']:  # Iterate over the blocks that were changed
+                
                 x, y = block_info  # Each block_info contains the layer, y-coordinate, and x-coordinate
+                
+
                 # Define the rectangle for the block
                 block_rect = pygame.Rect(
                     x * commons.BLOCK_SIZE,

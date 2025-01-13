@@ -53,7 +53,7 @@ class BlockMetadataLoader:
                 raise ValueError(f"Block ID {block_id} not found in metadata. Wrong type!")
 
         if block_id not in self.metadata:
-            raise ValueError(f"Block ID {block_id} not found in metadata.")
+            raise None
         
         return self.metadata[block_id].get("name", "Unknown")
 

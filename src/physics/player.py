@@ -6,7 +6,7 @@ import pygame
 import commons
 
 class Player(GameActor):
-    def __init__(self, position=commons.DEFAULT_START_PLAYER_POSITION):
+    def __init__(self, position=commons.DEFAULT_START_PLAYER_POSITION.copy()):
         """
         Initialize the Player with default attributes and load sprites using an ImageLoader.
 
@@ -31,8 +31,11 @@ class Player(GameActor):
         jump_right = Animation([f"PLAYER_JUMPING_{i}" for i in range(2, 8)], 0.1, True)  # Jumping right
         jump_left = Animation([f"PLAYER_JUMPING_{i}.FLIPED_X" for i in range(2, 8)], 0.1, True)  # Jumping left
 
-        attack_right = Animation([f"PLAYER_ATTACK_{i}" for i in range(9)], 0.07, True)  # Attacking right
-        attack_left = Animation([f"PLAYER_ATTACK_LEFT{i}.FLIPED_X" for i in range(9)], 0.07, True)  # Attacking left
+        attack_right = Animation([f"PLAYER_ATTACK_{i}" for i in range(9)], 0.01, True)  # Attacking right
+        attack_left = Animation([f"PLAYER_ATTACK_LEFT{i}.FLIPED_X" for i in range(9)], 0.01, True)  # Attacking left
+
+        dying_right = Animation([f"PLAYER_DIE_{i}" for i in range(15)], 0.1, True)  # Attacking right
+        dying_left = Animation([f"PLAYER_DIE_{i}.FLIPED_X" for i in range(15)], 0.1, True)  # Attacking left
 
 
         # Call the parent constructor with these defaults
@@ -41,9 +44,18 @@ class Player(GameActor):
                          w_right, w_left, 
                          idle_right, idle_left, 
                          jump_right, jump_left,
-                         attack_right, attack_left)
+                         attack_right, attack_left,
+                         dying_right, dying_left)
 
         self.inventory = Inventory()
+    
+    def respawn(self):
+        print("I ->", self.rect.topleft)
+        self.position = commons.DEFAULT_START_PLAYER_POSITION.copy()
+        self.rect.topleft = self.position
+        self.life = commons.PLAYER_LIFE
+        print("RESPAWN")
+        print(self.rect.topleft)
 
     def collect(self, iten: int):
         return self.inventory.add_item(iten, 1)

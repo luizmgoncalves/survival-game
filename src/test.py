@@ -69,13 +69,6 @@ def main():
 
     render_manager.render_all(screen, physics_manager.get_renderable_elements(), player)
 
-    print(physics_manager.get_renderable_elements())
-
-    
-
-    print(world.load_chunk(0, 0).edges_matrix[0])
-    #print(np.vectorize(lambda x: bin(x)[2:].zfill(4))(world.load_chunk(0, 0).edges_matrix[0]))
-
     delta_time = 1/60
 
     while running:
@@ -85,7 +78,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-                
+            
+            if event.type == commons.RENDER_MANAGER_INIT:
+                render_manager.initializing = True
             
             if event.type == commons.ITEM_DROP_EVENT:
                 physics_manager.spawn_item(event.item, event.pos)
@@ -98,15 +93,28 @@ def main():
             
             if event.type == pygame.MOUSEWHEEL:
                 player.inventory.scroll(event.y)
-                print(player.inventory.items)
+            
+                    
             
             if event.type == pygame.KEYDOWN:
                 if event.unicode.isnumeric():
                     player.inventory.selected = int(event.unicode)-1
-                    
-
         
-        if pygame.mouse.get_pressed()[0]:
+        keys = pygame.key.get_pressed()
+
+        mouse_pressed = pygame.mouse.get_pressed()
+
+
+        if mouse_pressed[2]:
+            quant, item = player.inventory.get_slot(player.inventory.selected)
+            if item != -1:
+                block_name = ITEM_METADATA.get_property_by_id(item, "block_name")
+                if block_name:
+                    block = BLOCK_METADATA.get_id_by_name(block_name)
+                    if block:
+                        player.inventory.pick_item(world.put(v2(pygame.mouse.get_pos()) + commons.CURRENT_POSITION, v2(10, 10), int(block), quant, player, keys[pygame.K_LSHIFT]))
+        
+        if mouse_pressed[0]:
             debug.start_timer("mining")
             mouse_pos = pygame.mouse.get_pos()
             mouse_rect = pygame.Rect(0, 0, 10, 10)
@@ -116,9 +124,6 @@ def main():
         
         world.update_world_state(delta_time)
         render_manager.update_chunks(world)
-        
-
-        keys = pygame.key.get_pressed()
 
         if keys[pygame.K_ESCAPE]:
             break
@@ -131,7 +136,7 @@ def main():
         if keys[pygame.K_v]:
             new_enemy.attack()
 
-        new_enemy.update_ai(player, delta_time)
+        new_enemy.update_ai(player)
         
         player.handle_input(keys)
 

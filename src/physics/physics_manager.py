@@ -4,6 +4,7 @@ from .enemy import Enemy
 from .bullet import Bullet
 from .moving_element import MovingElement, CollidableMovingElement
 from .enemy import Enemy
+from .enemy import EnemyManager
 from .item import Item
 from typing import List
 from math import ceil
@@ -28,10 +29,12 @@ class PhysicsManager:
         """
         self.player: Player = player
         self.player_bullets: List[Bullet] = player_bullets
-        self.enemies: List[Enemy] = enemies
+        
         self.moving_elements: List[MovingElement] = moving_elements 
         self.itens: List[Item] = []
         self.enemy_bullets: List[Bullet] = enemy_bullets 
+        self.enemy_manager = EnemyManager(5)
+        self.enemies: List[Enemy] = self.enemy_manager.enemies
         self.gravity: int = commons.GRAVITY_ACELERATION
         self.terminal_speed = commons.TERMINAL_SPEED
     
@@ -54,7 +57,7 @@ class PhysicsManager:
         
         :param delta_time: Time elapsed since the last update (in seconds).
         """
-        
+        self.enemy_manager.update(delta_time, self.player)
         self.apply_gravity(delta_time)
         self.apply_player_attraction_force()
         self.move_entities_and_handle_world_collisions(world, delta_time)
@@ -64,22 +67,34 @@ class PhysicsManager:
         # Update player
         if self.player:
             self.player.update(delta_time)
+            if not self.player.is_alive() and not self.player.dying:
+                self.player.respawn()
+                pygame.event.post(pygame.event.Event(commons.RENDER_MANAGER_INIT))
+
 
         # Update player bullets
         for bullet in self.player_bullets:
             bullet.update(delta_time)
+            if not bullet.is_alive() and not bullet.dying:
+                pass
 
         # Update enemies bullets
         for bullet in self.enemy_bullets:
             bullet.update(delta_time)
+            if not bullet.is_alive() and not bullet.dying:
+                pass
 
         # Update enemies
         for enemy in self.enemies:
             enemy.update(delta_time)
+            if not enemy.is_alive() and not enemy.dying:
+                self.enemies.remove(enemy)
 
         # Update other moving elements
         for element in self.moving_elements:
             element.update(delta_time)
+            if hasattr(element, "is_aline") and not element.is_alive():
+                self.moving_elements.remove(element)
     
     def apply_friction(self):
         # Update player
@@ -164,8 +179,17 @@ class PhysicsManager:
 
         # Check collisions between player and enemies
         for enemy in self.enemies:
-            if self.player and self.player.rect.colliderect(enemy.rect):
-                self._handle_player_enemy_collision(enemy)
+            if not self.player:
+                break
+
+            if self.player.rect.colliderect(enemy.rect):
+                self.player.take_damage(5, 'left' if self.player.rect.x < enemy.rect.x else 'right')
+
+            if enemy.attacking and self.player.rect.colliderect(enemy.attack_area):
+                self.player.take_damage(20, 'left' if self.player.rect.x < enemy.attack_area.x else 'right')
+            
+            if self.player.attacking and enemy.rect.colliderect(self.player.attack_area):
+                enemy.take_damage(20, 'left' if self.player.attack_area.x > enemy.rect.x else 'right')
         
         # Check collisions between player and itens (optional)
         for iten in self.itens:
@@ -186,17 +210,6 @@ class PhysicsManager:
         """
         enemy.take_damage(bullet.damage)  # Assuming `take_damage()` exists in the Enemy class
         bullet.destroy()  # Assuming bullets have a `destroy()` method
-
-    def _handle_player_enemy_collision(self, enemy: Enemy):
-        """
-        Handle the event where the player collides with an enemy.
-
-        :param enemy: The Enemy instance that collided with the player.
-        """
-        #self.player.take_damage(enemy.collision_damage)  # Assuming `collision_damage` attribute
-        #enemy.handle_collision_with_player()  # Optional behavior for enemy
-        enemy.take_damage(50)
-        pass
     
     def _handle_player_iten_collision(self, iten: Item):
         """

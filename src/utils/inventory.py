@@ -52,7 +52,7 @@ class Inventory:
 
     def get_slot(self, slot_index: int):
         """
-        Gets the contents of a specific slot.
+        Gets the contents of a specific slot. Quantity and Item
         
         :param slot_index: The index of the slot to retrieve.
         :return: A dictionary with the item and quantity, or None if the slot is empty.
@@ -70,6 +70,19 @@ class Inventory:
         r = []
         for s in range(len(self.items)):
             r.append(self.get_slot(s))
+    
+    def pick_item(self, val: int):
+        """
+        Picks one item from the currently selected slot.
+
+        :return: The item type if an item is available, None if the slot is empty.
+        """
+        current_slot = self.items[self._selected]
+        if current_slot and current_slot.get("quantity", 0) >= val:
+            current_slot["quantity"] -= val
+            if current_slot["quantity"] == 0:
+                self.items[self._selected] = {}  # Clear the slot if the quantity reaches 0
+
 
     @property
     def selected(self):

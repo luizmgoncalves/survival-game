@@ -21,6 +21,9 @@ class GameActor(CollidableMovingElement):
         self.life         : float = life
         self.attacking    : bool  = False
         self.dying        : bool = False
+        self.dying_time = 0.0
+        self.dying_duration = 2.0  # 1 second of invulnerability
+
         self.attack_area  : Rect  = pygame.Rect(0, 0, size[0] * 1.5, size[1])
         self.attack_time  : float = 0
         self.max_vel      : float = max_vel
@@ -56,6 +59,10 @@ class GameActor(CollidableMovingElement):
         self.invulnerable = False
         self.invulnerability_time = 0.0
         self.invulnerability_duration = 1.0  # 1 second of invulnerability
+    
+    def move(self, colliding_rects: List[pygame.Rect], delta_time: float):
+        if not self.dying:
+            super().move(colliding_rects, delta_time)
 
     @property
     def current_animation(self) -> Animation:
@@ -95,14 +102,15 @@ class GameActor(CollidableMovingElement):
 
         # If the actor is dying, play the dying animation
         if self.dying:
+            self.dying_time -= delta_time
             self.current_animation = self.dying_anim_left if self.facing_left else self.dying_anim_right
             if self.current_animation:
                 self.current_animation.update(delta_time)
                 self.image = self.current_animation.get_current_frame()
 
                 # Check if the dying animation is completed
-                if self.current_animation.run_once and self.current_animation.completed:
-                    self.kill()  # Remove the actor from the scene
+            if self.dying_time <= 0:
+                self.dying = False
             return  # Skip further updates while dying
 
 
@@ -156,7 +164,10 @@ class GameActor(CollidableMovingElement):
 
         :return: None
         """
-        self.velocity.x = -self.max_vel / 2
+        if self.is_falling:
+            self.velocity.x = max(-self.max_vel / 2, self.velocity.x - self.max_vel / 20)
+        else:
+            self.velocity.x = -self.max_vel / 2
         self.facing_left = True
         self.w_left = True
         self.w_right = False
@@ -167,7 +178,10 @@ class GameActor(CollidableMovingElement):
 
         :return: None
         """
-        self.velocity.x = self.max_vel / 2
+        if self.is_falling:
+            self.velocity.x = min(self.max_vel / 2, self.velocity.x + self.max_vel / 20)
+        else:
+            self.velocity.x = self.max_vel / 2
         self.facing_left = False
         self.w_right = True
         self.w_left = False
@@ -215,7 +229,7 @@ class GameActor(CollidableMovingElement):
         """
         if not self.attacking:
             self.attacking = True
-            self.attack_time = 0.6  # Attack lasts for 0.5 seconds by default
+            self.attack_time = 0.3  # Attack lasts for 0.3 seconds by default
             # Define the attack area if necessary (position can depend on facing direction)
             self.attack_area = pygame.Rect(self.rect.centerx, self.rect.centery, 50, 30)
             if self.facing_left:
@@ -252,6 +266,7 @@ class GameActor(CollidableMovingElement):
         """
         if not self.dying:
             self.dying = True
+            self.dying_time = self.dying_duration
             self.velocity.x = 0  # Stop movement
             self.velocity.y = 0
             self.current_animation = self.dying_anim_left if self.facing_left else self.dying_anim_right

@@ -5,7 +5,8 @@ from .world_generator import WorldGenerator
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 from .world_elements.item_metadata import ITEM_METADATA
 from .world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
-import numba
+from pygame.math import Vector2 as v2
+from physics.player import Player
 from pygame.rect import Rect
 import pygame
 from typing import Dict, Tuple, Set
@@ -19,7 +20,7 @@ def get_chunk_block_coordinates(val: int) -> Tuple[int, int]:
     block_v = block_v_offset // commons.BLOCK_SIZE
     if val < 0 and not block_v_offset:  # Handle negative coordinate edge case
         chunk_v -= 1
-    return chunk_v, block_v, (val // commons.BLOCK_SIZE) # Chunk pos, block pos in chunk, block absolute pos
+    return chunk_v, block_v, int(val // commons.BLOCK_SIZE) # Chunk pos, block pos in chunk, block absolute pos
 
 class World:
     def __init__(self, world_name):
@@ -245,6 +246,103 @@ class World:
                     # Apply damage to the static object's mining state
                     s_el.take_damage(damage, delta_time)
                     self.mining_objects[s_el] = chunk
+    
+    def put(self, position: v2, dimensions: v2, block_type: int, quant: int, player: Player, down=False):
+        """
+        Handles the mining logic for blocks in a grid-based chunk system.
+
+        Args:
+            position (tuple): The (x, y) coordinates of the starting position in pixels.
+            dimensions (tuple): The dimensions (width, height) of the mining area in pixels.
+            damage (float): The amount of damage dealt per unit of time.
+            delta_time (float): The time since the last update.
+        """
+
+        if BLOCK_METADATA.get_name_by_id(block_type) is None:
+            print("Trying to put a non-registered block type")
+            return
+        
+        # Extract coordinates
+        x, y = int(position[0]), int(position[1])
+
+        putted: int = 0
+
+        # Determine chunk and block indices from position
+        chunk_x, block_x, block_abs_x = get_chunk_block_coordinates(x)
+        chunk_y, block_y, block_abs_y = get_chunk_block_coordinates(y)
+
+
+        final_chunk_x, final_block_x, final_abs_x = get_chunk_block_coordinates(x+dimensions[0])
+        final_chunk_y, final_block_y, final_abs_y = get_chunk_block_coordinates(y+dimensions[1])
+
+        print(final_abs_x, block_abs_x)
+
+        rows_range = final_abs_y - block_abs_y
+        cols_range = final_abs_x - block_abs_x
+
+
+
+
+        visited_chunks : Set[Chunk] = set()
+
+        for row_offset in range(0, rows_range + 1):
+            for col_offset in range(0, cols_range + 1):
+                # Determine the local block coordinates
+                if quant == putted:
+                    return putted
+                
+                local_col = block_x + col_offset
+                local_row = block_y + row_offset
+
+                # Adjust chunk and block indices for wrapping
+                current_chunk_x = chunk_x
+                current_chunk_y = chunk_y
+
+                if local_col < 0:
+                    current_chunk_x -= 1
+                    local_col %= commons.CHUNK_SIZE
+                elif local_col >= commons.CHUNK_SIZE:
+                    current_chunk_x += 1
+                    local_col %= commons.CHUNK_SIZE
+
+                if local_row < 0:
+                    current_chunk_y -= 1
+                    local_row %= commons.CHUNK_SIZE
+                elif local_row >= commons.CHUNK_SIZE:
+                    current_chunk_y += 1
+                    local_row %= commons.CHUNK_SIZE
+
+                # Retrieve the relevant chunk
+                chunk_key = (current_chunk_x, current_chunk_y)
+                chunk = self.all_chunks.get(chunk_key)
+
+                # Skip if the chunk is not loaded
+                if chunk is None:
+                    continue
+                
+                visited_chunks.add(chunk)
+
+                # Calculate the world coordinates for the block
+                block_world_x = current_chunk_x * commons.CHUNK_SIZE_PIXELS + local_col * commons.BLOCK_SIZE
+                block_world_y = current_chunk_y * commons.CHUNK_SIZE_PIXELS + local_row * commons.BLOCK_SIZE
+
+                b_rect = Rect(block_world_x, block_world_y, commons.BLOCK_SIZE, commons.BLOCK_SIZE)
+
+                if b_rect.colliderect(player.rect): #Not putting where the player is
+                    continue
+
+                # Check for collidable blocks in the current position
+                if chunk.blocks_grid[1, local_row, local_col] == 0 and down: #verify if it's air
+                    #chunk.changes['block'].append((local_col, local_row))
+                    chunk.add_block(block_type, local_col, local_row, 1)
+                    putted += 1
+                
+                if chunk.blocks_grid[0, local_row, local_col] == 0 and not down:
+                    #chunk.changes['block'].append((local_col, local_row))
+                    chunk.add_block(block_type, local_col, local_row, 0)
+                    putted += 1
+        
+        return putted
                     
         
 

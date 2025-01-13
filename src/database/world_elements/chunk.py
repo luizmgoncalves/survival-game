@@ -62,7 +62,7 @@ class Chunk:
         
         self.update_around(block, layer, col, row)
         if need_update:
-            self.changes['block'].append((layer, col, row))
+            self.changes['block'].append((col, row))
     
     def remove_block(self, col, row, layer):
         """

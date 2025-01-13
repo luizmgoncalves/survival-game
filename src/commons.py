@@ -32,6 +32,8 @@ ITEM_COLLECT_EVENT = pygame.event.custom_type()
 # Has no atributes
 S_ELEMENT_BROKEN = pygame.event.custom_type()
 
+RENDER_MANAGER_INIT = pygame.event.custom_type()
+
 # Metadata files path
 METADATA_PATH = './assets/metadata/'
 

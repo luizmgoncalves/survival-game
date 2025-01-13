@@ -138,6 +138,12 @@ class WorldGenerator:
         chunk.world_elements = chunk_elements
 
         Debug.stop_timer("Generating chunk")
+    
+    def surface(self, x: int) -> int:
+        surface_y = (noise.pnoise1(x*0.0009, base=self.seed) *  commons.CHUNK_SIZE * 4 ) # 0 - 100
+        surface_y += (noise.pnoise1(x*0.05, base=self.seed) * commons.CHUNK_SIZE * 0.25)
+        surface_y = round(surface_y)
+        return surface_y
 
 
     def gen_obj(self, obj_name, line, col, chunk_x, chunk_y):

@@ -1,26 +1,32 @@
 {
     "1": {
         "name": "STONE",
-        "image_name": "STONE_ITEM"
+        "image_name": "STONE_ITEM",
+        "block_name": "STONE"
     },
     "2": {
         "name": "WOOD",
-        "image_name": "WOOD"
+        "image_name": "WOOD",
+        "block_name": "WOOD"
     },
     "3": {
         "name": "APPLE",
-        "image_name": "APPLE"
+        "image_name": "APPLE",
+        "block_name": false
     },
     "4": {
         "name": "GRASS",
-        "image_name": "GRASS_ITEM"
+        "image_name": "GRASS_ITEM",
+        "block_name": "GRASS"
     },
     "5": {
         "name": "IRON_ORE",
-        "image_name": "iron_ore"
+        "image_name": "iron_ore",
+        "block_name": "IRON_ORE"
     },
     "6": {
         "name": "DIRT",
-        "image_name": "DIRT_ITEM"
+        "image_name": "DIRT_ITEM",
+        "block_name": "DIRT"
     }
 }

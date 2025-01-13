@@ -333,8 +333,6 @@ class WorldLoader:
                 VALUES (?, ?, ?, ?, ?)
             ''', [(world_id, block['x'], block['y'], block['layer'], block['type']) for block in blocks])
             conn.commit()
-            print(blocks[:40])
-            print(f"Saved {len(blocks)} blocks for world {world_id}.")
 
     def load_blocks(self, world_id, x_min, x_max, y_min, y_max):
         """

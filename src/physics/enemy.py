@@ -27,15 +27,15 @@ class EnemyManager:
         # Atualiza o temporizador para criação de novos inimigos
         self.last_spawn_time += dt
         if self.last_spawn_time > self.spawn_interval:
-            self.spawn_enemy()  # Cria um novo inimigo
+            self.enemies.append(self.spawn_enemy())  # Cria um novo inimigo
             self.last_spawn_time = 0  # Reinicia o contador de tempo
 
         # Atualiza todos os inimigos existentes
         for enemy in self.enemies:
-            enemy.update(player, dt)
+            enemy.update_ai(player)
 
         # Remove inimigos mortos
-        self.enemies = [enemy for enemy in self.enemies if not enemy.is_dead]
+        #self.enemies = [enemy for enemy in self.enemies if not enemy.is_alive()]
 
     def spawn_enemy(self):
         """
@@ -115,7 +115,7 @@ class Enemy(GameActor):
         self.attack_range: float = attack_range
         self.attack_damage: float = attack_damage
 
-    def update_ai(self, player, delta_time: float):
+    def update_ai(self, player):
         """
         Update the enemy's behavior and animation.
 
@@ -130,9 +130,6 @@ class Enemy(GameActor):
                 # Attack the player if in range and not already attacking
                 if not self.attacking:
                     self.attack()
-
-        # Update the GameActor state and animations
-        super().update(delta_time)
 
     def distance_to_player(self, player) -> float:
         """
