@@ -3,6 +3,7 @@ import json
 import pygame
 import commons
 from rendering.animation import Animation
+from physics.player import Player
 from pygame.math import Vector2 as v2
 from .game_actor import GameActor
 from images.image_loader import ImageLoader  # Importando o ImageLoader
@@ -23,7 +24,7 @@ class EnemyManager:
         # Instância do ImageLoader
         self.image_loader = ImageLoader()
 
-    def update(self, dt, player):
+    def update(self, dt: float, player: Player):
         # Atualiza o temporizador para criação de novos inimigos
         self.last_spawn_time += dt
         if self.last_spawn_time > self.spawn_interval:
@@ -33,6 +34,8 @@ class EnemyManager:
         # Atualiza todos os inimigos existentes
         for enemy in self.enemies:
             enemy.update_ai(player)
+            if v2(enemy.position).distance_to(player.position) > commons.DESPAWN_DISTANCE:
+                self.enemies.remove(enemy)
 
         # Remove inimigos mortos
         #self.enemies = [enemy for enemy in self.enemies if not enemy.is_alive()]
@@ -60,12 +63,14 @@ class EnemyManager:
         dying_left = Animation([f"{enemy_name}.DYING{i}.FLIPED_X" for i in range(spr_num_data['dying'])], 0.07, True)
 
         # Enemy attributes
-        position = (random.randint(0, 800), random.randint(0, 600))  # Example random position
+        position = v2(random.randint(0, 800), random.randint(0, 600)) + commons.CURRENT_POSITION  # Example random position
         size = (enemy_data['width'], enemy_data['height'])
         life = enemy_data['life']
         max_vel = enemy_data['max_vel']
         attack_range = enemy_data['attack_range']
         attack_damage = enemy_data['attack_damage']
+
+        throws = enemy_data.get("throw", None)
 
         # Create the new enemy
         new_enemy = Enemy(
@@ -83,6 +88,7 @@ class EnemyManager:
             attack_left=attack_left,
             dying_right=dying_right,
             dying_left=dying_left,
+            throws=throws
         )
 
         # Add the new enemy to the enemies list
@@ -96,7 +102,7 @@ class Enemy(GameActor):
                  attack_damage: float = 10, walk_right: Animation = None, walk_left: Animation = None, 
                  idle_right: Animation = None, idle_left: Animation = None, 
                  attack_right: Animation = None, attack_left: Animation = None, 
-                 dying_right: Animation = None, dying_left: Animation = None):
+                 dying_right: Animation = None, dying_left: Animation = None, throws=None):
         """
         Initialize an Enemy instance.
 
@@ -112,6 +118,12 @@ class Enemy(GameActor):
                          idle_right=idle_right, idle_left=idle_left,
                          attack_right=attack_right, attack_left=attack_left,
                          dying_right=dying_right, dying_left=dying_left)
+        
+        self.throwable: str = throws
+
+        if throws == 'AXE':
+            self.attack_cooldown = 2.0
+
         self.attack_range: float = attack_range
         self.attack_damage: float = attack_damage
 
@@ -155,7 +167,13 @@ class Enemy(GameActor):
         """
         Start an attack action. Deals damage to the player if within range.
         """
-        super().attack()
+        
+        
+
+        if super().attack() and self.throwable:
+            self.attack_area = pygame.Rect(0, 0, 0, 0) # doesnt attack
+            self.attack_damage = 0
+            pygame.event.post(pygame.event.Event(commons.THROWING, {'throwable': self.throwable, 'enemy': True, 'pos': self.rect.center}))
         # Additional logic to deal damage to the player can be added here.
 
     def die(self):

@@ -16,11 +16,12 @@
         }, 
         "ENEMY_AXE": {
             "life": 100,
-            "attack_range": 50,
+            "attack_range": 500,
             "attack_damage": 100,
             "max_vel": 300,
             "width": 40,
             "height": 50,
+            "throw": "AXE",
             "num_sprites":{
                 "idle": 1,
                 "walking": 6,
@@ -44,11 +45,12 @@
         }, 
         "ENEMY_ARROW": {
             "life": 100,
-            "attack_range": 50,
+            "attack_range": 500,
             "attack_damage": 100,
             "max_vel": 300,
             "width": 40,
             "height": 50,
+            "throw": "ARROW",
             "num_sprites":{
                 "idle": 1,
                 "walking": 5,

@@ -390,25 +390,22 @@ class World:
 
                                 pygame.event.post(pygame.event.Event(commons.ITEM_DROP_EVENT, drop_event_dict))
                         
-                        if col == 0:
-                            side_chunk = self.all_chunks[(chunk_x-1, chunk_y)]
+                        if col == 0 and (side_chunk := self.all_chunks.get((chunk_x-1, chunk_y), None)):
+                            
                             if side_chunk.edges_matrix[layer, row, commons.CHUNK_SIZE-1] & 0b0010:
                                 side_chunk.edges_matrix[layer, row, commons.CHUNK_SIZE-1] -= 0b0010
                                 side_chunk.changes['block'].append((commons.CHUNK_SIZE-1, row))
                             
-                        if col == commons.CHUNK_SIZE-1:
-                            side_chunk = self.all_chunks[(chunk_x+1, chunk_y)]
+                        if col == commons.CHUNK_SIZE-1 and (side_chunk := self.all_chunks.get((chunk_x+1, chunk_y), None)):
                             if side_chunk.edges_matrix[layer, row, 0] & 0b1000:
                                 side_chunk.edges_matrix[layer, row, 0] -= 0b1000
                                 side_chunk.changes['block'].append((0, row))
                         
-                        if row == 0:
-                            side_chunk = self.all_chunks[(chunk_x, chunk_y-1)]
+                        if row == 0 and (side_chunk := self.all_chunks.get((chunk_x, chunk_y-1), None)):
                             if side_chunk.edges_matrix[layer, commons.CHUNK_SIZE-1, col] & 0b0001:
                                 side_chunk.edges_matrix[layer, commons.CHUNK_SIZE-1, col] -= 0b0001
                                 side_chunk.changes['block'].append((col, commons.CHUNK_SIZE-1))
-                        if row == commons.CHUNK_SIZE-1:
-                            side_chunk = self.all_chunks[(chunk_x, chunk_y+1)]
+                        if row == commons.CHUNK_SIZE-1 and (side_chunk := self.all_chunks.get((chunk_x, chunk_y+1), None)):
                             if side_chunk.edges_matrix[layer, 0, col] & 0b0100:
                                 side_chunk.edges_matrix[layer, 0, col] -= 0b0100
                                 side_chunk.changes['block'].append((col, 0))

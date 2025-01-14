@@ -315,34 +315,6 @@ class RenderManager:
                             elif ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0): 
                                 image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
-                            
-                        if block and layer==0 and False:  # Legacy
-                            block_color = BLOCK_METADATA.get_property_by_id(block, "color")
-
-                            if edge == 0b1001:
-                                p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
-                                block_poligon = [p, p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
-                                pygame.draw.polygon(surface, block_color, block_poligon)
-                            elif edge == 0b0011:
-                                p = v2(x * commons.BLOCK_SIZE, y * commons.BLOCK_SIZE)
-                                block_poligon = [p+v2(commons.BLOCK_SIZE, 0), p+v2(0, commons.BLOCK_SIZE), p+v2(commons.BLOCK_SIZE, commons.BLOCK_SIZE)]
-                                pygame.draw.polygon(surface, block_color, block_poligon)
-                            else:
-                                block_rect = pygame.Rect(
-                                    x * commons.BLOCK_SIZE,
-                                    y * commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE,
-                                    commons.BLOCK_SIZE
-                                )
-                                pygame.draw.rect(surface, block_color, block_rect)
-
-            # Render static world elements
-            for element in chunk.world_elements:
-                break
-                image_name = S_ELEMENT_METADATA_LOADER.get_property_by_id(element.id, "image_name")
-                im = IMAGE_LOADER.get_image(image_name)
-                screen_position = v2(element.rect.topleft) - IMAGE_LOADER.get_image_atribute(image_name, "offset")
-                surface.blit(im, screen_position)
             
             chunk.clear_changes()
             Debug.stop_timer("rendering entire chunk")
@@ -505,13 +477,32 @@ class RenderManager:
             if (0 <= actual_x < commons.WIDTH and
                 0 <= actual_y < commons.HEIGHT):
                 # Render the element's image if available, otherwise render a rectangle
+                if hasattr(element, 'attack_area') and element.attacking:
+                    _actual_x = element.attack_area.x - self.current_position[0]
+                    _actual_y = element.attack_area.y - self.current_position[1]
+                    pygame.draw.rect(
+                        screen,
+                        (255, 0, 0),  # Default color (red)
+                        pygame.Rect(_actual_x, _actual_y, element.attack_area.width, element.attack_area.height)
+                    )
+                
                 if hasattr(element, 'image') and element.image:
-                    image = IMAGE_LOADER.get_image(element.image)
-                    if offset := IMAGE_LOADER.get_image_atribute(element.image, "offset"):
-                        screen.blit(image, (actual_x + offset[0], actual_y + offset[1]))
-                        continue
+                    if isinstance(element.image, str):
+                        image = IMAGE_LOADER.get_image(element.image)
+
+                        if offset := IMAGE_LOADER.get_image_atribute(element.image, "offset"):
+                            screen.blit(image, (actual_x + offset[0], actual_y + offset[1]))
+                            continue
+
+                        screen.blit(image, (actual_x, actual_y))
                     
-                    screen.blit(image, (actual_x, actual_y))
+                    elif isinstance(element.image, pygame.Surface):
+                        image = element.image
+                        screen.blit(image, (actual_x, actual_y))
+                    else:
+                        print(f"Not renderable image trying to be rendered by {element}")
+                        continue
+
                 else:
                     # Draw a rectangle if no image is present
                     pygame.draw.rect(

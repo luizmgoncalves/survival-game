@@ -2,6 +2,18 @@
     "WALLPAPER": {
         "path": "back.jpg"
     },
+    "SKY": {
+        "path": "background/sky.png",
+        "scaled_size": [1920, 1080]
+    },
+    "MOUNTAIN": {
+        "path": "background/mountain.png",
+        "scaled_size": [1920, 600],
+        "color_key": [0, 0, 0]
+    },
+    "BACK_TREES": {
+        "path": "background/pine2.png"
+    },
     "GRASS": {
         "path": "blocks/grass.png",
         "block": true
@@ -88,8 +100,8 @@
         "color_key": [113, 102, 79]
     },
     "ENEMY_VIKING": {
-    "path": "enemy/viking_enemy.jpg",
-    "color_key": [255, 255, 255],
+    "path": "enemy/viking_enemy.png",
+    "color_key": [255, 0, 255],
     "flipx": true,
     "sprite_regions": {
         "IDLE0": { "x": 12, "y": 13, "width": 34, "height": 48 },
@@ -115,7 +127,7 @@
     },
     "ENEMY_AXE": {
         "path": "enemy/axe_enemy.png",
-        "color_key": [255, 255, 255],
+        "color_key": [255, 0, 255],
         "flipx": true,
         "sprite_regions": {
             "IDLE0": { "x": 5, "y": 32, "width": 32, "height": 35 },
@@ -141,8 +153,8 @@
         }
     },
     "ENEMY_SPEAR": {
-        "path": "enemy/spear_enemy.jpg",
-        "color_key": [255, 255, 255],
+        "path": "enemy/spear_enemy.png",
+        "color_key": [255, 0, 255],
         "flipx": true,
         "sprite_regions": {
             "IDLE0": { "x": 18, "y": 13, "width": 44, "height": 41 },
@@ -163,8 +175,8 @@
         }
     },
     "ENEMY_ARROW": {
-        "path": "enemy/arrow_enemy.jpg",
-        "color_key": [255, 255, 255],
+        "path": "enemy/arrow_enemy.png",
+        "color_key": [255, 0, 255],
         "flipx": true,
         "sprite_regions": {
             "IDLE0": { "x": 5, "y": 46, "width": 46, "height": 54 },
@@ -187,22 +199,23 @@
     },
     "ARSENAL_AXE": {
         "path": "enemy/axe_enemy.png",
-        "color_key": [255, 255, 255],
+        "color_key": [255, 0, 255],
         "sprite_regions": {
-            "FRAME1": { "x": 16, "y": 237, "width": 16, "height": 18 },
-            "FRAME2": { "x": 29, "y": 237, "width": 16, "height": 18 },
-            "FRAME3": { "x": 45, "y": 237, "width": 16, "height": 18 },
-            "FRAME4": { "x": 64, "y": 237, "width": 16, "height": 18 },
-            "FRAME5": { "x": 78, "y": 237, "width": 16, "height": 18 },
-            "FRAME6": { "x": 94, "y": 237, "width": 16, "height": 18 },
-            "FRAME7": { "x": 110, "y": 237, "width": 16, "height": 18 },
-            "FRAME8": { "x": 128, "y": 237, "width": 16, "height": 18 }
+            "FRAME1": { "x": 16, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10]},
+            "FRAME2": { "x": 29, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10] },
+            "FRAME3": { "x": 45, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10] },
+            "FRAME4": { "x": 64, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10] },
+            "FRAME5": { "x": 78, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10] },
+            "FRAME6": { "x": 94, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10] },
+            "FRAME7": { "x": 110, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10] },
+            "FRAME8": { "x": 128, "y": 237, "width": 16, "height": 18, "scaled_size": [40, 40], "offset": [-10, -10] }
         }
     },
     "ARSENAL_ARROW": {
-        "path": "enemy/arrow_enemy.jpg",
+        "path": "enemy/arrow_enemy.png",
+        "color_key": [255, 0, 255],
         "sprite_regions": {
-            "FRAME1": { "x": 258, "y": 135, "width": 34, "height": 13 }
+            "FRAME1": { "x": 258, "y": 135, "width": 34, "height": 13}
         }
     }
 }           

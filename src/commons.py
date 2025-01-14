@@ -34,6 +34,9 @@ S_ELEMENT_BROKEN = pygame.event.custom_type()
 
 RENDER_MANAGER_INIT = pygame.event.custom_type()
 
+
+THROWING = pygame.event.custom_type()
+
 # Metadata files path
 METADATA_PATH = './assets/metadata/'
 
@@ -84,3 +87,8 @@ CURRENT_POSITION = pygame.math.Vector2(0, 0)
 
 
 INVENTORY_POS = lambda : v2(pygame.display.get_window_size()[0]/2, pygame.display.get_window_size()[1]-200)
+
+
+DESPAWN_DISTANCE = 1000
+
+BULLET_INITIAL_VELOCITY = 1000

@@ -3,6 +3,7 @@ from .player import Player
 from .enemy import Enemy
 from .bullet import Bullet
 from .moving_element import MovingElement, CollidableMovingElement
+from .bullet import Arrow, Axe
 from .enemy import Enemy
 from .enemy import EnemyManager
 from .item import Item
@@ -38,6 +39,28 @@ class PhysicsManager:
         self.gravity: int = commons.GRAVITY_ACELERATION
         self.terminal_speed = commons.TERMINAL_SPEED
     
+    def enemy_throw(self, throwable: str, pos: v2):
+        if not self.player:
+            return
+        
+        dif = self.player.position - v2(0, abs(self.player.position.x-pos[0])/2) - pos
+
+        _, angle = dif.as_polar()
+
+        angle += (random() - 0.5)*40
+
+        init_vel = v2.from_polar((commons.BULLET_INITIAL_VELOCITY, angle))
+
+        match throwable:
+            case "AXE":
+                new_bullet = Axe(pos, init_vel)
+            case "ARROW":
+                new_bullet = Arrow(pos, init_vel)
+            case _:
+                return
+            
+        self.enemy_bullets.append(new_bullet)
+    
     def spawn_item(self, item_id, pos):
         r_angle = -180 * random()
         init_vel = v2.from_polar((commons.ITEM_INITIAL_VELOCITY, r_angle))
@@ -48,7 +71,7 @@ class PhysicsManager:
         self.itens.append(new_item)
     
     def get_renderable_elements(self):
-        return self.moving_elements + [self.player] + self.enemies
+        return self.moving_elements + [self.player] + self.player_bullets + self.enemy_bullets + self.enemies
 
 
     def update(self, delta_time, world):
@@ -75,19 +98,20 @@ class PhysicsManager:
         # Update player bullets
         for bullet in self.player_bullets:
             bullet.update(delta_time)
-            if not bullet.is_alive() and not bullet.dying:
-                pass
+            if not bullet.is_alive():
+                self.player_bullets.remove(bullet)
 
         # Update enemies bullets
         for bullet in self.enemy_bullets:
             bullet.update(delta_time)
-            if not bullet.is_alive() and not bullet.dying:
-                pass
+            if not bullet.is_alive():
+                self.enemy_bullets.remove(bullet)
 
         # Update enemies
         for enemy in self.enemies:
             enemy.update(delta_time)
             if not enemy.is_alive() and not enemy.dying:
+                self.player.kills += 1
                 self.enemies.remove(enemy)
 
         # Update other moving elements
@@ -147,6 +171,12 @@ class PhysicsManager:
         if self.player:
             self._apply_gravity_to_entity(self.player, delta_time)
 
+        for bullet in self.player_bullets:
+            self._apply_gravity_to_entity(bullet, delta_time)
+        
+        for bullet in self.enemy_bullets:
+            self._apply_gravity_to_entity(bullet, delta_time)
+
         # Apply gravity to enemies
         for enemy in self.enemies:
             self._apply_gravity_to_entity(enemy, delta_time)
@@ -176,13 +206,22 @@ class PhysicsManager:
             for enemy in self.enemies:
                 if bullet.rect.colliderect(enemy.rect):  # Assuming entities have a `rect` attribute for collision
                     self._handle_bullet_hit_enemy(bullet, enemy)
+        
+        for bullet in self.enemy_bullets:
+            if not self.player:
+                break
+            
+            if self.player.rect.colliderect(bullet.rect):
+                self.player.take_damage(bullet.damage, 'left' if self.player.rect.x < bullet.rect.x else 'right')
+                bullet.collided_down()
+
 
         # Check collisions between player and enemies
         for enemy in self.enemies:
             if not self.player:
                 break
 
-            if self.player.rect.colliderect(enemy.rect):
+            if self.player.rect.colliderect(enemy.rect) and enemy.is_alive():
                 self.player.take_damage(5, 'left' if self.player.rect.x < enemy.rect.x else 'right')
 
             if enemy.attacking and self.player.rect.colliderect(enemy.attack_area):

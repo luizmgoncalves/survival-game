@@ -45,6 +45,8 @@ class WorldLoader:
                     world_id INTEGER NOT NULL,
                     x INTEGER NOT NULL,
                     y INTEGER NOT NULL,
+                    deaths INTEGER DEFAULT 0,
+                    kills INTEGER DEFAULT 0,
                     PRIMARY KEY (world_id),
                     FOREIGN KEY (world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
                 );
@@ -225,17 +227,17 @@ class WorldLoader:
         except sqlite3.Error as e:
             print(f"An error occurred while updating the score: {e}")
 
-    def save_player_location(self, world_id, x, y):
+    def save_player_location(self, world_id, x, y, deaths:int=0, kills: int=0):
         """Save the player's location in the given world."""
         with sqlite3.connect(self.db_name) as conn:
             cursor = conn.cursor()
             try:
                 # Use INSERT OR REPLACE to update location if it already exists
                 cursor.execute('''
-                    INSERT OR REPLACE INTO PlayerLocations (world_id, x, y)
-                    VALUES (?, ?, ?);
-                ''', (world_id, x, y))
-                print(f"Player location saved for world_id={world_id}: ({x}, {y})")
+                    INSERT OR REPLACE INTO PlayerLocations (world_id, x, y, kills, deaths)
+                    VALUES (?, ?, ?, ?, ?);
+                ''', (world_id, x, y, kills, deaths))
+                print(f"Player location saved for world_id={world_id}: ({x}, {y}, {kills}, {deaths})")
             except sqlite3.Error as e:
                 print(f"Error saving player location: {e}")
 
@@ -245,13 +247,13 @@ class WorldLoader:
             cursor = conn.cursor()
             try:
                 cursor.execute('''
-                    SELECT x, y FROM PlayerLocations
+                    SELECT x, y, kills, deaths FROM PlayerLocations
                     WHERE world_id = ?;
                 ''', (world_id,))
                 result = cursor.fetchone()
                 if result:
                     print(f"Player location loaded for world_id={world_id}: {result}")
-                    return result  # Returns a tuple (x, y)
+                    return result  # Returns a tuple (x, y, kills, deaths)
                 else:
                     print(f"No location found for world_id={world_id}.")
                     return None

@@ -6,7 +6,7 @@ import pygame
 import commons
 
 class Player(GameActor):
-    def __init__(self, position=commons.DEFAULT_START_PLAYER_POSITION.copy()):
+    def __init__(self, kills=0, deaths=0, position=commons.DEFAULT_START_PLAYER_POSITION.copy()):
         """
         Initialize the Player with default attributes and load sprites using an ImageLoader.
 
@@ -48,14 +48,16 @@ class Player(GameActor):
                          dying_right, dying_left)
 
         self.inventory = Inventory()
+        self.attack_cooldown = 0
+        self.kills: int = kills
+        self.deaths: int = deaths
+
     
     def respawn(self):
-        print("I ->", self.rect.topleft)
         self.position = commons.DEFAULT_START_PLAYER_POSITION.copy()
         self.rect.topleft = self.position
         self.life = commons.PLAYER_LIFE
-        print("RESPAWN")
-        print(self.rect.topleft)
+        self.deaths += 1
 
     def collect(self, iten: int):
         return self.inventory.add_item(iten, 1)
@@ -65,7 +67,9 @@ class Player(GameActor):
         Handle player-specific input for movement, jumping, and attacking.
         :param keys: Dictionary of keys being pressed (from pygame.key.get_pressed()).
         """
-
+        if self.dying:
+            return
+        
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.walk_left()
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:

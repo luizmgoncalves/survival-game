@@ -59,6 +59,9 @@ class GameActor(CollidableMovingElement):
         self.invulnerable = False
         self.invulnerability_time = 0.0
         self.invulnerability_duration = 1.0  # 1 second of invulnerability
+
+        self.attack_cooldown: float = 1.0  # Cooldown time in seconds
+        self.time_since_last_attack: float = 0.0  # Time since the last attack
     
     def move(self, colliding_rects: List[pygame.Rect], delta_time: float):
         if not self.dying:
@@ -85,8 +88,11 @@ class GameActor(CollidableMovingElement):
             self._current_anim.reset()
 
     def update(self, delta_time: float):
-        if abs(self.velocity.x) < 40:  # Threshold for stopping
+        if abs(self.velocity.x) < 30:  # Threshold for stopping
             self.stop_moving()
+
+        if self.time_since_last_attack < self.attack_cooldown:
+            self.time_since_last_attack += delta_time
 
         # Handle attack timing
         if self.attacking:
@@ -227,13 +233,19 @@ class GameActor(CollidableMovingElement):
 
         :return: None
         """
-        if not self.attacking:
+        if not self.attacking and self.time_since_last_attack >= self.attack_cooldown:
             self.attacking = True
             self.attack_time = 0.3  # Attack lasts for 0.3 seconds by default
+            self.time_since_last_attack = 0.0  # Reset the cooldown timer
+            
             # Define the attack area if necessary (position can depend on facing direction)
             self.attack_area = pygame.Rect(self.rect.centerx, self.rect.centery, 50, 30)
             if self.facing_left:
                 self.attack_area = pygame.Rect(self.rect.centerx - 50, self.rect.centery, 50, 30)
+            
+            return True
+        
+        return False
 
     def take_damage(self, amount, direction='left'):
         """
@@ -252,11 +264,11 @@ class GameActor(CollidableMovingElement):
             self.invulnerability_time = self.invulnerability_duration
 
             if direction == 'left':
-                self.velocity.x = -700
-                self.velocity.y = -500
+                self.velocity.x = -700 * amount/30
+                self.velocity.y = -500 * amount/30
             else:
-                self.velocity.x = 700
-                self.velocity.y = -500
+                self.velocity.x = 700 * amount/30
+                self.velocity.y = -500 * amount/30
 
     def die(self):
         """
