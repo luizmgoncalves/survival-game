@@ -25,7 +25,7 @@ class EntryMenu(Page):
         self.bg_image = self._bg_image
         
         # Initialize menu labels and buttons
-        self.labels = [Label("Cave Game",commons.IWIDTH / 2, 220)]
+        self.labels = [Label("Crafting Horizons",commons.IWIDTH / 2, 220)]
         self.buttons = [
             Button("settings", commons.IWIDTH - 50, 50, width=100, height=80, font_size=60, on_click=self.go_to_settings_page),
             Button("Worlds",commons.IWIDTH / 2, 400, width=400, font_size=60, on_click=self.go_to_worlds_page), 
