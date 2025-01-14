@@ -36,9 +36,8 @@ while running:
         
 
     
-    delta_time = clock.tick(50) / 1000
+    delta_time = clock.tick(60) / 1000
     page_manager.update(delta_time)
     page_manager.draw(screen)
-    pygame.time.delay(20)
 
 pygame.quit()

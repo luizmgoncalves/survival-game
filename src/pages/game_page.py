@@ -155,18 +155,19 @@ class GamePage(Page):
         commons.CURRENT_POSITION = pygame.Vector2(self.player.rect.center) - pygame.Vector2(commons.WIDTH, commons.HEIGHT) / 2
         self.render_manager.update_position((commons.CURRENT_POSITION[0], commons.CURRENT_POSITION[1]))
 
+        self.back.update(-commons.CURRENT_POSITION.x, delta_time)
+        self.back1.update(-commons.CURRENT_POSITION.x, delta_time)
+
+        self.color = self.color_filter.get_color(delta_time)
+        
+
     def draw(self, screen):
         """
         Draw all game elements on the screen.
         """
-        delta_time = self.clock.tick(50) / 1000
-        color = self.color_filter.get_color(delta_time)
 
-        self.back.update(-commons.CURRENT_POSITION.x, delta_time)
-        self.back1.update(-commons.CURRENT_POSITION.x, delta_time)
-
-        self.back.draw(screen, color)
-        self.back1.draw(screen, color)
+        self.back.draw(screen, self.color)
+        self.back1.draw(screen, self.color)
 
         self.render_manager.render_all(screen, self.physics_manager.get_renderable_elements(), self.player)
         pygame.display.update()
