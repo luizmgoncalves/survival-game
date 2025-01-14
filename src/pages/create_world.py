@@ -25,10 +25,10 @@ class CreatingPage(Page):
 
         # Initialize labels and buttons
         self.world_name: str = ''
-        self.world_name_label = Label(f"Name: \"{self.world_name}\"", commons.WIDTH / 2, 220)
+        self.world_name_label = Label(f"Name: \"{self.world_name}\"", commons.IWIDTH / 2, 220)
         self.buttons = [
-            Button("Create", commons.WIDTH / 2, 600, width=440, font_size=60, on_click=self.create_world),
-            Button("Back to Worlds Menu", commons.WIDTH / 2, 900, width=440, font_size=60, on_click=self.go_back_to_worlds_menu),
+            Button("Create", commons.IWIDTH / 2, 600, width=440, font_size=60, on_click=self.create_world),
+            Button("Back to Worlds Menu", commons.IWIDTH / 2, 900, width=440, font_size=60, on_click=self.go_back_to_worlds_menu),
         ]
 
         self.elements = [self.world_name_label] + self.buttons
@@ -46,7 +46,7 @@ class CreatingPage(Page):
 
         self.world_name = ''
 
-        self.world_name_label = Label(f"Name: \"{self.world_name}\"", commons.WIDTH / 2, 220)
+        self.world_name_label = Label(f"Name: \"{self.world_name}\"", commons.IWIDTH / 2, 220)
 
         self.elements.append(self.world_name_label)
         self.canvas.add(self.world_name_label)
@@ -90,7 +90,7 @@ class CreatingPage(Page):
         """
         Handle resizing the menu elements and background image based on screen size.
         """
-        scale_x, scale_y = display_size[0] / commons.WIDTH, display_size[1] / commons.HEIGHT
+        scale_x, scale_y = display_size[0] / commons.IWIDTH, display_size[1] / commons.IHEIGHT
 
         # Scale the background image to fit the new screen size
         self.bg_image = pygame.transform.scale(self._bg_image, display_size).convert()
@@ -169,14 +169,14 @@ class CreatingPage(Page):
         self.elements.remove(self.world_name_label)
         self.canvas.remove(self.world_name_label)
 
-        self.world_name_label = Label(f"Name: \"{self.world_name}\"", commons.WIDTH / 2, 220)
+        self.world_name_label = Label(f"Name: \"{self.world_name}\"", commons.IWIDTH / 2, 220)
 
         self.elements.append(self.world_name_label)
         self.canvas.add(self.world_name_label)
 
         self.resize(pygame.display.get_window_size())
 
-    def update(self):
+    def update(self, delta_time):
         """
         Update the page's state, such as animations or button states.
         """

@@ -6,6 +6,7 @@ from pages.worlds_page import WorldsPage
 from pages.settings_menu import SettingsPage
 from pages.world_page import WorldPage
 from pages.create_world import CreatingPage
+from pages.game_page import GamePage
 
 # Now, instead of importing EntryMenu from src.pages.entry_menu, you can import it like this:
 # from src.pages import EntryMenu

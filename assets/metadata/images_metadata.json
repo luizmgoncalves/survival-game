@@ -8,7 +8,7 @@
     },
     "MOUNTAIN": {
         "path": "background/mountain.png",
-        "scaled_size": [1920, 600],
+        "scaled_size": [2020, 900],
         "color_key": [0, 0, 0]
     },
     "BACK_TREES": {
@@ -17,6 +17,14 @@
     "GRASS": {
         "path": "blocks/grass.png",
         "block": true
+    },
+    "FULL_LIFE": {
+        "color_key": [255, 0, 255],
+        "path": "inventory/life_full.png"
+    },
+    "EMPTY_LIFE": {
+        "color_key": [255, 0, 255],
+        "path": "inventory/life_down.png"
     },
     "GRASS_ITEM": {
         "path": "blocks/grass.png",

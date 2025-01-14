@@ -19,7 +19,7 @@ class Page(ABC):
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, delta_time):
         """Update the page's state (e.g., animations, user inputs)."""
         pass
 

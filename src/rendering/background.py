@@ -6,10 +6,14 @@ class BackLayer:
     def __init__(self, image_name, factor=1, y_offset: int=0, color_key=(0, 0, 0)):
         self.image = pygame.Surface((commons.WIDTH, commons.HEIGHT))
         self.image.fill(color_key)
+        self.image_name = image_name
+        self.color_key = color_key
+        self.y_offset = y_offset
         self.image.set_colorkey(color_key)
 
-        self.bimage = IMAGE_LOADER.get_image(image_name)
-        self.image.blit(self.bimage, (0, commons.HEIGHT - self.bimage.get_height()- y_offset))
+        self.bimage = IMAGE_LOADER.get_image(image_name).copy()
+        self.bimage = pygame.transform.scale_by(self.bimage, commons.WIDTH/self.bimage.get_width())
+        self.image.blit(self.bimage, (0, commons.HEIGHT - self.bimage.get_height()- y_offset * commons.HEIGHT))
 
         self.factor = factor
         self.width = self.bimage.get_width()
@@ -17,6 +21,19 @@ class BackLayer:
 
         self.elapsed_time = 0      # Timer to track elapsed time
         self.tinted_image = None  # Stores the last painted image
+    
+    def resize(self):
+        self.image = pygame.Surface((commons.WIDTH, commons.HEIGHT))
+        self.image.fill(self.color_key)
+        self.image.set_colorkey(self.color_key)
+
+        self.bimage = IMAGE_LOADER.get_image(self.image_name).copy()
+        self.bimage = pygame.transform.scale_by(self.bimage, commons.WIDTH/self.bimage.get_width())
+        self.image.blit(self.bimage, (0, commons.HEIGHT - self.bimage.get_height()- self.y_offset * commons.HEIGHT))
+        self.width = self.image.get_width()
+
+        self.tinted_image = None
+
 
     def update(self, x: int, delta_time: float):
         self.pos_x = int(x * self.factor)

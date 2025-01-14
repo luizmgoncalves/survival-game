@@ -23,7 +23,7 @@ class RenderManager:
     A manager class responsible for handling the rendering of a 3x3 chunk matrix and moving elements.
     """
 
-    def __init__(self, current_position, color_key):
+    def __init__(self, current_position):
         """
         Initialize the RenderManager with a starting position and color key for transparency.
 
@@ -179,7 +179,7 @@ class RenderManager:
                 screen.blit(chunk_surface, (chunk_x, chunk_y))
                 Debug.stop_timer("bliting chunk")
             
-    def render_inventory(self, screen: pygame.Surface, inventory: Inventory):
+    def render_inventory(self, screen: pygame.Surface, inventory: Inventory, player: Player):
         inv_image = IMAGE_LOADER.get_image("INVENTORY")
 
         inv_rect = pygame.rect.Rect((0, 0), inv_image.get_size())
@@ -207,7 +207,7 @@ class RenderManager:
         
             iten = element['item']
             num = element['quantity']
-            num_im = self.render_number_image(num)
+            num_im = self.render_text_image(num)
             iten_image = IMAGE_LOADER.get_image(ITEM_METADATA.get_property_by_id(iten, "image_name"))
             pos = v2(inv_poses[pos], inv_h)
             new_pos = v2(inv_rect.topleft) + pos
@@ -220,6 +220,18 @@ class RenderManager:
         new_pos = v2(inv_rect.topleft) + pos
         screen.blit(selected_light, new_pos - v2 (35, 35))
 
+        life_pos = inv_rect.topright + v2(20, 0)
+
+        life_percentage = player.life / commons.PLAYER_LIFE
+
+        life_im = IMAGE_LOADER.get_image("FULL_LIFE")
+        un_life_im = IMAGE_LOADER.get_image("EMPTY_LIFE")
+
+        life_rect = pygame.Rect((0, 0), life_im.get_size())
+        life_rect.w *= life_percentage
+
+        screen.blit(un_life_im, life_pos)
+        screen.blit(life_im.subsurface(life_rect), life_pos)
     
     @lru_cache(maxsize=1)
     def create_circle_image(self, size: int, circle_color=(255, 255, 255), bg_color=(0, 0, 0)):
@@ -251,14 +263,12 @@ class RenderManager:
         
         return surface
 
-
-    @lru_cache(maxsize=64)
-    def render_number_image(self, number, font_size=20, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
+    def render_text_image(self, text, font_size=20, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
         """
-        Renders an image of a number using Pygame.
+        Renders an image of a text using Pygame.
         
         Args:
-            number (int or float): The number to render.
+            text (str): The text to render.
             font_size (int): Size of the font. Default is 50.
             font_color (tuple): RGB color of the font. Default is white (255, 255, 255).
             bg_color (tuple): RGB color of the background. Default is black (0, 0, 0).
@@ -274,7 +284,7 @@ class RenderManager:
         font = pygame.font.Font(None, font_size)  # Default Pygame font
         
         # Render the number as a surface
-        text_surface = font.render(str(number), True, font_color, bg_color)
+        text_surface = font.render(str(text), True, font_color, bg_color)
         
         return text_surface
 
@@ -477,14 +487,6 @@ class RenderManager:
             if (0 <= actual_x < commons.WIDTH and
                 0 <= actual_y < commons.HEIGHT):
                 # Render the element's image if available, otherwise render a rectangle
-                if hasattr(element, 'attack_area') and element.attacking:
-                    _actual_x = element.attack_area.x - self.current_position[0]
-                    _actual_y = element.attack_area.y - self.current_position[1]
-                    pygame.draw.rect(
-                        screen,
-                        (255, 0, 0),  # Default color (red)
-                        pygame.Rect(_actual_x, _actual_y, element.attack_area.width, element.attack_area.height)
-                    )
                 
                 if hasattr(element, 'image') and element.image:
                     if isinstance(element.image, str):
@@ -519,7 +521,7 @@ class RenderManager:
         """
         self.render_chunks(screen)
         self.render_moving_elements(elements, screen)
-        self.render_inventory(screen, player.inventory)
+        self.render_inventory(screen, player.inventory, player)
 
     def update_position(self, new_position):
         """

@@ -21,14 +21,14 @@ class SettingsPage(Page):
         self.bg_image = self._bg_image
 
         # Labels and buttons for settings options
-        self.labels = [Label("Settings", commons.WIDTH / 2, 100)]
+        self.labels = [Label("Settings", commons.IWIDTH / 2, 100)]
         self.buttons = [
-            Button("Master Volume", commons.WIDTH / 2, 250, width=400, height=80, font_size=60, on_click=self.adjust_master_volume),
-            Button("Music Volume", commons.WIDTH / 2, 350, width=400, height=80, font_size=60, on_click=self.adjust_music_volume),
-            Button("Sound Effects Volume", commons.WIDTH / 2, 450, width=440, height=80, font_size=60, on_click=self.adjust_sfx_volume),
-            Button("Mute", commons.WIDTH / 2, 550, width=200, height=80, font_size=60, on_click=self.toggle_mute),
-            Button("Difficulty", commons.WIDTH / 2, 650, width=300, height=80, font_size=60, on_click=self.change_difficulty),
-            Button("Back", commons.WIDTH / 2, 750, width=200, height=80, font_size=60, on_click=self.go_back)
+            Button("Master Volume", commons.IWIDTH / 2, 250, width=400, height=80, font_size=60, on_click=self.adjust_master_volume),
+            Button("Music Volume", commons.IWIDTH / 2, 350, width=400, height=80, font_size=60, on_click=self.adjust_music_volume),
+            Button("Sound Effects Volume", commons.IWIDTH / 2, 450, width=440, height=80, font_size=60, on_click=self.adjust_sfx_volume),
+            Button("Mute", commons.IWIDTH / 2, 550, width=200, height=80, font_size=60, on_click=self.toggle_mute),
+            Button("Difficulty", commons.IWIDTH / 2, 650, width=300, height=80, font_size=60, on_click=self.change_difficulty),
+            Button("Back", commons.IWIDTH / 2, 750, width=200, height=80, font_size=60, on_click=self.go_back)
         ]
         
         # Set up elements for canvas and highlight selected option
@@ -123,7 +123,7 @@ class SettingsPage(Page):
         """
         Adjust the page elements and background based on the new screen size.
         """
-        scale_x, scale_y = display_size[0] / commons.WIDTH, display_size[1] / commons.HEIGHT
+        scale_x, scale_y = display_size[0] / commons.IWIDTH, display_size[1] / commons.IHEIGHT
 
         # Scale the background image to fit the new screen size
         self.bg_image = pygame.transform.scale(self._bg_image, display_size).convert()
@@ -133,7 +133,7 @@ class SettingsPage(Page):
             element.resize(scale_x, scale_y)
             element.render()
 
-    def update(self):
+    def update(self, delta_time):
         """Update the settings page, if necessary."""
         pass
 

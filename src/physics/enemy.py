@@ -14,6 +14,7 @@ class EnemyManager:
         self.spawn_interval = spawn_interval  # Intervalo para gerar novos inimigos (em segundos)
         self.last_spawn_time = 0  # Tempo de última geração de inimigos
         
+        self.max_enemies = commons.MAX_ENEMIES
         
         # Carregar os dados do JSON
         with open('assets/metadata/enemies_metadata.json') as f:
@@ -27,14 +28,14 @@ class EnemyManager:
     def update(self, dt: float, player: Player):
         # Atualiza o temporizador para criação de novos inimigos
         self.last_spawn_time += dt
-        if self.last_spawn_time > self.spawn_interval:
+        if self.last_spawn_time > self.spawn_interval and len(self.enemies) < self.max_enemies:
             self.enemies.append(self.spawn_enemy())  # Cria um novo inimigo
             self.last_spawn_time = 0  # Reinicia o contador de tempo
 
         # Atualiza todos os inimigos existentes
         for enemy in self.enemies:
             enemy.update_ai(player)
-            if v2(enemy.position).distance_to(player.position) > commons.DESPAWN_DISTANCE:
+            if enemy.is_alive() and v2(enemy.position).distance_to(player.position) > commons.DESPAWN_DISTANCE:
                 self.enemies.remove(enemy)
 
         # Remove inimigos mortos
@@ -63,7 +64,7 @@ class EnemyManager:
         dying_left = Animation([f"{enemy_name}.DYING{i}.FLIPED_X" for i in range(spr_num_data['dying'])], 0.07, True)
 
         # Enemy attributes
-        position = v2(random.randint(0, 800), random.randint(0, 600)) + commons.CURRENT_POSITION  # Example random position
+        position = v2(random.randint(0, commons.WIDTH*2), random.randint(-commons.HEIGHT, 0)) + commons.CURRENT_POSITION + v2(commons.WIDTH, commons.HEIGHT)/2  # Example random position
         size = (enemy_data['width'], enemy_data['height'])
         life = enemy_data['life']
         max_vel = enemy_data['max_vel']
@@ -92,7 +93,6 @@ class EnemyManager:
         )
 
         # Add the new enemy to the enemies list
-        self.enemies.append(new_enemy)
         return new_enemy
 
 ENEMY_MANAGER = EnemyManager()

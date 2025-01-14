@@ -6,7 +6,6 @@ import commons
 import pygame
 import images.image_loader as image_loader
 
-WIDTH, HEIGHT = 1920, 1080
 
 # Custom event for page change
 
@@ -26,12 +25,12 @@ class EntryMenu(Page):
         self.bg_image = self._bg_image
         
         # Initialize menu labels and buttons
-        self.labels = [Label("Cave Game", WIDTH / 2, 220)]
+        self.labels = [Label("Cave Game",commons.IWIDTH / 2, 220)]
         self.buttons = [
-            Button("settings", WIDTH - 50, 50, width=100, height=80, font_size=60, on_click=self.go_to_settings_page),
-            Button("Worlds", WIDTH / 2, 400, width=400, font_size=60, on_click=self.go_to_worlds_page), 
-            Button("New World", WIDTH / 2, 550, width=440, font_size=60, on_click=self.go_to_creating_page),
-            Button("Quit", WIDTH / 2, 700, width=300, font_size=60, on_click=self.quit_action),
+            Button("settings", commons.IWIDTH - 50, 50, width=100, height=80, font_size=60, on_click=self.go_to_settings_page),
+            Button("Worlds",commons.IWIDTH / 2, 400, width=400, font_size=60, on_click=self.go_to_worlds_page), 
+            Button("New World",commons.IWIDTH / 2, 550, width=440, font_size=60, on_click=self.go_to_creating_page),
+            Button("Quit",commons.IWIDTH / 2, 700, width=300, font_size=60, on_click=self.quit_action),
         ]
         
         # Combine labels and buttons for unified handling
@@ -73,7 +72,7 @@ class EntryMenu(Page):
         """
         Handle resizing the menu elements and background image based on screen size.
         """
-        scale_x, scale_y = display_size[0] / WIDTH, display_size[1] / HEIGHT
+        scale_x, scale_y = display_size[0] /commons.IWIDTH, display_size[1] / commons.IHEIGHT
 
         # Scale the background image to fit the new screen size
         self.bg_image = pygame.transform.smoothscale(self._bg_image, display_size).convert()
@@ -148,7 +147,7 @@ class EntryMenu(Page):
         for button in self.buttons:
             button.unselect()
 
-    def update(self):
+    def update(self, delta_time):
         """
         Update the menu's state, such as animations or button states.
         """

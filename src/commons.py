@@ -5,6 +5,8 @@ from pygame.math import Vector2 as v2
 
 WIDTH, HEIGHT = 1920, 1080
 
+IWIDTH, IHEIGHT = 1920, 1080
+
 CHUNK_SIZE = 31
 BLOCK_SIZE = 32
 
@@ -62,6 +64,7 @@ WORLD_SELECTED = '' # World selected on Worlds page to being played
 BLOCK_MASK_COLOR = (255, 0, 255)
 MASK_DEFAULT_PATH = 'assets/images/block_masks/'
 
+
 BACK_LAYER_TRANSPARENCY = 100 # Rule the back layer filtering (max: 255)
 
 BLOCK_RECUPERATION_PERCENTAGE = 5
@@ -81,7 +84,7 @@ DEFAULT_JUMP_STRENGHT = 500
 DEFAULT_WALKING_VEL = 500
 
 
-DEFAULT_START_PLAYER_POSITION = pygame.math.Vector2(0, -100)
+DEFAULT_START_PLAYER_POSITION = pygame.math.Vector2(100, -100)
 
 CURRENT_POSITION = pygame.math.Vector2(0, 0)
 
@@ -89,6 +92,14 @@ CURRENT_POSITION = pygame.math.Vector2(0, 0)
 INVENTORY_POS = lambda : v2(pygame.display.get_window_size()[0]/2, pygame.display.get_window_size()[1]-200)
 
 
-DESPAWN_DISTANCE = 1000
+DESPAWN_DISTANCE = 10_000
 
 BULLET_INITIAL_VELOCITY = 1000
+
+DAY_DURATION = 120 # Duração dos dias em segundos
+
+TIME_TO_LIFE_RECUPERATION = 3
+
+LIFE_ReCUPERATION_RATE = 5
+
+MAX_ENEMIES = 10

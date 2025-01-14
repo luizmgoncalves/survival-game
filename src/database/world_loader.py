@@ -34,8 +34,9 @@ class WorldLoader:
                 CREATE TABLE IF NOT EXISTS Worlds (
                     world_id INTEGER PRIMARY KEY,
                     name TEXT UNIQUE,
-                    score INTEGER DEFAULT 0,
-                    seed INTEGER DEFAULT NULL
+                    deaths INTEGER DEFAULT 0,
+                    kills INTEGER DEFAULT 0,
+                    seed INTEGER DEFAULT 4
                 );
             ''')
 
@@ -45,8 +46,6 @@ class WorldLoader:
                     world_id INTEGER NOT NULL,
                     x INTEGER NOT NULL,
                     y INTEGER NOT NULL,
-                    deaths INTEGER DEFAULT 0,
-                    kills INTEGER DEFAULT 0,
                     PRIMARY KEY (world_id),
                     FOREIGN KEY (world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
                 );
@@ -121,13 +120,12 @@ class WorldLoader:
 
             print("Database and tables created successfully.")
     
-    def create_world(self, name, score=0, seed=None):
+    def create_world(self, name, seed=None):
         """
         Create a new world with the given name, score, and seed.
 
         Args:
             name (str): The name of the world.
-            score (int): The initial score of the world (default is 0).
             seed (int): The seed value for the world (default is None).
         
         Raises:
@@ -135,7 +133,7 @@ class WorldLoader:
         """
 
         if seed is None:
-            seed = int(random.random() * 100_000)
+            seed = int(random.random() * 1000)
 
         try:
             with sqlite3.connect(self.db_name) as conn:
@@ -149,11 +147,11 @@ class WorldLoader:
 
                 # Insert the new world into the Worlds table
                 cursor.execute('''
-                    INSERT INTO Worlds (name, score, seed)
-                    VALUES (?, ?, ?);
-                ''', (name, score, seed))
+                    INSERT INTO Worlds (name, seed)
+                    VALUES (?, ?);
+                ''', (name, seed))
 
-                print(f"World '{name}' created successfully with score {score} and seed {seed}.")
+                print(f"World '{name}' created successfully, seed {seed}.")
 
         except sqlite3.Error as e:
             print(f"An error occurred while creating the world: {e}")
@@ -234,10 +232,10 @@ class WorldLoader:
             try:
                 # Use INSERT OR REPLACE to update location if it already exists
                 cursor.execute('''
-                    INSERT OR REPLACE INTO PlayerLocations (world_id, x, y, kills, deaths)
-                    VALUES (?, ?, ?, ?, ?);
-                ''', (world_id, x, y, kills, deaths))
-                print(f"Player location saved for world_id={world_id}: ({x}, {y}, {kills}, {deaths})")
+                    INSERT OR REPLACE INTO PlayerLocations (world_id, x, y)
+                    VALUES (?, ?, ?);
+                ''', (world_id, x, y))
+                print(f"Player location saved for world_id={world_id}: ({x}, {y})")
             except sqlite3.Error as e:
                 print(f"Error saving player location: {e}")
 
@@ -247,7 +245,7 @@ class WorldLoader:
             cursor = conn.cursor()
             try:
                 cursor.execute('''
-                    SELECT x, y, kills, deaths FROM PlayerLocations
+                    SELECT x, y FROM PlayerLocations
                     WHERE world_id = ?;
                 ''', (world_id,))
                 result = cursor.fetchone()
@@ -460,11 +458,11 @@ class WorldLoader:
                 cursor = conn.cursor()
 
                 # Query all worlds from the Worlds table
-                cursor.execute('SELECT world_id, name, score, seed FROM Worlds')
+                cursor.execute('SELECT world_id, name, seed FROM Worlds')
                 rows = cursor.fetchall()
 
                 # Convert the result to a list of dictionaries
-                worlds = [{'world_id': row[0], 'name': row[1], 'score': row[2], 'seed': row[3]} for row in rows]
+                worlds = [{'world_id': row[0], 'name': row[1], 'seed': row[2]} for row in rows]
 
                 return worlds
         except sqlite3.Error as e:
@@ -487,18 +485,57 @@ class WorldLoader:
                 cursor = conn.cursor()
 
                 # Query the world from the Worlds table
-                cursor.execute('SELECT world_id, name, score, seed FROM Worlds WHERE name = ?', (name,))
+                cursor.execute('SELECT world_id, name, deaths, kills, seed FROM Worlds WHERE name = ?', (name,))
                 row = cursor.fetchone()
 
                 if row:
                     # Return the world as a dictionary
-                    return {'world_id': row[0], 'name': row[1], 'score': row[2], 'seed': row[3]}
+                    return {'world_id': row[0], 'name': row[1], 'deaths': row[2], 'kills': row[3], 'seed': row[4]}
                 else:
                     # Return None if the world does not exist
                     return None
         except sqlite3.Error as e:
             print(f"An error occurred while fetching the world: {e}")
             return None
+    
+    def save_score(self, name: str, kills: int, deaths: int):
+        """
+        Save the kills and deaths for a specific world in the database.
+
+        Args:
+            name (str): The name of the world.
+            kills (int): The number of kills to save.
+            deaths (int): The number of deaths to save.
+
+        Returns:
+            bool: True if the score was successfully updated, False otherwise.
+        """
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cursor = conn.cursor()
+
+                # Check if the world exists
+                cursor.execute('SELECT world_id FROM Worlds WHERE name = ?', (name,))
+                world = cursor.fetchone()
+
+                if not world:
+                    print(f"World '{name}' does not exist.")
+                    return False
+
+                # Update kills and deaths
+                cursor.execute('''
+                    UPDATE Worlds
+                    SET kills = ?, deaths = ?
+                    WHERE name = ?;
+                ''', (kills, deaths, name))
+
+                conn.commit()
+                print(f"Score updated for world '{name}': kills={kills}, deaths={deaths}.")
+                return True
+        except sqlite3.Error as e:
+            print(f"An error occurred while saving the score: {e}")
+            return False
+
 
 WORLD_LOADER = WorldLoader()
 

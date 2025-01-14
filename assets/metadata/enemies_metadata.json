@@ -2,7 +2,7 @@
     "ENEMIES": {
         "ENEMY_VIKING": {
             "life": 100,
-            "attack_range": 50,
+            "attack_range": 90,
             "attack_damage": 100,
             "max_vel": 300,
             "width": 40,
@@ -31,7 +31,7 @@
         }, 
         "ENEMY_SPEAR": {
             "life": 100,
-            "attack_range": 50,
+            "attack_range": 90,
             "attack_damage": 100,
             "max_vel": 300,
             "width": 40,

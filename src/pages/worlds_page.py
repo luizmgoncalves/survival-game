@@ -24,12 +24,12 @@ class WorldsPage(Page):
         self.bg_image = self._bg_image
         
         # Initialize labels and buttons
-        self.labels = [Label("Worlds", commons.WIDTH / 2, 220)]
+        self.labels = [Label("Worlds", commons.IWIDTH / 2, 220)]
         self.buttons = [
-            Button("Back to Entry Menu", commons.WIDTH / 2, 900, width=440, font_size=60, on_click=self.go_back_to_entry_menu),
+            Button("Back to Entry Menu", commons.IWIDTH / 2, 900, width=440, font_size=60, on_click=self.go_back_to_entry_menu),
         ]
 
-        self.no_worlds = Label("You have no worlds yet", commons.WIDTH / 2, commons.HEIGHT / 2)
+        self.no_worlds = Label("You have no worlds yet", commons.IWIDTH / 2, commons.IHEIGHT / 2)
 
         # Set up layered canvas for drawing elements
         self.canvas = LayeredUpdates()
@@ -106,9 +106,9 @@ class WorldsPage(Page):
         button_height = 60
         for i, world in enumerate(self.worlds):
             if i == 0:
-                button = Button(world, commons.WIDTH/2, commons.HEIGHT/2, width=400, font_size=50, on_click=self.go_to_world_page, click_args=[world])
+                button = Button(world, commons.IWIDTH/2, commons.IHEIGHT/2, width=400, font_size=50, on_click=self.go_to_world_page, click_args=[world])
             else:
-                button = Button(world, commons.WIDTH*1.5, commons.HEIGHT/2, width=400, font_size=50, on_click=self.go_to_world_page, click_args=[world])
+                button = Button(world, commons.IWIDTH*1.5, commons.IHEIGHT/2, width=400, font_size=50, on_click=self.go_to_world_page, click_args=[world])
             world_buttons.append(button)
         
 
@@ -118,7 +118,7 @@ class WorldsPage(Page):
         """
         Handle resizing the menu elements and background image based on screen size.
         """
-        scale_x, scale_y = display_size[0] / commons.WIDTH, display_size[1] / commons.HEIGHT
+        scale_x, scale_y = display_size[0] / commons.IWIDTH, display_size[1] / commons.IHEIGHT
 
         # Scale the background image to fit the new screen size
         self.bg_image = pygame.transform.scale(self._bg_image, display_size).convert()
@@ -186,7 +186,7 @@ class WorldsPage(Page):
         self.animation_direction = direction  # Store direction for the animation
 
         # Move the current world button off-screen (left or right)
-        self.animation_target_x = -commons.WIDTH/2 if direction == -1 else commons.WIDTH * 1.5  # Move left or right
+        self.animation_target_x = -commons.IWIDTH/2 if direction == -1 else commons.IWIDTH * 1.5  # Move left or right
 
         # Update the current world index
         self.current_world_index = (self.current_world_index + direction) % len(self.world_buttons)
@@ -198,12 +198,12 @@ class WorldsPage(Page):
         self.current_button = self.world_buttons[(self.current_world_index - direction) % len(self.world_buttons)]
 
         if self.floating_button.base_rect.centerx <= 0 and direction == -1:
-            self.floating_button.set_pos(commons.WIDTH*1.5,commons.HEIGHT/2)
+            self.floating_button.set_pos(commons.IWIDTH*1.5,commons.IHEIGHT/2)
         
-        elif self.floating_button.base_rect.centerx >= commons.WIDTH and direction == 1:
-            self.floating_button.set_pos(commons.WIDTH*-0.5,commons.HEIGHT/2)
+        elif self.floating_button.base_rect.centerx >= commons.IWIDTH and direction == 1:
+            self.floating_button.set_pos(commons.IWIDTH*-0.5,commons.IHEIGHT/2)
 
-    def update(self):
+    def update(self, delta_time):
         """
         Update the page's state, such as animations or button states.
         """
@@ -221,8 +221,8 @@ class WorldsPage(Page):
                (self.animation_direction == 1 and self.current_button.base_rect.center[0] >= self.animation_target_x):
                 # Once off-screen, reset position and stop animating
                 self.animating = False
-                self.current_button.set_pos(-commons.WIDTH / 2, commons.HEIGHT / 2)
-                self.floating_button.set_pos(commons.WIDTH / 2, commons.HEIGHT / 2)
+                self.current_button.set_pos(-commons.IWIDTH / 2, commons.IHEIGHT / 2)
+                self.floating_button.set_pos(commons.IWIDTH / 2, commons.IHEIGHT / 2)
 
     def draw(self, screen):
         """

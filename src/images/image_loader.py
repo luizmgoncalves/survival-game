@@ -30,7 +30,9 @@ class ImageLoader:
     def init(self):
         """Initialize the loader by loading data from the JSON file."""
         if self._initialized:
-            raise RuntimeError("ImageLoader is already initialized!")
+            print("ImageLoader is already initialized!")
+            return
+        
         self.load_from_json(commons.METADATA_PATH + self.FILENAME)
         self._initialized = True  # Mark as initialized
     
@@ -207,6 +209,7 @@ class ImageLoader:
                     
         except pygame.error as e:
             raise pygame.error(f"Error loading {details['path']}: {e}")
+    
 
     def get_image(self, name):
         """Retrieve an image or sprite by name."""

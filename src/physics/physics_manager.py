@@ -117,7 +117,7 @@ class PhysicsManager:
         # Update other moving elements
         for element in self.moving_elements:
             element.update(delta_time)
-            if hasattr(element, "is_aline") and not element.is_alive():
+            if hasattr(element, "is_alive") and not element.is_alive():
                 self.moving_elements.remove(element)
     
     def apply_friction(self):

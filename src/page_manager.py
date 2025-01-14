@@ -25,9 +25,9 @@ class PageManager:
         if self.current_page:
             self.current_page.handle_events(event)
 
-    def update(self):
+    def update(self, delta_time):
         if self.current_page:
-            self.current_page.update()
+            self.current_page.update(delta_time)
 
     def draw(self, screen):
         if self.current_page:

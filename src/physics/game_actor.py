@@ -1,5 +1,5 @@
 import pygame
-from itertools import cycle
+import commons
 from .moving_element import CollidableMovingElement
 from rendering.animation import Animation
 from pygame.math import Vector2 as v2
@@ -19,6 +19,7 @@ class GameActor(CollidableMovingElement):
         self.jumping      : bool  = False
         self.facing_left  : bool  = False
         self.life         : float = life
+        self.max_life     : float  = life
         self.attacking    : bool  = False
         self.dying        : bool = False
         self.dying_time = 0.0
@@ -62,10 +63,11 @@ class GameActor(CollidableMovingElement):
 
         self.attack_cooldown: float = 1.0  # Cooldown time in seconds
         self.time_since_last_attack: float = 0.0  # Time since the last attack
+
+        self.time_since_last_damage: float = 0.0  # Time since the last attack
     
     def move(self, colliding_rects: List[pygame.Rect], delta_time: float):
-        if not self.dying:
-            super().move(colliding_rects, delta_time)
+        super().move(colliding_rects, delta_time)
 
     @property
     def current_animation(self) -> Animation:
@@ -93,6 +95,11 @@ class GameActor(CollidableMovingElement):
 
         if self.time_since_last_attack < self.attack_cooldown:
             self.time_since_last_attack += delta_time
+        
+        self.time_since_last_damage += delta_time
+
+        if self.is_alive() and self.time_since_last_damage > commons.TIME_TO_LIFE_RECUPERATION and self.life <= self.max_life:
+            self.life = min(self.life + commons.LIFE_ReCUPERATION_RATE * delta_time, self.max_life)
 
         # Handle attack timing
         if self.attacking:
@@ -151,6 +158,9 @@ class GameActor(CollidableMovingElement):
 
         :return: None
         """
+        if self.attacking:
+            return
+        
         if not self.jumping:
             self.jumping = True
             self.velocity.y = -self.jump_strength
@@ -170,6 +180,9 @@ class GameActor(CollidableMovingElement):
 
         :return: None
         """
+        if self.attacking:
+            return
+    
         if self.is_falling:
             self.velocity.x = max(-self.max_vel / 2, self.velocity.x - self.max_vel / 20)
         else:
@@ -184,6 +197,8 @@ class GameActor(CollidableMovingElement):
 
         :return: None
         """
+        if self.attacking:
+            return
         if self.is_falling:
             self.velocity.x = min(self.max_vel / 2, self.velocity.x + self.max_vel / 20)
         else:
@@ -253,8 +268,9 @@ class GameActor(CollidableMovingElement):
 
         :param amount: The damage amount to apply.
         """
-        if not self.invulnerable:
+        if not self.invulnerable and self.is_alive():
             self.life -= amount
+            self.time_since_last_damage = 0
             if self.life <= 0:
                 self.life = 0
                 self.die()  # Trigger dying state

@@ -94,16 +94,14 @@ class WorldGenerator:
                         blocks_grid[0, y, x] = DIRT
                         collidible_grid[y, x] = True
                     
-                    if unoise >= 0.004:
-                        blocks_grid[1, y, x] = STONE
-                    elif unoise >= 0.001:
+                    if unoise >= 0.0009:
                         blocks_grid[1, y, x] = STONE
                 elif world_y > surface_y:
-                    if unoise >= 0.09 or True:
+                    if unoise >= 0.03:
                         blocks_grid[0, y, x] = DIRT
                         collidible_grid[y, x] = True
                     
-                    if unoise >= 0.009 or True:
+                    if unoise >= 0.0009:
                         blocks_grid[1, y, x] = DIRT
 
                     #elif unoise >= 0.03:

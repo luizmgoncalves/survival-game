@@ -48,7 +48,6 @@ class Player(GameActor):
                          dying_right, dying_left)
 
         self.inventory = Inventory()
-        self.attack_cooldown = 0
         self.kills: int = kills
         self.deaths: int = deaths
 

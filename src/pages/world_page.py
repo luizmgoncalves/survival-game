@@ -7,6 +7,8 @@ import commons
 import images.image_loader as image_loader
 from database.world_loader import WORLD_LOADER
 
+from test import game
+
 class WorldPage(Page):
     def __init__(self):
         """
@@ -26,18 +28,21 @@ class WorldPage(Page):
         self.world_name: str = ''
 
         # Initialize labels and buttons
-        self.world_name_label = Label(f"", commons.WIDTH / 2, 220)
-        self.statistics = Label(f"Score: ", commons.WIDTH / 2, 500, font_size=40)
+        self.world_name_label = Label(f"", commons.IWIDTH / 2, 220)
+        self.statistics = Label(f"Score: ", commons.IWIDTH / 2, 500, font_size=40)
         self.buttons = [
-            Button("Play", commons.WIDTH / 3, 400, width=440, font_size=60),
-            Button("Delete", commons.WIDTH / 3 * 2, 400, width=440, font_size=60, on_click=self.delete_world),
-            Button("Back to Worlds Menu", commons.WIDTH / 2, 900, width=440, font_size=60, on_click=self.go_back_to_worlds_menu),
+            Button("Play", commons.IWIDTH / 3, 400, width=440, font_size=60, on_click=self.launch_game),
+            Button("Delete", commons.IWIDTH / 3 * 2, 400, width=440, font_size=60, on_click=self.delete_world),
+            Button("Back to Worlds Menu", commons.IWIDTH / 2, 900, width=440, font_size=60, on_click=self.go_back_to_worlds_menu),
         ]
 
         self.elements: list = [self.world_name_label, self.statistics] + self.buttons
 
         # Set up layered canvas for drawing elements
         self.canvas = LayeredUpdates(self.elements)
+    
+    def launch_game(self):
+        pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'game', 'world_name': self.world_name}))
     
     def delete_world(self):
         """
@@ -52,8 +57,9 @@ class WorldPage(Page):
     
     def _gen_stats(self) -> str:
         world = WORLD_LOADER.get_world(self.world_name)
+        print(world)
 
-        self.statistics = Label(f"Score: {world.get('score', 0)}, Seed: {world.get('seed', 0)}", commons.WIDTH / 2, 500, font_size=40)
+        self.statistics = Label(f"Kills: {world['kills']} Deaths: {world['deaths']}, Seed: {world.get('seed', 0)}", commons.IWIDTH / 2, 500, font_size=40)
     
     def reset(self, world='', **kwargs):
 
@@ -70,7 +76,7 @@ class WorldPage(Page):
 
         self.world_name = world
 
-        self.world_name_label = Label(f"{world}", commons.WIDTH / 2, 220)
+        self.world_name_label = Label(f"{world}", commons.IWIDTH / 2, 220)
         self._gen_stats()
         self.elements.append(self.world_name_label)
         self.elements.append(self.statistics)
@@ -103,7 +109,7 @@ class WorldPage(Page):
         """
         Handle resizing the menu elements and background image based on screen size.
         """
-        scale_x, scale_y = display_size[0] / commons.WIDTH, display_size[1] / commons.HEIGHT
+        scale_x, scale_y = display_size[0] / commons.IWIDTH, display_size[1] / commons.IHEIGHT
 
         # Scale the background image to fit the new screen size
         self.bg_image = pygame.transform.scale(self._bg_image, display_size).convert()
@@ -169,7 +175,7 @@ class WorldPage(Page):
                 if self.buttons[self.current_selected_option].is_hovered:
                     self.buttons[self.current_selected_option].press()
 
-    def update(self):
+    def update(self, delta_time):
         """
         Update the page's state, such as animations or button states.
         """
