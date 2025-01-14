@@ -1,15 +1,12 @@
 import numpy as np
 import pygame
 from random import randint
-from perlin_noise import PerlinNoise
 from .world_elements.chunk import Chunk
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 import commons
 import noise
 import random
 from .world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
-from .world_elements.static_element import StaticElement
-from utils.debug import Debug
 
 class WorldGenerator:
     """
@@ -35,8 +32,6 @@ class WorldGenerator:
         :param chunk_pos: Tuple of (chunk_x, chunk_y) defining the chunk's position.
         :return: A Chunk object with generated terrain.
         """
-
-        Debug.start_timer("Generating chunk")
 
         GRASS = BLOCK_METADATA.get_id_by_name("GRASS") # Get the ID for the "GRASS" block.
         DIRT  = BLOCK_METADATA.get_id_by_name("DIRT")  # Get the ID for the "DIRT" block.
@@ -134,8 +129,6 @@ class WorldGenerator:
         chunk.edges_matrix = edges_matrix
         chunk.changes['all'] = True
         chunk.world_elements = chunk_elements
-
-        Debug.stop_timer("Generating chunk")
     
     def surface(self, x: int) -> int:
         surface_y = (noise.pnoise1(x*0.0009, base=self.seed) *  commons.CHUNK_SIZE * 4 ) # 0 - 100
