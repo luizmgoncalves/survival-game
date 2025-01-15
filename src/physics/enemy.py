@@ -176,10 +176,3 @@ class Enemy(GameActor):
             pygame.event.post(pygame.event.Event(commons.THROWING, {'throwable': self.throwable, 'enemy': True, 'pos': self.rect.center}))
         # Additional logic to deal damage to the player can be added here.
 
-    def die(self):
-        """
-        Transition to the dying state and perform additional logic if needed.
-        """
-        super().die()
-        # Add any additional cleanup or effects for the enemy death here.
-

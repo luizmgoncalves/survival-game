@@ -30,7 +30,7 @@ class BackLayer:
         self.bimage = IMAGE_LOADER.get_image(self.image_name).copy()
         self.bimage = pygame.transform.scale_by(self.bimage, commons.WIDTH/self.bimage.get_width())
         self.image.blit(self.bimage, (0, commons.HEIGHT - self.bimage.get_height()- self.y_offset * commons.HEIGHT))
-        self.width = self.image.get_width()
+        self.width = self.bimage.get_width()
 
         self.tinted_image = None
 
@@ -54,7 +54,9 @@ class BackLayer:
             self.elapsed_time = 0  # Reset the timer
 
         # Blit the last painted image
+        
         pos_x = self.pos_x % commons.WIDTH
+        print(pos_x)
 
         screen.blit(self.tinted_image, (pos_x - self.width, 0))
         screen.blit(self.tinted_image, (pos_x, 0))

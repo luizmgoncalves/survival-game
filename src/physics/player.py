@@ -50,6 +50,7 @@ class Player(GameActor):
         self.inventory = Inventory()
         self.kills: int = kills
         self.deaths: int = deaths
+        self.attack_cooldown = 0
 
     
     def respawn(self):

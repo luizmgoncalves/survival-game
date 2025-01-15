@@ -28,7 +28,7 @@ while running:
     for event in pygame.event.get():
         page_manager.handle_events(event)
         
-        if event.type == pygame.WINDOWRESIZED:
+        if event.type == pygame.WINDOWRESIZED or event.type == pygame.WINDOWMAXIMIZED or event.type == pygame.WINDOWMINIMIZED:
             commons.WIDTH, commons.HEIGHT = pygame.display.get_window_size()
         if event.type == pygame.QUIT:
             running = False

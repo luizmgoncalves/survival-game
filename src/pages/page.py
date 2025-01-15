@@ -7,6 +7,13 @@ class Page(ABC):
         pass
 
     @abstractmethod
+    def resize(self, display_size):
+        """
+        Resize the page.
+        """
+        pass
+
+    @abstractmethod
     def reset(self, **kwargss):
         """
         Reset the state of the page.
