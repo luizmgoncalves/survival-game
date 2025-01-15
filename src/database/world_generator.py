@@ -153,48 +153,48 @@ class WorldGenerator:
             case 0: # left
                 for i in range(commons.CHUNK_SIZE):
                     if chunk2.blocks_grid[0, i, -1] and chunk1.blocks_grid[0, i, 0]: # Last column <-> First column
-                        chunk1.edges_matrix[0, i, 0] += 0b1000
-                        chunk2.edges_matrix[0, i, -1] += 0b0010
+                        chunk1.edges_matrix[0, i, 0] += 0b1000 if not chunk1.edges_matrix[0, i, 0] & 0b1000 else 0
+                        chunk2.edges_matrix[0, i, -1] += 0b0010 if not chunk2.edges_matrix[0, i, -1] & 0b0010 else 0
 
                     if chunk2.blocks_grid[1, i, -1] and chunk1.blocks_grid[1, i, 0]: # Last column <-> First column
-                        chunk1.edges_matrix[1, i, 0] += 0b1000
-                        chunk2.edges_matrix[1, i, -1] += 0b0010
+                        chunk1.edges_matrix[1, i, 0] += 0b1000 if not chunk1.edges_matrix[1, i, 0] & 0b1000 else 0
+                        chunk2.edges_matrix[1, i, -1] += 0b0010 if not chunk2.edges_matrix[1, i, -1] & 0b0010 else 0
                 
                 chunk2.changes['column'] = [commons.CHUNK_SIZE-1]
                 chunk1.changes['column'] = [0]
             case 1: # top
                 for i in range(commons.CHUNK_SIZE):
                     if chunk2.blocks_grid[0, -1, i] and chunk1.blocks_grid[0, 0, i]: # Last column <-> First column
-                        chunk1.edges_matrix[0, 0, i] += 0b0100
-                        chunk2.edges_matrix[0, -1, i] += 0b0001
+                        chunk1.edges_matrix[0, 0, i] += 0b0100 if not chunk1.edges_matrix[0, 0, i] & 0b0100 else 0
+                        chunk2.edges_matrix[0, -1, i] += 0b0001 if not chunk2.edges_matrix[0, -1, i] & 0b0001 else 0
 
                     if chunk2.blocks_grid[1, -1, i] and chunk1.blocks_grid[1, 0, i]: # Last column <-> First column
-                        chunk1.edges_matrix[1, 0, i] += 0b0100
-                        chunk2.edges_matrix[1, -1, i] += 0b0001
+                        chunk1.edges_matrix[1, 0, i] += 0b0100 if not chunk1.edges_matrix[1, 0, i] & 0b0100 else 0
+                        chunk2.edges_matrix[1, -1, i] += 0b0001 if not chunk2.edges_matrix[1, -1, i] & 0b0001 else 0
                 
                 chunk2.changes['line'] = [commons.CHUNK_SIZE-1]
                 chunk1.changes['line'] = [0]
             case 2: # right
                 for i in range(commons.CHUNK_SIZE):
                     if chunk2.blocks_grid[0, i, 0] and chunk1.blocks_grid[0, i, -1]: # First column <-> Last column
-                        chunk1.edges_matrix[0, i, -1] += 0b0010
-                        chunk2.edges_matrix[0, i, 0] += 0b1000
+                        chunk1.edges_matrix[0, i, -1] += 0b0010 if not chunk1.edges_matrix[0, i, -1] & 0b0010 else 0
+                        chunk2.edges_matrix[0, i, 0] += 0b1000 if not chunk2.edges_matrix[0, i, 0] & 0b1000 else 0
 
                     if chunk2.blocks_grid[1, i, 0] and chunk1.blocks_grid[1, i, -1]: # First column <-> Last column
-                        chunk1.edges_matrix[1, i, -1] += 0b0010
-                        chunk2.edges_matrix[1, i, 0] += 0b1000
+                        chunk1.edges_matrix[1, i, -1] += 0b0010 if not chunk1.edges_matrix[1, i, -1] & 0b0010 else 0
+                        chunk2.edges_matrix[1, i, 0] += 0b1000 if not chunk2.edges_matrix[1, i, 0] & 0b1000 else 0
                 
                 chunk2.changes['column'] = [0]
                 chunk1.changes['column'] = [commons.CHUNK_SIZE-1]
             case 3: #bottom
                 for i in range(commons.CHUNK_SIZE):
                     if chunk2.blocks_grid[0, 0, i] and chunk1.blocks_grid[0, -1, i]: # First row <-> Last row
-                        chunk1.edges_matrix[0, -1, i] += 0b0001
-                        chunk2.edges_matrix[0, 0, i] += 0b0100
+                        chunk1.edges_matrix[0, -1, i] += 0b0001 if not chunk1.edges_matrix[0, -1, i] & 0b0001 else 0
+                        chunk2.edges_matrix[0, 0, i] += 0b0100 if not chunk2.edges_matrix[0, 0, i] & 0b0100 else 0
 
                     if chunk2.blocks_grid[1, 0, i] and chunk1.blocks_grid[1, -1, i]: # First row <-> Last row
-                        chunk1.edges_matrix[1, -1, i] += 0b0001
-                        chunk2.edges_matrix[1, 0, i] += 0b0100
+                        chunk1.edges_matrix[1, -1, i] += 0b0001 if not chunk1.edges_matrix[1, -1, i] & 0b0001 else 0
+                        chunk2.edges_matrix[1, 0, i] += 0b0100 if not chunk2.edges_matrix[1, 0, i] & 0b0100 else 0
                 
                 chunk2.changes['line'] = [0]
                 chunk1.changes['line'] = [commons.CHUNK_SIZE-1]

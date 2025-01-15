@@ -56,7 +56,6 @@ class BackLayer:
         # Blit the last painted image
         
         pos_x = self.pos_x % commons.WIDTH
-        print(pos_x)
 
         screen.blit(self.tinted_image, (pos_x - self.width, 0))
         screen.blit(self.tinted_image, (pos_x, 0))

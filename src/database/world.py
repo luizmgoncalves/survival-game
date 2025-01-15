@@ -281,7 +281,7 @@ class World:
         cols_range = final_abs_x - block_abs_x
 
 
-
+        update_around = False
 
         visited_chunks : Set[Chunk] = set()
 
@@ -334,13 +334,34 @@ class World:
                 # Check for collidable blocks in the current position
                 if chunk.blocks_grid[1, local_row, local_col] == 0 and down: #verify if it's air
                     #chunk.changes['block'].append((local_col, local_row))
+                    if local_col == commons.CHUNK_SIZE - 1 or local_col == 0 or local_row == 0 or local_row == commons.CHUNK_SIZE -1:
+                        update_around = True
+                    
                     chunk.add_block(block_type, local_col, local_row, 1)
                     putted += 1
                 
                 if chunk.blocks_grid[0, local_row, local_col] == 0 and not down:
+                    if local_col == commons.CHUNK_SIZE - 1 or local_col == 0 or local_row == 0 or local_row == commons.CHUNK_SIZE -1:
+                        update_around = True
                     #chunk.changes['block'].append((local_col, local_row))
                     chunk.add_block(block_type, local_col, local_row, 0)
                     putted += 1
+        
+        if update_around and (cchunk := self.all_chunks.get((chunk_x, chunk_y), None)):
+            print("AQQQQ")
+            for i in range(0, 4):
+                match i:
+                    case 0: 
+                        around_chunk = self.all_chunks.get((chunk_x-1, chunk_y))
+                    case 1:
+                        around_chunk = self.all_chunks.get((chunk_x, chunk_y-1))
+                    case 2:
+                        around_chunk = self.all_chunks.get((chunk_x+1, chunk_y))
+                    case 3:
+                        around_chunk = self.all_chunks.get((chunk_x, chunk_y+1))
+                
+                if around_chunk: #Check if it exists
+                    self.generator.update_edges_matrix(cchunk, around_chunk, index=i)
         
         return putted
                     
