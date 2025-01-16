@@ -29,7 +29,7 @@
     "3": {
       "name": "STONE",
       "color": [128, 128, 128],
-      "health": 5,
+      "health": 20,
       "collidable": true,
       "image_name": "STONE",
       "drops": {
@@ -44,6 +44,17 @@
       "image_name": "SAND",
       "drops": {
         "STONE": 1
+      }
+    },
+    "5": {
+      "name": "WOOD",
+      "color": [139, 69, 19],
+      "health": 5,
+      "collidable": true,
+      "image_name": "WOOD",
+      "transparent": true,
+      "drops": {
+        "WOOD": 1
       }
     }
   }

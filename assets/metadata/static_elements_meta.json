@@ -2,10 +2,10 @@
     "1": {
         "name": "Large Tree",
         "image_name": "TREE_MAX",
-        "dimensions": [25, 70],
+        "dimensions": [40, 80],
         "health": [90, 110],
         "drop": {
-            "DIRT": 5
+            "WOOD": 3
         }
     }
 }

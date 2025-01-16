@@ -4,5 +4,6 @@
     "BUBBLE": "sounds/bubble-pop-283674.mp3",
     "DYING": "sounds/man-death-scream-186763.mp3",
     "MUSIC": "sounds/medieval-citytavern-ambient.mp3",
-    "START": "sounds/game-start.mp3"
+    "START": "sounds/game-start.mp3",
+    "CUT": "sounds/weapon-axe-hit.mp3"
 }

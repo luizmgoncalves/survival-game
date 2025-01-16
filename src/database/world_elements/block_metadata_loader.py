@@ -72,13 +72,16 @@ class BlockMetadataLoader:
             try:
                 block_id = str(block_id)
             except ValueError:
-                raise ValueError(f"Block ID {block_id} not found in metadata. Wrong type!")
+                print(f"Block ID {block_id} not found in metadata. Wrong type!")
+                return None
 
         if block_id not in self.metadata:
-            raise ValueError(f"Block ID {block_id} not found in metadata.")
+            print(f"Block ID {block_id} not found in metadata.")
+            return None
         
         if property_name not in self.metadata[block_id]:
-            raise ValueError(f"Property '{property_name}' not found for Block ID {block_id}.")
+            #print(f"Property '{property_name}' not found for Block ID {block_id}.")
+            return None
         
         return self.metadata[block_id][property_name]
 

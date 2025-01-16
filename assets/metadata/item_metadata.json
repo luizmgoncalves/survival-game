@@ -6,7 +6,7 @@
     },
     "2": {
         "name": "WOOD",
-        "image_name": "WOOD",
+        "image_name": "WOOD_ITEM",
         "block_name": "WOOD"
     },
     "3": {

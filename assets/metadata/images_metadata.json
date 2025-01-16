@@ -18,6 +18,15 @@
         "path": "blocks/grass.png",
         "block": true
     },
+    "WOOD": {
+        "path": "blocks/wood.png",
+        "block": true
+    },
+    "WOOD_ITEM": {
+        "color_key": [255, 0, 255],
+        "path": "blocks/wood.png",
+        "scaled_size": [20, 20]
+    },
     "FULL_LIFE": {
         "color_key": [255, 0, 255],
         "path": "inventory/life_full.png"
@@ -52,7 +61,7 @@
     "TREE_MAX": {
         "path": "trees/Cedar Tree max.png",
         "color_key": [255, 0, 255],
-        "offset": [-15, -15]
+        "offset": [-15, -10]
     },
     "BREAKING_0": {
         "path": "block_masks/breaking0.png",

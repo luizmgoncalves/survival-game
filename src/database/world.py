@@ -5,6 +5,7 @@ from .world_generator import WorldGenerator
 from .world_elements.block_metadata_loader import BLOCK_METADATA
 from .world_elements.item_metadata import ITEM_METADATA
 from .world_elements.static_elements_manager import S_ELEMENT_METADATA_LOADER
+from audio.audio_manager import AUDIO_MANAGER
 from pygame.math import Vector2 as v2
 from physics.player import Player
 from pygame.rect import Rect
@@ -246,6 +247,7 @@ class World:
                     # Apply damage to the static object's mining state
                     s_el.take_damage(damage, delta_time)
                     self.mining_objects[s_el] = chunk
+                    AUDIO_MANAGER.play_sound("CUT")
     
     def put(self, position: v2, dimensions: v2, block_type: int, quant: int, player: Player, down=False):
         """
