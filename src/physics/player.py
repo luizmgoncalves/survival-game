@@ -1,6 +1,7 @@
 from .game_actor import GameActor
 from rendering.animation import Animation
 from images.image_loader import IMAGE_LOADER
+from audio.audio_manager import AUDIO_MANAGER
 from utils.inventory import Inventory
 import pygame
 import commons
@@ -39,7 +40,7 @@ class Player(GameActor):
 
 
         # Call the parent constructor with these defaults
-        super().__init__(position, size, life, max_vel, commons.DEFAULT_JUMP_STRENGHT, 
+        super().__init__(position, size, life, max_vel, commons.DEFAULT_JUMP_STRENGHT, commons.PLAYER_ATTACK_DAMAGE, 
                          w_right, w_left, 
                          w_right, w_left, 
                          idle_right, idle_left, 
@@ -51,6 +52,7 @@ class Player(GameActor):
         self.kills: int = kills
         self.deaths: int = deaths
         self.attack_cooldown = 0
+        self.invulnerability_duration = commons.PLAYER_INVULNERABILITY_DURATION
 
     
     def respawn(self):
@@ -61,6 +63,12 @@ class Player(GameActor):
 
     def collect(self, iten: int):
         return self.inventory.add_item(iten, 1)
+    
+    def die(self):
+        AUDIO_MANAGER.stop_music()
+        AUDIO_MANAGER.play_sound("DYING")
+        AUDIO_MANAGER.play_music("MUSIC", True, 6000)
+        return super().die()
 
     def handle_input(self, keys):
         """

@@ -8,7 +8,7 @@ from images.image_loader import IMAGE_LOADER
 from typing import List
 
 class GameActor(CollidableMovingElement):
-    def __init__(self, pos: v2, size: v2, life: float, max_vel: float, jump_strength: float,
+    def __init__(self, pos: v2, size: v2, life: float, max_vel: float, jump_strength: float, attack_damage: float,
                  walk_right: Animation = None, walk_left: Animation = None,
                  run_right: Animation = None, run_left: Animation = None,
                  idle_right: Animation = None, idle_left: Animation = None,
@@ -27,6 +27,7 @@ class GameActor(CollidableMovingElement):
 
         self.attack_area  : Rect  = pygame.Rect(0, 0, size[0] * 1.5, size[1])
         self.attack_time  : float = 0
+        self.attack_damage: float = attack_damage
         self.max_vel      : float = max_vel
         self.jump_strength: float = jump_strength
 
@@ -59,7 +60,7 @@ class GameActor(CollidableMovingElement):
         # Invulnerability state
         self.invulnerable = False
         self.invulnerability_time = 0.0
-        self.invulnerability_duration = 1.0  # 1 second of invulnerability
+        self.invulnerability_duration = commons.INVULNERABILITY_DURATION  # 1 second of invulnerability
 
         self.attack_cooldown: float = 1.0  # Cooldown time in seconds
         self.time_since_last_attack: float = 0.0  # Time since the last attack
@@ -99,7 +100,7 @@ class GameActor(CollidableMovingElement):
         self.time_since_last_damage += delta_time
 
         if self.is_alive() and self.time_since_last_damage > commons.TIME_TO_LIFE_RECUPERATION and self.life <= self.max_life:
-            self.life = min(self.life + commons.LIFE_ReCUPERATION_RATE * delta_time, self.max_life)
+            self.life = min(self.life + commons.LIFE_RECUPERATION_RATE * delta_time, self.max_life)
 
         # Handle attack timing
         if self.attacking:
@@ -280,11 +281,11 @@ class GameActor(CollidableMovingElement):
             self.invulnerability_time = self.invulnerability_duration
 
             if direction == 'left':
-                self.velocity.x = -700 * amount/30
-                self.velocity.y = -500 * amount/30
+                self.velocity.x = -700 * min(amount/50, 1)
+                self.velocity.y = -500 * min(amount/50, 1)
             else:
-                self.velocity.x = 700 * amount/30
-                self.velocity.y = -500 * amount/30
+                self.velocity.x = 700 * min(amount/50, 1)
+                self.velocity.y = -500 * min(amount/50, 1)
 
     def die(self):
         """

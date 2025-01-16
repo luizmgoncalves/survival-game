@@ -118,11 +118,11 @@ class Arrow(DirectionalBullet):
         im = IMAGE_LOADER.get_image("ARSENAL_ARROW.FRAME1")
         an = Animation(["ARSENAL_ARROW.FRAME1"], 1, False)
         size = im.get_size()
-        DirectionalBullet.__init__(self, pos, size, velocity, an, 8)
+        DirectionalBullet.__init__(self, pos, size, velocity, an, 30)
 
 class Axe(Bullet):
     def __init__(self, pos: v2, velocity: v2):
         im = IMAGE_LOADER.get_image("ARSENAL_AXE.FRAME1")
         an = Animation([f"ARSENAL_AXE.FRAME{i}" for i in range(1, 9)], 0.05, False)
         size = v2(im.get_size())/2
-        Bullet.__init__(self, pos, size, velocity, an, 20)
+        Bullet.__init__(self, pos, size, velocity, an, 50)

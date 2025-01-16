@@ -1,6 +1,7 @@
 # src/main.py
 import pygame
 import commons
+from audio.audio_manager import AUDIO_MANAGER
 from page_manager import PageManager
 from pages import EntryMenu, WorldsPage, SettingsPage, WorldPage, CreatingPage, GamePage
 import commons
@@ -20,6 +21,8 @@ page_manager.add_page("create", CreatingPage())
 page_manager.add_page("game", GamePage())
 
 page_manager.set_page("entry")
+
+AUDIO_MANAGER.play_music("MUSIC", loop=True)
 
 running = True
 clock = pygame.time.Clock()

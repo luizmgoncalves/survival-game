@@ -6,6 +6,8 @@ from .page import Page
 import commons
 import images.image_loader as image_loader
 from database.world_loader import WORLD_LOADER
+from audio.audio_manager import AUDIO_MANAGER
+from pygame.time import delay
 
 from test import game
 
@@ -42,6 +44,9 @@ class WorldPage(Page):
         self.canvas = LayeredUpdates(self.elements)
     
     def launch_game(self):
+        AUDIO_MANAGER.play_sound("START")
+        AUDIO_MANAGER.stop_music()
+        AUDIO_MANAGER.play_music("MUSIC", loop=True, fade_time=7000)
         pygame.event.post(pygame.event.Event(commons.CHANGE_PAGE_EVENT, {'page': 'game', 'world_name': self.world_name}))
     
     def delete_world(self):

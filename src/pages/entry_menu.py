@@ -27,7 +27,7 @@ class EntryMenu(Page):
         # Initialize menu labels and buttons
         self.labels = [Label("Crafting Horizons",commons.IWIDTH / 2, 220)]
         self.buttons = [
-            Button("settings", commons.IWIDTH - 50, 50, width=100, height=80, font_size=60, on_click=self.go_to_settings_page),
+            Button("settings", commons.IWIDTH - 110, 50, width=200, height=80, font_size=60, on_click=self.go_to_settings_page),
             Button("Worlds",commons.IWIDTH / 2, 400, width=400, font_size=60, on_click=self.go_to_worlds_page), 
             Button("New World",commons.IWIDTH / 2, 550, width=440, font_size=60, on_click=self.go_to_creating_page),
             Button("Quit",commons.IWIDTH / 2, 700, width=300, font_size=60, on_click=self.quit_action),

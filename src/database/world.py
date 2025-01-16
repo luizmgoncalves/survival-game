@@ -348,7 +348,6 @@ class World:
                     putted += 1
         
         if update_around and (cchunk := self.all_chunks.get((chunk_x, chunk_y), None)):
-            print("AQQQQ")
             for i in range(0, 4):
                 match i:
                     case 0: 

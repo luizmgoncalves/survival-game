@@ -34,7 +34,7 @@ class PhysicsManager:
         self.moving_elements: List[MovingElement] = moving_elements 
         self.itens: List[Item] = []
         self.enemy_bullets: List[Bullet] = enemy_bullets 
-        self.enemy_manager = EnemyManager(5)
+        self.enemy_manager = EnemyManager()
         self.enemies: List[Enemy] = self.enemy_manager.enemies
         self.gravity: int = commons.GRAVITY_ACELERATION
         self.terminal_speed = commons.TERMINAL_SPEED
@@ -49,12 +49,12 @@ class PhysicsManager:
 
         angle += (random() - 0.5)*40
 
-        init_vel = v2.from_polar((commons.BULLET_INITIAL_VELOCITY, angle))
-
         match throwable:
             case "AXE":
+                init_vel = v2.from_polar((commons.BULLET_INITIAL_VELOCITY, angle))
                 new_bullet = Axe(pos, init_vel)
             case "ARROW":
+                init_vel = v2.from_polar((commons.BULLET_INITIAL_VELOCITY*1.5, angle))
                 new_bullet = Arrow(pos, init_vel)
             case _:
                 return
@@ -222,13 +222,13 @@ class PhysicsManager:
                 break
 
             if self.player.rect.colliderect(enemy.rect) and enemy.is_alive():
-                self.player.take_damage(5, 'left' if self.player.rect.x < enemy.rect.x else 'right')
+                self.player.take_damage(3, 'left' if self.player.rect.x < enemy.rect.x else 'right')
 
             if enemy.attacking and self.player.rect.colliderect(enemy.attack_area):
-                self.player.take_damage(20, 'left' if self.player.rect.x < enemy.attack_area.x else 'right')
+                self.player.take_damage(enemy.attack_damage, 'left' if self.player.rect.x < enemy.attack_area.x else 'right')
             
             if self.player.attacking and enemy.rect.colliderect(self.player.attack_area):
-                enemy.take_damage(20, 'left' if self.player.attack_area.x > enemy.rect.x else 'right')
+                enemy.take_damage(self.player.attack_damage, 'left' if self.player.attack_area.x > enemy.rect.x else 'right')
         
         # Check collisions between player and itens (optional)
         for iten in self.itens:

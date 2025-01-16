@@ -83,3 +83,12 @@ class Label(DirtySprite):
         self.base_rect.x += x_offset
         self.base_rect.y += y_offset
         self.rect.topleft = (self.base_rect.x * self.scale_factor[0], self.base_rect.y * self.scale_factor[1])
+    
+    def set_text(self, new_text):
+        """
+        Update the text of the label and re-render it.
+        :param new_text: The new text to display.
+        """
+        if self.text != new_text:
+            self.text = new_text
+            self.render()  # Re-render the label with the new text

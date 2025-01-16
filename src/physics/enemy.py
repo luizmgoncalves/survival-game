@@ -9,12 +9,12 @@ from .game_actor import GameActor
 from images.image_loader import ImageLoader  # Importando o ImageLoader
 
 class EnemyManager:
-    def __init__(self, spawn_interval=5):
+    def __init__(self):
         self.enemies = []  # Lista de inimigos ativos
-        self.spawn_interval = spawn_interval  # Intervalo para gerar novos inimigos (em segundos)
+        self.spawn_interval = commons.ENEMY_SPAWN_RATE[commons.CURRENT_DIFFICULTY_MODE]  # Intervalo para gerar novos inimigos (em segundos)
         self.last_spawn_time = 0  # Tempo de última geração de inimigos
         
-        self.max_enemies = commons.MAX_ENEMIES
+        self.max_enemies = commons.MAX_ENEMIES[commons.CURRENT_DIFFICULTY_MODE]
         
         # Carregar os dados do JSON
         with open('assets/metadata/enemies_metadata.json') as f:
@@ -67,7 +67,7 @@ class EnemyManager:
         position = v2(random.randint(0, commons.WIDTH*2), random.randint(-commons.HEIGHT, 0)) + commons.CURRENT_POSITION + v2(commons.WIDTH, commons.HEIGHT)/2  # Example random position
         size = (enemy_data['width'], enemy_data['height'])
         life = enemy_data['life']
-        max_vel = enemy_data['max_vel']
+        max_vel = enemy_data['max_vel'] + random.randint(-50, 50)
         attack_range = enemy_data['attack_range']
         attack_damage = enemy_data['attack_damage']
 
@@ -114,6 +114,7 @@ class Enemy(GameActor):
         :param attack_damage: Damage inflicted by the enemy's attack.
         """
         super().__init__(pos, size, life, max_vel, jump_strength=commons.DEFAULT_JUMP_STRENGHT,
+                         attack_damage=attack_damage,
                          walk_right=walk_right, walk_left=walk_left,
                          idle_right=idle_right, idle_left=idle_left,
                          attack_right=attack_right, attack_left=attack_left,
@@ -125,7 +126,7 @@ class Enemy(GameActor):
             self.attack_cooldown = 2.0
 
         self.attack_range: float = attack_range
-        self.attack_damage: float = attack_damage
+        
 
     def update_ai(self, player):
         """
@@ -151,6 +152,14 @@ class Enemy(GameActor):
         :return: Euclidean distance to the player.
         """
         return ((self.rect.centerx - player.rect.centerx) ** 2 + (self.rect.centery - player.rect.centery) ** 2) ** 0.5
+
+    def collided_left(self):
+        self.jump()
+        return super().collided_left()
+    
+    def collided_right(self):
+        self.jump()
+        return super().collided_left()
 
     def move_towards_player(self, player):
         """

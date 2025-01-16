@@ -1,4 +1,8 @@
 {
-    "BUTTON_HOVER_SOUND": "hover-button.wav",
-    "BUTTON_CLICK_SOUND": "button-click.wav"
+    "BUTTON_HOVER_SOUND": "sounds/hover-button2.wav",
+    "BUTTON_CLICK_SOUND": "sounds/ui-click-97915.wav",
+    "BUBBLE": "sounds/bubble-pop-283674.mp3",
+    "DYING": "sounds/man-death-scream-186763.mp3",
+    "MUSIC": "sounds/medieval-citytavern-ambient.mp3",
+    "START": "sounds/game-start.mp3"
 }

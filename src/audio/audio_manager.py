@@ -9,7 +9,6 @@ class AudioManager:
     def __init__(self):
         """
         Initialize the AudioManager.
-        :param loader: An instance of AudioLoader.
         """
         self.loader = AudioLoader()
         self.master_volume = 1.0  # Range: 0.0 to 1.0
@@ -17,30 +16,42 @@ class AudioManager:
         self.music_volume = 1.0  # Range: 0.0 to 1.0
         self.muted = False
         self.current_playing = None  # Name of the currently playing music
+        self.current_sounds = {}  # Tracks currently playing sound effects
 
     def play_sound(self, name):
         """Play a sound effect by name."""
         if self.muted:
             return
+        
+        # Check if the sound is already playing
+        if name in self.current_sounds and self.current_sounds[name].get_busy():
+            #print(f"Sound '{name}' is already playing.")
+            return
+
         sound = self.loader.get_audio(name)
         if sound:
+            # Play the sound and track it
             sound.set_volume(self.master_volume * self.effects_volume)
-            sound.play()
+            channel = sound.play()
+            self.current_sounds[name] = channel
         else:
             print(f"Sound '{name}' not found.")
 
-    def play_music(self, name, loop=False):
-        """Play music by name, stopping any previously playing music."""
+    def play_music(self, name, loop=False, fade_time=0):
+        """Play music by name, stopping any previously playing music. Optionally fade in."""
         if self.muted:
             return
+
         sound = self.loader.get_audio(name)
         if sound:
             # Stop current music if playing
             if self.current_playing:
                 self.stop_music()
+
             self.current_playing = name
             sound.set_volume(self.master_volume * self.music_volume)
-            sound.play(-1 if loop else 0)
+
+            sound.play(-1 if loop else 0, fade_ms=fade_time)
         else:
             print(f"Music '{name}' not found.")
 
@@ -89,6 +100,20 @@ class AudioManager:
             sound = self.loader.get_audio(self.current_playing)
             if sound:
                 sound.set_volume(self.master_volume * self.music_volume)
+
+        for sound_name, channel in self.current_sounds.items():
+            if channel and channel.get_busy():
+                sound = self.loader.get_audio(sound_name)
+                if sound:
+                    sound.set_volume(self.master_volume * self.effects_volume)
+
+    def stop_sound(self, name):
+        """Stop a currently playing sound effect by name."""
+        if name in self.current_sounds:
+            channel = self.current_sounds[name]
+            if channel and channel.get_busy():
+                channel.stop()
+            del self.current_sounds[name]
 
 pygame.mixer.init()
 

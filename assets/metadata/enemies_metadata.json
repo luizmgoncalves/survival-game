@@ -1,9 +1,9 @@
 {
     "ENEMIES": {
         "ENEMY_VIKING": {
-            "life": 100,
-            "attack_range": 90,
-            "attack_damage": 100,
+            "life": 300,
+            "attack_range": 70,
+            "attack_damage": 30,
             "max_vel": 300,
             "width": 30,
             "height": 35,
@@ -15,9 +15,9 @@
             }
         }, 
         "ENEMY_AXE": {
-            "life": 100,
-            "attack_range": 500,
-            "attack_damage": 100,
+            "life": 300,
+            "attack_range": 250,
+            "attack_damage": 60,
             "max_vel": 300,
             "width": 30,
             "height": 40,
@@ -30,10 +30,10 @@
             }
         }, 
         "ENEMY_SPEAR": {
-            "life": 100,
-            "attack_range": 90,
+            "life": 200,
+            "attack_range": 100,
             "attack_damage": 100,
-            "max_vel": 300,
+            "max_vel": 250,
             "width": 40,
             "height": 50,
             "num_sprites":{
@@ -45,8 +45,8 @@
         }, 
         "ENEMY_ARROW": {
             "life": 100,
-            "attack_range": 500,
-            "attack_damage": 100,
+            "attack_range": 540,
+            "attack_damage": 40,
             "max_vel": 300,
             "width": 40,
             "height": 50,
