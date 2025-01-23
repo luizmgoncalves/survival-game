@@ -155,7 +155,7 @@ class RenderManager:
         :param screen: pygame.Surface, the main game display.
         """
         for element in self.current_static_elements:
-            image_name = S_ELEMENT_METADATA_LOADER.get_property_by_id(element.id, "image_name")
+            image_name = S_ELEMENT_METADATA_LOADER.get_property_by_id(element.id, 'image_name')
             im = IMAGE_LOADER.get_image(image_name)
             screen_position = v2(element.rect.topleft) + IMAGE_LOADER.get_image_atribute(image_name, "offset") - v2(self.current_position)
             screen.blit(im, screen_position)
@@ -208,7 +208,7 @@ class RenderManager:
             iten = element['item']
             num = element['quantity']
             num_im = self.render_text_image(num)
-            iten_image = IMAGE_LOADER.get_image(ITEM_METADATA.get_property_by_id(iten, "image_name"))
+            iten_image = IMAGE_LOADER.get_image(ITEM_METADATA.get_property_by_id(iten, 'image_name'))
             pos = v2(inv_poses[pos], inv_h)
             new_pos = v2(inv_rect.topleft) + pos
             screen.blit(iten_image, new_pos)
@@ -318,12 +318,12 @@ class RenderManager:
                                         commons.BLOCK_SIZE)
                             
                             if layer==0:
-                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
                                 
                             # Checks if the upper block has transparency or if there is no block
                             elif ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0) or BLOCK_METADATA.get_property_by_id(chunk.blocks_grid[0, y, x], "transparent"): 
-                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
             
             chunk.clear_changes()
@@ -353,11 +353,11 @@ class RenderManager:
                                         commons.BLOCK_SIZE)
 
                             if layer==0:
-                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
                             
                             elif ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0) or BLOCK_METADATA.get_property_by_id(chunk.blocks_grid[0, y, x], "transparent"): 
-                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
 
         if chunk.changes.get('column'):
@@ -384,11 +384,11 @@ class RenderManager:
                                         commons.BLOCK_SIZE)
 
                             if layer==0:
-                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                image_name = f"{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
                             
                             elif ((chunk.edges_matrix[0, y, x] != 0b1111 and chunk.edges_matrix[0, y, x] != edge) or chunk.blocks_grid[0, y, x] == 0) or BLOCK_METADATA.get_property_by_id(chunk.blocks_grid[0, y, x], "transparent"): 
-                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, "image_name")}.{edge:04b}"
+                                image_name = f"BACK_{BLOCK_METADATA.get_property_by_id(block, 'image_name')}.{edge:04b}"
                                 surface.blit(IMAGE_LOADER.get_image(image_name), block_rect)
 
         if chunk.changes.get('block'):
